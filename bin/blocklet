@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import argparse
+import pycron
+import json
+import dns.resolver
+import requests
+from requests_toolbelt.adapters import host_header_ssl
+
+###
+### |parameters|
+###
+
+UNITS = 'imperial'
+DNS = ''
+
+WEATHER_STRING = '{currcond} {currtemp}°'
+
+WEATHER_SCHEDULE = '* 6-19 * * 1-5'
+
+WEATHER_API_KEY = os.environ['WEATHER_API_KEY'] # openweathermap.org
+
+###
+### |subroutines|
+###
+
+# Globals
+proxy = None
+
+def error(msg, code=1):
+    print('Error:', msg, file=sys.stderr)
+    sys.exit(rv)
+
+def get(domain, resource, https=True):
+    server = domain
+    headers = {}
+    if proxy:
+        try:
+            answer = proxy.query(domain, 'A')
+        except:
+            error('failed to query domain {}'.format(domain))
+        server = answer[0].address
+        headers = {'host': domain}
+        if https:
+            requests.Session().mount('https://', host_header_ssl.HostHeaderSSLAdapter())
+    protocol = 'https://' if https else 'http://'
+    url = protocol + server + resouce
+    response = requests.get(url, headers=headers, verify=False) # TODO: get rid of verify=False
+    return response
+
+def weather(args):
+    if WEATHER_SCHEDULE and not pycron.is_now(WEATHER_SCHEDULE):
+        return
+    resp = get('api.openweathermap.org', '/data/2.5/weather/?appid={key}&units={units}&{location}'.format(key=WEATHER_API_KEY, units=args.units, location=args.location))
+    data = resp.json()
+    strvals = {
+        'currtemp': '1337',
+        'currcond': 'leet'
+    }
+    print(WEATHER_STRING.format(strvals))
+
+###
+### |main|
+###
+
+def main():
+    parser = argparse.ArgumentParser(description='Generates blocklets for i3blocks')
+    parser.add_argument('--no-pango', action='store_true', help='Use basic i3bar protocol instead of pango markup')
+    parser.add_argument('--dns', nargs='?', help='Use a custom DNS server for web queries')
+    subparsers = opts.add_subparsers()
+    subparser = subparsers.add_parser('weather', help='Generate weather blocklet', epilog="""
+        Example location IDs:
+        zip=95110
+    """)
+    subparser.add_argument('location', type=str, help='location ID')
+    subparser.add_argument('--units', type=str, default=UNITS, choices=['imperial', 'metric'])
+    subparser.set_defaults(func=weather)
+    #subparser = subparsers.add_parser(...) ...
+    args = parser.parse_args()
+
+    if args.dns or DNS:
+        global proxy
+        proxy = dns.resolver.Resolver(configure=False)
+        proxy.nameservers = [args.dns if args.dns else DNS]
+
+    try:
+        func = args.func
+    except AttributeError:
+        parser.error('too few arguments')
+    func(args)
+
+if __name__ == '__main__':
+    main()
+
