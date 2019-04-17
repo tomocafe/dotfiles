@@ -12,18 +12,17 @@ import requests
 from requests_toolbelt.adapters import host_header_ssl
 
 ###
-### |parameters|
+### |defaults|
 ###
 
 UNITS = 'imperial'
 DNS = ''
 
-WEATHER_CURRENT_STRING = '{cond} {temp}°'
-WEATHER_FORECAST_STRING = '{cond} {hi}°/{lo}°'
-AQI_STRING = 'AQI {aqi}'
-
-WEATHER_SCHEDULE = '* 6-19 * * 1-5'
-AQI_SCHEDULE = '* 6-19 * * 1-5'
+WEATHER_FORMAT = '{cond} {temp}°'
+AQI_FORMAT = 'AQI {aqi}'
+STOCK_FORMAT = '{symbol} ${price}{status} ({change})'
+STOCK_TRADING_INDICATOR='*'
+STOCK_AFTERHOURS_INDICATOR='^'
 
 WEATHER_API_KEY = os.environ['WEATHER_API_KEY'] # openweathermap.org
 
@@ -56,7 +55,8 @@ def get(domain, resource, json=True, https=True):
     return response.json() if json else response.text
 
 def weather(args):
-    if WEATHER_SCHEDULE and not pycron.is_now(WEATHER_SCHEDULE):
+    if args.schedule and not pycron.is_now(args.schedule):
+        print('Skip per schedule', file=sys.stderr)
         return
     if args.forecast:
         data = get('api.openweathermap.org', '/data/2.5/forecast/daily/?appid={key}&units={units}&{location}'.format(key=WEATHER_API_KEY, units=args.units, location=args.location))
@@ -69,7 +69,7 @@ def weather(args):
             'humidity': int(data['list'][day]['humidity']),
             'pressure': int(data['list'][day]['pressure'])
         }
-        print(WEATHER_FORECAST_STRING.format(**strvals))
+        strvals['temp'] = strvals['hi'] # register synonym
     else:
         data = get('api.openweathermap.org', '/data/2.5/weather/?appid={key}&units={units}&{location}'.format(key=WEATHER_API_KEY, units=args.units, location=args.location))
         strvals = {
@@ -79,10 +79,11 @@ def weather(args):
             'humidity': int(data['main']['humidity']),
             'pressure': int(data['main']['pressure'])
         }
-        print(WEATHER_CURRENT_STRING.format(**strvals))
+    print(args.format.format(**strvals))
 
 def aqi(args):
-    if AQI_SCHEDULE and not pycron.is_now(AQI_SCHEDULE):
+    if args.schedule and not pycron.is_now(args.schedule):
+        print('Skip per schedule', file=sys.stderr)
         return
     if args.forecast:
         data = get('feeds.enviroflash.info', '/rss/forecast/{location}.xml'.format(location=args.location), False, False)
@@ -116,8 +117,38 @@ def aqi(args):
             'aqi': worst[0],
             'type': worst[2]
         }
-    print(AQI_STRING.format(**strvals))
+    print(args.format.format(**strvals))
 
+def stock(args):
+    if args.schedule and not pycron.is_now(args.schedule):
+        print('Skip per schedule', file=sys.stderr)
+        return
+    data = get('query1.finance.yahoo.com', '/v7/finance/quote?lang=en-US&region=US&corsDomain=finance.yahoo.com&symbols={symbol}'.format(symbol=args.symbol))
+    status = data['quoteResponse']['result'][0]['marketState']
+    indicator=''
+    if args.after_hours and status == 'POST':
+        price = data['quoteResponse']['result'][0]['postMarketPrice']
+        change = data['quoteResponse']['result'][0]['postMarketChange']
+        percent = data['quoteResponse']['result'][0]['postMarketChangePercent']
+        indicator = args.after_hours_indicator
+    else:
+        price = data['quoteResponse']['result'][0]['regularMarketPrice']
+        change = data['quoteResponse']['result'][0]['regularMarketChange']
+        percent = data['quoteResponse']['result'][0]['regularMarketChangePercent']
+        if status == 'REGULAR':
+            indicator = args.trading_indicator
+    # Format to 2 decimal places, add + in front of positive change values
+    price = '{0:.2f}'.format(price)
+    change = '{0}{1:.2f}'.format('+' if change >= 0 else '', change)
+    percent = '{0}{1:.2f}'.format('+' if percent >= 0 else '', percent)
+    strvals = {
+        'symbol': args.symbol,
+        'price': price,
+        'change': change,
+        'percent': percent,
+        'status': indicator
+    }
+    print(args.format.format(**strvals))
 ###
 ### |main|
 ###
@@ -127,23 +158,42 @@ def main():
     parser = argparse.ArgumentParser(description='Generates blocklets for i3blocks')
     parser.add_argument('--no-pango', action='store_true', help='Use basic i3bar protocol instead of pango markup')
     parser.add_argument('--dns', nargs='?', help='Use a custom DNS server for web queries')
+    parser.add_argument('--schedule', type=str, nargs='?', help='Time window to run blocklet, in standard cron format')
     subparsers = parser.add_subparsers()
     # Weather
     subparser = subparsers.add_parser('weather', help='Generate weather blocklet', epilog="""
-        Example location IDs:
-        zip=95110
+        Example location IDs: zip=95110
+        Available keys for formatting:
+        {temp} {hi} {lo} {cond} {wind} {humidity} {pressure}
+        ({temp} is a synonym of {hi})
     """)
-    subparser.add_argument('location', type=str, help='location ID')
+    subparser.add_argument('location', type=str, help='Location ID')
     subparser.add_argument('--forecast', type=str, nargs='?', choices=['today', 'tomorrow'])
     subparser.add_argument('--units', type=str, default=UNITS, choices=['imperial', 'metric'])
+    subparser.add_argument('--format', type=str, default=WEATHER_FORMAT, help='Format string to print. Default: \'{}\''.format(WEATHER_FORMAT))
     subparser.set_defaults(func=weather)
     # Air quality (AQI)
     subparser = subparsers.add_parser('aqi', help='Generate air quality blocklet', epilog="""
-        Refer to airnowapi.org for location IDs
+        Refer to airnowapi.org for location IDs.
+        Available keys for formatting:
+        {aqi} {desc} {type}
     """)
-    subparser.add_argument('location', type=str, help='location ID')
+    subparser.add_argument('location', type=str, help='Location ID')
     subparser.add_argument('--forecast', type=str, nargs='?', choices=['today', 'tomorrow'])
+    subparser.add_argument('--format', type=str, default=AQI_FORMAT, help='Format string to print. Default: \'{}\''.format(AQI_FORMAT))
     subparser.set_defaults(func=aqi)
+    # Stock
+    subparser = subparsers.add_parser('stock', help='Generate stock blocklet', epilog="""
+        Available keys for formatting:
+        {...}
+    """)
+    subparser.add_argument('symbol', type=str, help='Stock ticker symbol')
+    subparser.add_argument('--after-hours', action='store_true', help='Use after hours trading price when available')
+    subparser.add_argument('--trading-indicator', type=str, default=STOCK_TRADING_INDICATOR, help='Status indicator for when the market is trading. Default=\'{}\''.format(STOCK_TRADING_INDICATOR))
+    subparser.add_argument('--after-hours-indicator', type=str, default=STOCK_AFTERHOURS_INDICATOR, help='Status indicator for when the market is trading after hours. Default=\'{}\''.format(STOCK_AFTERHOURS_INDICATOR))
+    subparser.add_argument('--format', type=str, default=STOCK_FORMAT, help='Format string to print. Default: \'{}\''.format(STOCK_FORMAT))
+    subparser.set_defaults(func=stock)
+    #
     args = parser.parse_args()
 
     if args.dns or DNS:
