@@ -2,9 +2,11 @@
 
 import os
 import sys
+import re
 import argparse
 import pycron
 import json
+import xml.etree.ElementTree as ET
 import dns.resolver
 import requests
 from requests_toolbelt.adapters import host_header_ssl
@@ -16,9 +18,12 @@ from requests_toolbelt.adapters import host_header_ssl
 UNITS = 'imperial'
 DNS = ''
 
-WEATHER_STRING = '{currcond} {currtemp}°'
+WEATHER_CURRENT_STRING = '{cond} {temp}°'
+WEATHER_FORECAST_STRING = '{cond} {hi}°/{lo}°'
+AQI_STRING = 'AQI {aqi}'
 
 WEATHER_SCHEDULE = '* 6-19 * * 1-5'
+AQI_SCHEDULE = '* 6-19 * * 1-5'
 
 WEATHER_API_KEY = os.environ['WEATHER_API_KEY'] # openweathermap.org
 
@@ -33,7 +38,7 @@ def error(msg, code=1):
     print('Error:', msg, file=sys.stderr)
     sys.exit(rv)
 
-def get(domain, resource, https=True):
+def get(domain, resource, json=True, https=True):
     server = domain
     headers = {}
     if proxy:
@@ -46,38 +51,99 @@ def get(domain, resource, https=True):
         if https:
             requests.Session().mount('https://', host_header_ssl.HostHeaderSSLAdapter())
     protocol = 'https://' if https else 'http://'
-    url = protocol + server + resouce
+    url = protocol + server + resource
     response = requests.get(url, headers=headers, verify=False) # TODO: get rid of verify=False
-    return response
+    return response.json() if json else response.text
 
 def weather(args):
     if WEATHER_SCHEDULE and not pycron.is_now(WEATHER_SCHEDULE):
         return
-    resp = get('api.openweathermap.org', '/data/2.5/weather/?appid={key}&units={units}&{location}'.format(key=WEATHER_API_KEY, units=args.units, location=args.location))
-    data = resp.json()
-    strvals = {
-        'currtemp': '1337',
-        'currcond': 'leet'
-    }
-    print(WEATHER_STRING.format(strvals))
+    if args.forecast:
+        data = get('api.openweathermap.org', '/data/2.5/forecast/daily/?appid={key}&units={units}&{location}'.format(key=WEATHER_API_KEY, units=args.units, location=args.location))
+        day = 0 if args.forecast == 'today' else 1
+        strvals = {
+            'lo': int(data['list'][day]['temp']['min']),
+            'hi': int(data['list'][day]['temp']['max']),
+            'cond': data['list'][day]['weather'][0]['main'],
+            'wind': int(data['list'][day]['speed']),
+            'humidity': int(data['list'][day]['humidity']),
+            'pressure': int(data['list'][day]['pressure'])
+        }
+        print(WEATHER_FORECAST_STRING.format(**strvals))
+    else:
+        data = get('api.openweathermap.org', '/data/2.5/weather/?appid={key}&units={units}&{location}'.format(key=WEATHER_API_KEY, units=args.units, location=args.location))
+        strvals = {
+            'temp': int(data['main']['temp']),
+            'cond': data['weather'][0]['main'],
+            'wind': int(data['wind']['speed']),
+            'humidity': int(data['main']['humidity']),
+            'pressure': int(data['main']['pressure'])
+        }
+        print(WEATHER_CURRENT_STRING.format(**strvals))
+
+def aqi(args):
+    if AQI_SCHEDULE and not pycron.is_now(AQI_SCHEDULE):
+        return
+    if args.forecast:
+        data = get('feeds.enviroflash.info', '/rss/forecast/{location}.xml'.format(location=args.location), False, False)
+        text = ET.fromstring(get('feeds.enviroflash.info', '/rss/forecast/{location}.xml'.format(location=args.location), False, False)).find('./channel/item/description').text.replace('\n', '')
+        day = 'Today' if args.forecast == 'today' else 'Tomorrow'
+        matches = re.search('{day}.*: (\w+) *- ([0-9]+) AQI - Particle'.format(day=day), text)
+        pm25 = ozone = [0, 'Unknown', 'Unknown']
+        if matches:
+            pm25 = [int(matches.group(2)), matches.group(1), 'PM2.5']
+        matches = re.search('{day}.*: (\w+) *- ([0-9]+) AQI - Ozone'.format(day=day), text)
+        if matches:
+            ozone = [int(matches.group(2)), matches.group(1), 'Ozone']
+        worst = max(pm25, ozone)
+        strvals = {
+            'desc' : worst[1],
+            'aqi': worst[0],
+            'type': worst[2]
+        }
+    else:
+        text = ET.fromstring(get('feeds.enviroflash.info', '/rss/realtime/{location}.xml'.format(location=args.location), False, False)).find('./channel/item/description').text.replace('\n', '')
+        matches = re.search('(\w+) *- ([0-9]+) AQI - Particle', text)
+        pm25 = ozone = [0, 'Unknown', 'Unknown']
+        if matches:
+            pm25 = [int(matches.group(2)), matches.group(1), 'PM2.5']
+        matches = re.search('(\w+) *- ([0-9]+) AQI - Ozone', text)
+        if matches:
+            ozone = [int(matches.group(2)), matches.group(1), 'Ozone']
+        worst = max(pm25, ozone)
+        strvals = {
+            'desc' : worst[1],
+            'aqi': worst[0],
+            'type': worst[2]
+        }
+    print(AQI_STRING.format(**strvals))
 
 ###
 ### |main|
 ###
 
 def main():
+    # Top level arguments
     parser = argparse.ArgumentParser(description='Generates blocklets for i3blocks')
     parser.add_argument('--no-pango', action='store_true', help='Use basic i3bar protocol instead of pango markup')
     parser.add_argument('--dns', nargs='?', help='Use a custom DNS server for web queries')
-    subparsers = opts.add_subparsers()
+    subparsers = parser.add_subparsers()
+    # Weather
     subparser = subparsers.add_parser('weather', help='Generate weather blocklet', epilog="""
         Example location IDs:
         zip=95110
     """)
     subparser.add_argument('location', type=str, help='location ID')
+    subparser.add_argument('--forecast', type=str, nargs='?', choices=['today', 'tomorrow'])
     subparser.add_argument('--units', type=str, default=UNITS, choices=['imperial', 'metric'])
     subparser.set_defaults(func=weather)
-    #subparser = subparsers.add_parser(...) ...
+    # Air quality (AQI)
+    subparser = subparsers.add_parser('aqi', help='Generate air quality blocklet', epilog="""
+        Refer to airnowapi.org for location IDs
+    """)
+    subparser.add_argument('location', type=str, help='location ID')
+    subparser.add_argument('--forecast', type=str, nargs='?', choices=['today', 'tomorrow'])
+    subparser.set_defaults(func=aqi)
     args = parser.parse_args()
 
     if args.dns or DNS:
