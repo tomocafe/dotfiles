@@ -5,6 +5,7 @@ import sys
 import re
 import argparse
 import pycron
+import time
 import json
 import xml.etree.ElementTree as ET
 import dns.resolver
@@ -20,11 +21,14 @@ DNS = ''
 
 WEATHER_FORMAT = '{cond} {temp}°'
 AQI_FORMAT = 'AQI {aqi}'
-STOCK_FORMAT = '{symbol} ${price}{status} ({change})'
+STOCK_FORMAT = '{symbol} ${price}{status} ({percent}%)'
 STOCK_TRADING_INDICATOR='*'
 STOCK_AFTERHOURS_INDICATOR='^'
+COMMUTE_FORMAT = '{hr}:{min}'
+COMMUTE_MODE = 'driving'
 
-WEATHER_API_KEY = os.environ['WEATHER_API_KEY'] # openweathermap.org
+WEATHER_API_KEY = os.environ.get('WEATHER_API_KEY') # openweathermap.org
+COMMUTE_API_KEY = os.environ.get('COMMUTE_API_KEY') # maps.googleapis.com
 
 ###
 ### |subroutines|
@@ -149,6 +153,22 @@ def stock(args):
         'status': indicator
     }
     print(args.format.format(**strvals))
+
+def commute(args):
+    if args.schedule and not pycron.is_now(args.schedule):
+        print('Skip per schedule', file=sys.stderr)
+        return
+    data = get('maps.googleapis.com', '/maps/api/distancematrix/json?traffic_model=best_guess&mode={mode}&avoid={avoid}&key={key}&departure_time=now&origins={ori}&destinations={dst}&units={units}'.format(key=COMMUTE_API_KEY, mode=args.mode, avoid=args.avoid, ori=args.origin, dst=args.destination, units=args.units))
+    duration_key = 'duration_in_traffic' if args.mode == 'driving' else 'duration'
+    secs = data['rows'][0]['elements'][0][duration_key]['value']
+    strvals = {
+        'hr': int(secs / 3600),
+        'min': int(secs / 60) % 60,
+        'text': data['rows'][0]['elements'][0][duration_key]['text'],
+        'distance': data['rows'][0]['elements'][0]['distance']['text']
+    }
+    print(args.format.format(**strvals))
+
 ###
 ### |main|
 ###
@@ -185,7 +205,7 @@ def main():
     # Stock
     subparser = subparsers.add_parser('stock', help='Generate stock blocklet', epilog="""
         Available keys for formatting:
-        {...}
+        {symbol} {price} {change} {percent} {status}
     """)
     subparser.add_argument('symbol', type=str, help='Stock ticker symbol')
     subparser.add_argument('--after-hours', action='store_true', help='Use after hours trading price when available')
@@ -193,7 +213,19 @@ def main():
     subparser.add_argument('--after-hours-indicator', type=str, default=STOCK_AFTERHOURS_INDICATOR, help='Status indicator for when the market is trading after hours. Default=\'{}\''.format(STOCK_AFTERHOURS_INDICATOR))
     subparser.add_argument('--format', type=str, default=STOCK_FORMAT, help='Format string to print. Default: \'{}\''.format(STOCK_FORMAT))
     subparser.set_defaults(func=stock)
-    #
+    # Commute
+    subparser = subparsers.add_parser('commute', help='Generate commute blocklet', epilog="""
+        Available keys for formatting:
+        {hr} {min} {text} {distance}
+    """)
+    subparser.add_argument('origin', type=str, help='Origin address')
+    subparser.add_argument('destination', type=str, help='Destination address')
+    subparser.add_argument('--mode', type=str, default=COMMUTE_MODE, choices=['driving', 'walking', 'bicycling', 'transit'])
+    subparser.add_argument('--avoid', type=str, nargs='?', choices=['tolls', 'highways', 'ferries', 'indoor'])
+    subparser.add_argument('--units', type=str, default=UNITS, choices=['imperial', 'metric'])
+    subparser.add_argument('--format', type=str, default=COMMUTE_FORMAT, help='Format string to print. Default: \'{}\''.format(COMMUTE_FORMAT))
+    subparser.set_defaults(func=commute)
+
     args = parser.parse_args()
 
     if args.dns or DNS:
