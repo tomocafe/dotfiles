@@ -2,16 +2,9 @@
 
 import os
 import sys
-import re
 import argparse
 import pycron
-import time
 import json
-import xml.etree.ElementTree as ET
-import dns.resolver
-import requests
-from requests_toolbelt.adapters import host_header_ssl
-from math import log2
 
 ###
 ### |defaults|
@@ -28,6 +21,7 @@ STOCK_AFTERHOURS_INDICATOR='^'
 COMMUTE_FORMAT = '{hr}:{min}'
 COMMUTE_MODE = 'driving'
 DISK_FORMAT = '{label} {pctused}%'
+LOAD_FORMAT = '{label} {pctused}%'
 
 WEATHER_API_KEY = os.environ.get('WEATHER_API_KEY') # openweathermap.org
 COMMUTE_API_KEY = os.environ.get('COMMUTE_API_KEY') # maps.googleapis.com
@@ -44,9 +38,11 @@ def error(msg, code=1):
     sys.exit(rv)
 
 def get(domain, resource, json=True, https=True):
+    import requests
     server = domain
     headers = {}
     if proxy:
+        import dns.resolver
         try:
             answer = proxy.query(domain, 'A')
         except:
@@ -54,6 +50,7 @@ def get(domain, resource, json=True, https=True):
         server = answer[0].address
         headers = {'host': domain}
         if https:
+            from requests_toolbelt.adapters import host_header_ssl
             requests.Session().mount('https://', host_header_ssl.HostHeaderSSLAdapter())
     protocol = 'https://' if https else 'http://'
     url = protocol + server + resource
@@ -85,6 +82,8 @@ def weather(args):
     print(args.format.format(**strvals))
 
 def aqi(args):
+    import xml.etree.ElementTree as ET
+    import re
     if args.forecast:
         data = get('feeds.enviroflash.info', '/rss/forecast/{location}.xml'.format(location=args.location), False, False)
         text = ET.fromstring(get('feeds.enviroflash.info', '/rss/forecast/{location}.xml'.format(location=args.location), False, False)).find('./channel/item/description').text.replace('\n', '')
@@ -160,24 +159,49 @@ def commute(args):
     print(args.format.format(**strvals))
 
 def b2h(b):
+    from math import log2
     i = min(int(log2(b) / 10), 4) if b else 0
     return '{}{}'.format(float('%.3g' % (b / (1 << (i * 10)))), ['B','K','M','G','T'][i])
 
 def disk(args):
-    #{label} {pctused} {pctfree} {free} {used}
-    stats = os.statvfs(args.path)
-    total_bytes = stats.f_blocks * stats.f_frsize
-    free_bytes = stats.f_bavail * stats.f_frsize
-    used_bytes = total_bytes - free_bytes
-    pctused = round(100 * used_bytes / total_bytes)
-    pctfree = 100 - pctused
+    from psutil import disk_usage
+    stats = disk_usage(args.path)
     strvals = {
         'label': args.label if args.label else args.path,
-        'pctused': pctused,
-        'pctfree': pctfree,
-        'used': b2h(used_bytes),
-        'free': b2h(free_bytes)
+        'pctused': round(stats.percent),
+        'pctfree': round(100.0 - stats.percent),
+        'used': b2h(stats.used),
+        'free': b2h(stats.free)
     }
+    print(args.format.format(**strvals))
+
+def load(args):
+    if not args.label:
+        from socket import gethostname
+    if args.type == 'cpu':
+        from psutil import cpu_count
+        load = os.getloadavg()[round(args.cpu_load_interval / 7)] # 1 min -> [0], 5 min -> [1], 15 min -> [2]
+        strvals = {
+            'label': args.label if args.label else gethostname(),
+            'used': load,
+            'free': cpu_count() - load,
+            'pctused': round(load / cpu_count()),
+            'pctfree': round(100.0 - (load / cpu_count()))
+        }
+    elif args.type == 'mem':
+        if args.mem_type == 'virtual':
+            from psutil import virtual_memory
+            stats = virtual_memory()
+        elif args.mem_type == 'swap':
+            from psutil import swap_memory
+            stats = swap_memory()
+        strvals = {
+            'label': args.label if args.label else gethostname(),
+            'pctused': round(stats.percent),
+            'pctfree': round(100.0 - stats.percent),
+            'used': b2h(stats.used),
+            'free': b2h(stats.free)
+        }
     print(args.format.format(**strvals))
 
 ###
@@ -201,7 +225,7 @@ def main():
     subparser.add_argument('location', type=str, help='Location ID')
     subparser.add_argument('--forecast', type=str, nargs='?', choices=['today', 'tomorrow'])
     subparser.add_argument('--units', type=str, default=UNITS, choices=['imperial', 'metric'])
-    subparser.add_argument('--format', type=str, default=WEATHER_FORMAT, help='Format string to print. Default: \'{}\''.format(WEATHER_FORMAT))
+    subparser.add_argument('--format', type=str, default=WEATHER_FORMAT, help='Format string to print. Default: \'%(default)s\''.format(WEATHER_FORMAT))
     subparser.set_defaults(func=weather)
     # Air quality (AQI)
     subparser = subparsers.add_parser('aqi', help='Generate air quality blocklet', epilog="""
@@ -211,7 +235,7 @@ def main():
     """)
     subparser.add_argument('location', type=str, help='Location ID')
     subparser.add_argument('--forecast', type=str, nargs='?', choices=['today', 'tomorrow'])
-    subparser.add_argument('--format', type=str, default=AQI_FORMAT, help='Format string to print. Default: \'{}\''.format(AQI_FORMAT))
+    subparser.add_argument('--format', type=str, default=AQI_FORMAT, help='Format string to print. Default: \'%(default)s\''.format(AQI_FORMAT))
     subparser.set_defaults(func=aqi)
     # Stock
     subparser = subparsers.add_parser('stock', help='Generate stock blocklet', epilog="""
@@ -222,7 +246,7 @@ def main():
     subparser.add_argument('--after-hours', action='store_true', help='Use after hours trading price when available')
     subparser.add_argument('--trading-indicator', type=str, default=STOCK_TRADING_INDICATOR, help='Status indicator for when the market is trading. Default=\'{}\''.format(STOCK_TRADING_INDICATOR))
     subparser.add_argument('--after-hours-indicator', type=str, default=STOCK_AFTERHOURS_INDICATOR, help='Status indicator for when the market is trading after hours. Default=\'{}\''.format(STOCK_AFTERHOURS_INDICATOR))
-    subparser.add_argument('--format', type=str, default=STOCK_FORMAT, help='Format string to print. Default: \'{}\''.format(STOCK_FORMAT))
+    subparser.add_argument('--format', type=str, default=STOCK_FORMAT, help='Format string to print. Default: \'%(default)s\''.format(STOCK_FORMAT))
     subparser.set_defaults(func=stock)
     # Commute
     subparser = subparsers.add_parser('commute', help='Generate commute blocklet', epilog="""
@@ -234,7 +258,7 @@ def main():
     subparser.add_argument('--mode', type=str, default=COMMUTE_MODE, choices=['driving', 'walking', 'bicycling', 'transit'])
     subparser.add_argument('--avoid', type=str, nargs='?', choices=['tolls', 'highways', 'ferries', 'indoor'])
     subparser.add_argument('--units', type=str, default=UNITS, choices=['imperial', 'metric'])
-    subparser.add_argument('--format', type=str, default=COMMUTE_FORMAT, help='Format string to print. Default: \'{}\''.format(COMMUTE_FORMAT))
+    subparser.add_argument('--format', type=str, default=COMMUTE_FORMAT, help='Format string to print. Default: \'%(default)s\''.format(COMMUTE_FORMAT))
     subparser.set_defaults(func=commute)
     # Disk
     subparser = subparsers.add_parser('disk', help='Generate disk blocklet', epilog="""
@@ -243,8 +267,19 @@ def main():
     """)
     subparser.add_argument('path', type=str, help='Disk mount path')
     subparser.add_argument('--label', type=str, nargs='?', help='Nickname for this disk')
-    subparser.add_argument('--format', type=str, default=DISK_FORMAT, help='Format string to print. Default: \'{}\''.format(DISK_FORMAT))
+    subparser.add_argument('--format', type=str, default=DISK_FORMAT, help='Format string to print. Default: \'%(default)s\''.format(DISK_FORMAT))
     subparser.set_defaults(func=disk)
+    # Load
+    subparser = subparsers.add_parser('load', help='Generate load blocklet', epilog="""
+        Available keys for formatting:
+        {label} {used} {free} {pctused} {pctfree}
+    """)
+    subparser.add_argument('type', type=str, default='cpu', choices=['cpu', 'mem'])
+    subparser.add_argument('--label', type=str, nargs='?', help='Nickname for this host')
+    subparser.add_argument('--cpu-load-interval', type=int, default=5, choices=[1, 5, 15], help='Report average load over a 1, 5, or 15 minute interval. Default: %(default)s')
+    subparser.add_argument('--mem-type', type=str, default='virtual', choices=['virtual', 'swap'])
+    subparser.add_argument('--format', type=str, default=LOAD_FORMAT, help='Format string to print. Default: \'%(default)s\''.format(LOAD_FORMAT))
+    subparser.set_defaults(func=load)
 
     args = parser.parse_args()
 
@@ -253,6 +288,7 @@ def main():
         return
 
     if args.dns or DNS:
+        import dns.resolver
         global proxy
         proxy = dns.resolver.Resolver(configure=False)
         proxy.nameservers = [args.dns if args.dns else DNS]
