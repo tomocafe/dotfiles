@@ -185,7 +185,7 @@ def load(args):
             'label': args.label if args.label else gethostname(),
             'used': load,
             'free': cpu_count() - load,
-            'pctused': round(load / cpu_count()),
+            'pctused': round(100.0 * load / cpu_count()),
             'pctfree': round(100.0 - (load / cpu_count()))
         }
     elif args.type == 'mem':
