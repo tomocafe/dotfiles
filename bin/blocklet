@@ -14,14 +14,20 @@ UNITS = 'imperial'
 DNS = ''
 
 WEATHER_FORMAT = '{cond} {temp}°'
+WEATHER_SHORT_FORMAT = '{temp}°'
 AQI_FORMAT = 'AQI {aqi}'
-STOCK_FORMAT = '{symbol} ${price}{status} ({percent}%)'
+AQI_SHORT_FORMAT = '{aqi}'
+STOCK_FORMAT = '{symbol} ${price}{status} ({sign}{percent}%)'
+STOCK_SHORT_FORMAT = '${price} ({sign}{percent}%)'
 STOCK_TRADING_INDICATOR='*'
 STOCK_AFTERHOURS_INDICATOR='^'
 COMMUTE_FORMAT = '{hr}:{min}'
+COMMUTE_SHORT_FORMAT = '{hr}:{min}'
 COMMUTE_MODE = 'driving'
 DISK_FORMAT = '{label} {pctused}%'
+DISK_SHORT_FORMAT = '{pctused}%'
 LOAD_FORMAT = '{label} {pctused}%'
+LOAD_SHORT_FORMAT = '{pctused}%'
 
 WEATHER_API_KEY = os.environ.get('WEATHER_API_KEY') # openweathermap.org
 COMMUTE_API_KEY = os.environ.get('COMMUTE_API_KEY') # maps.googleapis.com
@@ -79,7 +85,7 @@ def weather(args):
             'humidity': int(data['main']['humidity']),
             'pressure': int(data['main']['pressure'])
         }
-    print(args.format.format(**strvals))
+    return strvals
 
 def aqi(args):
     import xml.etree.ElementTree as ET
@@ -116,7 +122,7 @@ def aqi(args):
             'aqi': worst[0],
             'type': worst[2]
         }
-    print(args.format.format(**strvals))
+    return strvals
 
 def stock(args):
     data = get('query1.finance.yahoo.com', '/v7/finance/quote?lang=en-US&region=US&corsDomain=finance.yahoo.com&symbols={symbol}'.format(symbol=args.symbol))
@@ -133,18 +139,19 @@ def stock(args):
         percent = data['quoteResponse']['result'][0]['regularMarketChangePercent']
         if status == 'REGULAR':
             indicator = args.trading_indicator
-    # Format to 2 decimal places, add + in front of positive change values
+    # Format to 2 decimal places
     price = '{0:.2f}'.format(price)
-    change = '{0}{1:.2f}'.format('+' if change >= 0 else '', change)
-    percent = '{0}{1:.2f}'.format('+' if percent >= 0 else '', percent)
+    change = '{0:.2f}'.format(change)
+    percent = '{0:.2f}'.format(percent)
     strvals = {
         'symbol': args.symbol,
         'price': price,
         'change': change,
         'percent': percent,
-        'status': indicator
+        'status': indicator,
+        'sign': '+' if float(change) > 0 else ''
     }
-    print(args.format.format(**strvals))
+    return strvals
 
 def commute(args):
     data = get('maps.googleapis.com', '/maps/api/distancematrix/json?traffic_model=best_guess&mode={mode}&avoid={avoid}&key={key}&departure_time=now&origins={ori}&destinations={dst}&units={units}'.format(key=COMMUTE_API_KEY, mode=args.mode, avoid=args.avoid, ori=args.origin, dst=args.destination, units=args.units))
@@ -156,7 +163,7 @@ def commute(args):
         'text': data['rows'][0]['elements'][0][duration_key]['text'],
         'distance': data['rows'][0]['elements'][0]['distance']['text']
     }
-    print(args.format.format(**strvals))
+    return strvals
 
 def b2h(b):
     from math import log2
@@ -173,7 +180,7 @@ def disk(args):
         'used': b2h(stats.used),
         'free': b2h(stats.free)
     }
-    print(args.format.format(**strvals))
+    return strvals
 
 def load(args):
     if not args.label:
@@ -202,7 +209,27 @@ def load(args):
             'used': b2h(stats.used),
             'free': b2h(stats.free)
         }
-    print(args.format.format(**strvals))
+    return strvals
+
+def colorize(strvals, args):
+    import operator
+    fg = bg = None
+    for rules, op in list(zip([args.color_if_less, args.color_if_equal, args.color_if_more], [operator.lt, operator.eq, operator.gt])):
+        for rule in rules:
+            [key, threshold, *colors] = rule.split(',')
+            # Cast threshold to be same type as value we're comparing against
+            threshold = (type(strvals[key]))(threshold)
+            if key in strvals and op(strvals[key], threshold):
+                if args.color_whole_block:
+                    fg = colors[0] if len(colors) > 0 else None
+                    bg = colors[1] if len(colors) > 1 else None
+                else:
+                    props = ''
+                    for prop, code in list(zip(['foreground', 'background'], colors)):
+                        props += ' {prop}={code}'.format(prop=prop, code=code)
+                    val = strvals[key]
+                    strvals[key] = '<span{props}>{val}</span>'.format(props=props, val=val)
+    return [strvals, fg, bg]
 
 ###
 ### |main|
@@ -211,9 +238,12 @@ def load(args):
 def main():
     # Top level arguments
     parser = argparse.ArgumentParser(description='Generates blocklets for i3blocks')
-    parser.add_argument('--no-pango', action='store_true', help='Use basic i3bar protocol instead of pango markup')
-    parser.add_argument('--dns', nargs='?', help='Use a custom DNS server for web queries')
     parser.add_argument('--schedule', type=str, nargs='?', help='Time window to run blocklet, in standard cron format')
+    parser.add_argument('--dns', nargs='?', help='Use a custom DNS server for web queries')
+    parser.add_argument('--color-if-less', action='append', default=[], help='Color a key when its value is less than the specified threshold. Format: key_name,threshold,fgcolor[,bgcolor]')
+    parser.add_argument('--color-if-equal', action='append', default=[], help='Color a key when its value is equal than the specified threshold. Format: key_name,threshold,fgcolor[,bgcolor]')
+    parser.add_argument('--color-if-more', action='append', default=[], help='Color a key when its value is more than the specified threshold. Format: key_name,threshold,fgcolor[,bgcolor]')
+    parser.add_argument('--color-whole-block', action='store_true', help='Color the entire block instead of only a key (does not require pango markup)')
     subparsers = parser.add_subparsers()
     # Weather
     subparser = subparsers.add_parser('weather', help='Generate weather blocklet', epilog="""
@@ -225,7 +255,8 @@ def main():
     subparser.add_argument('location', type=str, help='Location ID')
     subparser.add_argument('--forecast', type=str, nargs='?', choices=['today', 'tomorrow'])
     subparser.add_argument('--units', type=str, default=UNITS, choices=['imperial', 'metric'])
-    subparser.add_argument('--format', type=str, default=WEATHER_FORMAT, help='Format string to print. Default: \'%(default)s\''.format(WEATHER_FORMAT))
+    subparser.add_argument('--format', type=str, default=WEATHER_FORMAT, help='Format string to print. Default: \'%(default)s\'')
+    subparser.add_argument('--short-format', type=str, default=WEATHER_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
     subparser.set_defaults(func=weather)
     # Air quality (AQI)
     subparser = subparsers.add_parser('aqi', help='Generate air quality blocklet', epilog="""
@@ -235,18 +266,20 @@ def main():
     """)
     subparser.add_argument('location', type=str, help='Location ID')
     subparser.add_argument('--forecast', type=str, nargs='?', choices=['today', 'tomorrow'])
-    subparser.add_argument('--format', type=str, default=AQI_FORMAT, help='Format string to print. Default: \'%(default)s\''.format(AQI_FORMAT))
+    subparser.add_argument('--format', type=str, default=AQI_FORMAT, help='Format string to print. Default: \'%(default)s\'')
+    subparser.add_argument('--short-format', type=str, default=AQI_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
     subparser.set_defaults(func=aqi)
     # Stock
     subparser = subparsers.add_parser('stock', help='Generate stock blocklet', epilog="""
         Available keys for formatting:
-        {symbol} {price} {change} {percent} {status}
+        {symbol} {price} {change} {percent} {status} {sign}
     """)
     subparser.add_argument('symbol', type=str, help='Stock ticker symbol')
     subparser.add_argument('--after-hours', action='store_true', help='Use after hours trading price when available')
-    subparser.add_argument('--trading-indicator', type=str, default=STOCK_TRADING_INDICATOR, help='Status indicator for when the market is trading. Default=\'{}\''.format(STOCK_TRADING_INDICATOR))
-    subparser.add_argument('--after-hours-indicator', type=str, default=STOCK_AFTERHOURS_INDICATOR, help='Status indicator for when the market is trading after hours. Default=\'{}\''.format(STOCK_AFTERHOURS_INDICATOR))
-    subparser.add_argument('--format', type=str, default=STOCK_FORMAT, help='Format string to print. Default: \'%(default)s\''.format(STOCK_FORMAT))
+    subparser.add_argument('--trading-indicator', type=str, default=STOCK_TRADING_INDICATOR, help='Status indicator for when the market is trading. Default=\'%(default)s\'')
+    subparser.add_argument('--after-hours-indicator', type=str, default=STOCK_AFTERHOURS_INDICATOR, help='Status indicator for when the market is trading after hours. Default=\'%(default)s\'')
+    subparser.add_argument('--format', type=str, default=STOCK_FORMAT, help='Format string to print. Default: \'%(default)s\'')
+    subparser.add_argument('--short-format', type=str, default=STOCK_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
     subparser.set_defaults(func=stock)
     # Commute
     subparser = subparsers.add_parser('commute', help='Generate commute blocklet', epilog="""
@@ -258,7 +291,8 @@ def main():
     subparser.add_argument('--mode', type=str, default=COMMUTE_MODE, choices=['driving', 'walking', 'bicycling', 'transit'])
     subparser.add_argument('--avoid', type=str, nargs='?', choices=['tolls', 'highways', 'ferries', 'indoor'])
     subparser.add_argument('--units', type=str, default=UNITS, choices=['imperial', 'metric'])
-    subparser.add_argument('--format', type=str, default=COMMUTE_FORMAT, help='Format string to print. Default: \'%(default)s\''.format(COMMUTE_FORMAT))
+    subparser.add_argument('--format', type=str, default=COMMUTE_FORMAT, help='Format string to print. Default: \'%(default)s\'')
+    subparser.add_argument('--short-format', type=str, default=COMMUTE_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
     subparser.set_defaults(func=commute)
     # Disk
     subparser = subparsers.add_parser('disk', help='Generate disk blocklet', epilog="""
@@ -267,7 +301,8 @@ def main():
     """)
     subparser.add_argument('path', type=str, help='Disk mount path')
     subparser.add_argument('--label', type=str, nargs='?', help='Nickname for this disk')
-    subparser.add_argument('--format', type=str, default=DISK_FORMAT, help='Format string to print. Default: \'%(default)s\''.format(DISK_FORMAT))
+    subparser.add_argument('--format', type=str, default=DISK_FORMAT, help='Format string to print. Default: \'%(default)s\'')
+    subparser.add_argument('--short-format', type=str, default=DISK_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
     subparser.set_defaults(func=disk)
     # Load
     subparser = subparsers.add_parser('load', help='Generate load blocklet', epilog="""
@@ -278,7 +313,8 @@ def main():
     subparser.add_argument('--label', type=str, nargs='?', help='Nickname for this host')
     subparser.add_argument('--cpu-load-interval', type=int, default=5, choices=[1, 5, 15], help='Report average load over a 1, 5, or 15 minute interval. Default: %(default)s')
     subparser.add_argument('--mem-type', type=str, default='virtual', choices=['virtual', 'swap'])
-    subparser.add_argument('--format', type=str, default=LOAD_FORMAT, help='Format string to print. Default: \'%(default)s\''.format(LOAD_FORMAT))
+    subparser.add_argument('--format', type=str, default=LOAD_FORMAT, help='Format string to print. Default: \'%(default)s\'')
+    subparser.add_argument('--short-format', type=str, default=LOAD_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
     subparser.set_defaults(func=load)
 
     args = parser.parse_args()
@@ -297,7 +333,15 @@ def main():
         func = args.func
     except AttributeError:
         parser.error('too few arguments')
-    func(args)
+    strvals = func(args)
+
+    [strvals, fg, bg] = colorize(strvals, args)
+    print(args.format.format(**strvals))
+    print(args.short_format.format(**strvals))
+    if fg:
+        print(fg)
+    if bg:
+        print(bg)
 
 if __name__ == '__main__':
     main()
