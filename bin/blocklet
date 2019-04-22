@@ -186,7 +186,7 @@ def load(args):
             'used': load,
             'free': cpu_count() - load,
             'pctused': round(100.0 * load / cpu_count()),
-            'pctfree': round(100.0 - (load / cpu_count()))
+            'pctfree': round(100.0 - (100.0 * load / cpu_count()))
         }
     elif args.type == 'mem':
         if args.mem_type == 'virtual':
