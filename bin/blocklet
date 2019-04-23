@@ -18,7 +18,7 @@ WEATHER_SHORT_FORMAT = '{temp}°'
 AQI_FORMAT = 'AQI {aqi}'
 AQI_SHORT_FORMAT = '{aqi}'
 STOCK_FORMAT = '{symbol} ${price}{status} ({sign}{percent}%)'
-STOCK_SHORT_FORMAT = '${price} ({sign}{percent}%)'
+STOCK_SHORT_FORMAT = '${price}{status} ({sign}{percent}%)'
 STOCK_TRADING_INDICATOR='*'
 STOCK_AFTERHOURS_INDICATOR='^'
 COMMUTE_FORMAT = '{hr}:{min}'
@@ -211,12 +211,30 @@ def load(args):
         }
     return strvals
 
-def colorize(strvals, args):
+def read_xresource_colors(args):
+    import xrp
+    try:
+        xres = xrp.parse_file(os.path.expanduser(args.read_xresource_colors), 'utf-8')
+    except:
+        error('failed to parse Xresources file {}'.format(args.read_xresource_colors))
+    xcolors = {}
+    for i in range(0, 16):
+        key = '*color' + str(i)
+        if key in xres.resources:
+            xcolors[str(i)] = xres.resources[key]
+    return xcolors
+
+def colorize(strvals, args, xcolors):
     import operator
     fg = bg = None
     for rules, op in list(zip([args.color_if_less, args.color_if_equal, args.color_if_more], [operator.lt, operator.eq, operator.gt])):
         for rule in rules:
             [key, threshold, *colors] = rule.split(',')
+            # Convert 16-color code to hex if Xresource mapping is present
+            if len(colors) > 0 and colors[0] in xcolors:
+                colors[0] = xcolors[colors[0]]
+            if len(colors) > 1 and colors[1] in xcolors:
+                colors[1] = xcolors[colors[1]]
             # Cast threshold to be same type as value we're comparing against
             threshold = (type(strvals[key]))(threshold)
             if key in strvals and op(strvals[key], threshold):
@@ -237,13 +255,18 @@ def colorize(strvals, args):
 
 def main():
     # Top level arguments
-    parser = argparse.ArgumentParser(description='Generates blocklets for i3blocks')
+    parser = argparse.ArgumentParser(description='Generates blocklets for i3blocks', epilog="""
+        [¹] - Use subcommand help (-h) to view available keys for coloring. Colors should be specified as hex codes, or 0-15 for 16-color codes if --read-xresource-colors is used.
+              Rules are processed in order of: less, equal, more; and then by the order given in the command line.
+        [²] - Reads *color0 to *color15 X resources and makes integers 0-15 valid for use in the --color-if-{less,equal,more} color rule definitions
+    """)
     parser.add_argument('--schedule', type=str, nargs='?', help='Time window to run blocklet, in standard cron format')
-    parser.add_argument('--dns', nargs='?', help='Use a custom DNS server for web queries')
-    parser.add_argument('--color-if-less', action='append', default=[], help='Color a key when its value is less than the specified threshold. Format: key_name,threshold,fgcolor[,bgcolor]')
-    parser.add_argument('--color-if-equal', action='append', default=[], help='Color a key when its value is equal than the specified threshold. Format: key_name,threshold,fgcolor[,bgcolor]')
-    parser.add_argument('--color-if-more', action='append', default=[], help='Color a key when its value is more than the specified threshold. Format: key_name,threshold,fgcolor[,bgcolor]')
+    parser.add_argument('--dns', metavar='SERVER', nargs='?', help='Use a custom DNS server for web queries')
+    parser.add_argument('--color-if-less', metavar='RULE', action='append', default=[], help='Color a key when its value is less than the specified threshold. Rule format: key_name,threshold,fgcolor[,bgcolor]¹')
+    parser.add_argument('--color-if-equal', metavar='RULE', action='append', default=[], help='Color a key when its value is equal than the specified threshold. Rule format: key_name,threshold,fgcolor[,bgcolor]¹')
+    parser.add_argument('--color-if-more', metavar='RULE', action='append', default=[], help='Color a key when its value is more than the specified threshold. Rule format: key_name,threshold,fgcolor[,bgcolor]¹')
     parser.add_argument('--color-whole-block', action='store_true', help='Color the entire block instead of only a key (does not require pango markup)')
+    parser.add_argument('--read-xresource-colors', metavar='PATH', type=str, nargs='?', help='Read Xresources file for color definitions to use in color rule definitions.²')
     subparsers = parser.add_subparsers()
     # Weather
     subparser = subparsers.add_parser('weather', help='Generate weather blocklet', epilog="""
@@ -256,7 +279,7 @@ def main():
     subparser.add_argument('--forecast', type=str, nargs='?', choices=['today', 'tomorrow'])
     subparser.add_argument('--units', type=str, default=UNITS, choices=['imperial', 'metric'])
     subparser.add_argument('--format', type=str, default=WEATHER_FORMAT, help='Format string to print. Default: \'%(default)s\'')
-    subparser.add_argument('--short-format', type=str, default=WEATHER_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
+    subparser.add_argument('--short-format', metavar='FORMAT', type=str, default=WEATHER_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
     subparser.set_defaults(func=weather)
     # Air quality (AQI)
     subparser = subparsers.add_parser('aqi', help='Generate air quality blocklet', epilog="""
@@ -267,7 +290,7 @@ def main():
     subparser.add_argument('location', type=str, help='Location ID')
     subparser.add_argument('--forecast', type=str, nargs='?', choices=['today', 'tomorrow'])
     subparser.add_argument('--format', type=str, default=AQI_FORMAT, help='Format string to print. Default: \'%(default)s\'')
-    subparser.add_argument('--short-format', type=str, default=AQI_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
+    subparser.add_argument('--short-format', metavar='FORMAT', type=str, default=AQI_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
     subparser.set_defaults(func=aqi)
     # Stock
     subparser = subparsers.add_parser('stock', help='Generate stock blocklet', epilog="""
@@ -279,7 +302,7 @@ def main():
     subparser.add_argument('--trading-indicator', type=str, default=STOCK_TRADING_INDICATOR, help='Status indicator for when the market is trading. Default=\'%(default)s\'')
     subparser.add_argument('--after-hours-indicator', type=str, default=STOCK_AFTERHOURS_INDICATOR, help='Status indicator for when the market is trading after hours. Default=\'%(default)s\'')
     subparser.add_argument('--format', type=str, default=STOCK_FORMAT, help='Format string to print. Default: \'%(default)s\'')
-    subparser.add_argument('--short-format', type=str, default=STOCK_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
+    subparser.add_argument('--short-format', metavar='FORMAT', type=str, default=STOCK_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
     subparser.set_defaults(func=stock)
     # Commute
     subparser = subparsers.add_parser('commute', help='Generate commute blocklet', epilog="""
@@ -292,7 +315,7 @@ def main():
     subparser.add_argument('--avoid', type=str, nargs='?', choices=['tolls', 'highways', 'ferries', 'indoor'])
     subparser.add_argument('--units', type=str, default=UNITS, choices=['imperial', 'metric'])
     subparser.add_argument('--format', type=str, default=COMMUTE_FORMAT, help='Format string to print. Default: \'%(default)s\'')
-    subparser.add_argument('--short-format', type=str, default=COMMUTE_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
+    subparser.add_argument('--short-format', metavar='FORMAT', type=str, default=COMMUTE_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
     subparser.set_defaults(func=commute)
     # Disk
     subparser = subparsers.add_parser('disk', help='Generate disk blocklet', epilog="""
@@ -302,7 +325,7 @@ def main():
     subparser.add_argument('path', type=str, help='Disk mount path')
     subparser.add_argument('--label', type=str, nargs='?', help='Nickname for this disk')
     subparser.add_argument('--format', type=str, default=DISK_FORMAT, help='Format string to print. Default: \'%(default)s\'')
-    subparser.add_argument('--short-format', type=str, default=DISK_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
+    subparser.add_argument('--short-format', metavar='FORMAT', type=str, default=DISK_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
     subparser.set_defaults(func=disk)
     # Load
     subparser = subparsers.add_parser('load', help='Generate load blocklet', epilog="""
@@ -314,7 +337,7 @@ def main():
     subparser.add_argument('--cpu-load-interval', type=int, default=5, choices=[1, 5, 15], help='Report average load over a 1, 5, or 15 minute interval. Default: %(default)s')
     subparser.add_argument('--mem-type', type=str, default='virtual', choices=['virtual', 'swap'])
     subparser.add_argument('--format', type=str, default=LOAD_FORMAT, help='Format string to print. Default: \'%(default)s\'')
-    subparser.add_argument('--short-format', type=str, default=LOAD_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
+    subparser.add_argument('--short-format', metavar='FORMAT', type=str, default=LOAD_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
     subparser.set_defaults(func=load)
 
     args = parser.parse_args()
@@ -335,7 +358,11 @@ def main():
         parser.error('too few arguments')
     strvals = func(args)
 
-    [strvals, fg, bg] = colorize(strvals, args)
+    xcolors = {}
+    if args.read_xresource_colors:
+        xcolors = read_xresource_colors(args)
+
+    [strvals, fg, bg] = colorize(strvals, args, xcolors)
     print(args.format.format(**strvals))
     print(args.short_format.format(**strvals))
     if fg:
