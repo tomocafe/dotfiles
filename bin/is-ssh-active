@@ -1,4 +1,5 @@
 #!/bin/bash
+# Return true if the host is connected to the given server by ssh
 re="->$1.*:ssh"
 while read -r line; do
     [[ $line =~ $re ]] && exit 0

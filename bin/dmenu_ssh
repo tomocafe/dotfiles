@@ -1,0 +1,5 @@
+#!/bin/bash
+cmd=$1
+shift
+host=$(sed 's|[, ].*||' ~/.ssh/known_hosts | dmenu ${1+"$@"}) && exec $cmd $host
+

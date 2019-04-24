@@ -1,0 +1,14 @@
+#!/bin/bash
+# Print hostname of nth ssh connection, n as argument
+re="->(.*):ssh"
+i=0
+while read -r line; do
+    [[ $line =~ $re ]] || continue
+    if [[ $i -eq $1 ]]; then
+        echo "${BASH_REMATCH[1]%%.*}"
+        exit 0
+    fi
+    let i++
+done < <(${LSOF:-lsof} -i tcp | sort)
+exit 1
+
