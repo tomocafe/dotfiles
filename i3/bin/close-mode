@@ -1,0 +1,31 @@
+#!/bin/bash
+# Switch to specified mode instead of killing window if the window's properties match at least one of the specified patterns
+# Args: [-{c,s,n} <pattern>] <mode>
+# -{c,s,n} to match WM_COMMAND, WM_CLASS, WM_NAME, respectively
+# Make sure you have i3-msg and xprop in your PATH
+DEFAULT_MODE="confirm-close"
+
+wm_id=$(xprop -root _NET_ACTIVE_WINDOW)
+wm_id=${wm_id##* }
+wm_cmd=$(xprop -id $wm_id WM_COMMAND)
+wm_class=$(xprop -id $wm_id WM_CLASS)
+wm_name=$(xprop -id $wm_id WM_NAME)
+
+match=false
+while getopts "c:s:n:" opt; do
+    case "$opt" in
+        c) [[ $wm_cmd =~ $OPTARG ]] && match=true
+           ;;
+        s) [[ $wm_class =~ $OPTARG ]] && match=true
+           ;;
+        n) [[ $wm_name =~ $OPTARG ]] && match=true
+           ;;
+    esac
+done
+shift $((OPTIND-1))
+
+mode=${1:-$DEFAULT_MODE}
+shift
+
+$match && i3-msg mode "$mode" || i3-msg kill
+
