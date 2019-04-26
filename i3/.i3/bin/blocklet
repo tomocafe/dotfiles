@@ -21,8 +21,8 @@ STOCK_FORMAT = '{symbol} ${price}{status} ({sign}{percent}%)'
 STOCK_SHORT_FORMAT = '${price}{status} ({sign}{percent}%)'
 STOCK_TRADING_INDICATOR='*'
 STOCK_AFTERHOURS_INDICATOR='^'
-COMMUTE_FORMAT = '{hr}:{min}'
-COMMUTE_SHORT_FORMAT = '{hr}:{min}'
+COMMUTE_FORMAT = '{time}'
+COMMUTE_SHORT_FORMAT = '{time}'
 COMMUTE_MODE = 'driving'
 DISK_FORMAT = '{label} {pctused}%'
 DISK_SHORT_FORMAT = '{pctused}%'
@@ -157,9 +157,11 @@ def commute(args):
     data = get('maps.googleapis.com', '/maps/api/distancematrix/json?traffic_model=best_guess&mode={mode}&avoid={avoid}&key={key}&departure_time=now&origins={ori}&destinations={dst}&units={units}'.format(key=COMMUTE_API_KEY, mode=args.mode, avoid=args.avoid, ori=args.origin, dst=args.destination, units=args.units))
     duration_key = 'duration_in_traffic' if args.mode == 'driving' else 'duration'
     secs = data['rows'][0]['elements'][0][duration_key]['value']
+    hr = int(secs / 3600)
+    mins_after_hr = int(secs / 60) % 60
     strvals = {
-        'hr': int(secs / 3600),
-        'min': int(secs / 60) % 60,
+        'time': '{0}:{1:02d}'.format(hr, mins_after_hr),
+        'mins': int(secs / 60) % 60,
         'text': data['rows'][0]['elements'][0][duration_key]['text'],
         'distance': data['rows'][0]['elements'][0]['distance']['text']
     }
@@ -307,7 +309,7 @@ def main():
     # Commute
     subparser = subparsers.add_parser('commute', help='Generate commute blocklet', epilog="""
         Available keys for formatting:
-        {hr} {min} {text} {distance}
+        {time} {mins} {text} {distance}
     """)
     subparser.add_argument('origin', type=str, help='Origin address')
     subparser.add_argument('destination', type=str, help='Destination address')
