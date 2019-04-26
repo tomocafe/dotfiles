@@ -101,7 +101,6 @@ while read -r line; do
 hostfqdn=$(hostname -f)
 domain=${hostfqdn#*.}
 $no_reply && sender="noreply" || sender=$USER
-owner=wegley #tmptmp
 echo "Sending message to $owner@$domain"
 ${SENDMAIL:-sendmail} "$owner@$domain" <<EOF
 subject:[Disk cleanup reminder] $disk with ${sz_avail}${sz_unit} (${pc_avail}%) remaining
