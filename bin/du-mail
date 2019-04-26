@@ -49,7 +49,7 @@ if $opt_error || [[ -z $disk ]] || [[ ! -d $disk ]] || [[ ! ${unit}${mail_thresh
     cat <<EOF >&2
 Invalid arguments.
 Usage: ${BASH_SOURCE[0]##*/} [-t|--threshold SIZE*] [--mail-threshold SIZE*]
-       [-j THREADS] [-d DEPTH] [--no-mail] <directory>
+       [-j THREADS] [-d DEPTH] [--no-mail] [--no-reply] <directory>
        * <integer>{K,M,G,%}
 EOF
     exit 1
