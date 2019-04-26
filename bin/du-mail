@@ -1,0 +1,117 @@
+#!/bin/bash
+
+unset disk
+opt_error=false
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -t|--threshold)
+            shift
+            threshold=$1
+            ;;
+        -j|--threads)
+            shift
+            threads=$1
+            ;;
+        -d|--depth)
+            shift
+            depth=$1
+            ;;
+        --no-mail)
+            mail=false
+            ;;
+        --mail-threshold)
+            shift
+            mail_threshold=$1
+            ;;
+        --no-reply)
+            no_reply=true
+            ;;
+        -*)
+            opt_error=true
+            ;;
+        *)
+            disk=$1
+            ;;
+    esac
+    shift
+done
+
+threshold=${threshold:-20G}
+threads=${threads:-1}
+depth=${depth:-1}
+mail=${mail:-true}
+mail_threshold=${mail_threshold:-10%}
+no_reply=${no_reply:-false}
+
+unit=${threshold: -1}
+mail_threshold_unit=${mail_threshold: -1}
+if $opt_error || [[ -z $disk ]] || [[ ! -d $disk ]] || [[ ! ${unit}${mail_threshold_unit} =~ [KMG%]{2} ]]; then
+    cat <<EOF >&2
+Invalid arguments.
+Usage: ${BASH_SOURCE[0]##*/} [-t|--threshold SIZE*] [--mail-threshold SIZE*]
+       [-j THREADS] [-d DEPTH] [--no-mail] <directory>
+       * <integer>{K,M,G,%}
+EOF
+    exit 1
+fi
+
+sz_unit=${unit/\%/G}
+read -a stats < <(df -P -B$sz_unit $disk | tail -1)
+sz_avail=${stats[3]%?}
+pc_avail=$((100 - ${stats[4]%?}))
+
+[[ $unit == '%' ]] && cmp=$pc_avail || cmp=$sz_avail
+
+if [[ $cmp -gt ${threshold%?} ]]; then
+    exit 0
+fi
+
+# Disk utilization is above threshold, perform analysis and messaging
+
+# Convert mail threshold to KB
+if [[ $mail_threshold_unit == '%' ]]; then
+    read -a stats < <(df -P $disk | tail -1)
+    disk_kb_used=${stats[2]}
+    mail_threshold_kb=$((disk_kb_used * ${mail_threshold%?} / 100))
+elif [[ $mail_threshold_unit == 'G' ]]; then
+    mail_threshold_kb=$((${mail_threshold%?} * 1024 * 1024))
+elif [[ $mail_threshold_unit == 'M' ]]; then
+    mail_threshold_kb=$((${mail_threshold%?} * 1024))
+else
+    mail_threshold_kb=${mail_threshold%?}
+fi
+
+echo "Disk has ${sz_avail}${sz_unit} (${pc_avail}%) remaining (below threshold ${threshold})"
+echo "Finding users accounting for more than ${mail_threshold} of used space"
+mailed=()
+while read -r line; do
+    read -a stats <<< $line
+    sz_used=${stats[0]}
+    subpath=${stats[1]#$disk/}
+    [[ $sz_used -lt $mail_threshold_kb ]] && break
+    owner=$(stat -c %U ${stats[1]})
+    owner_name=($(getent passwd $owner | cut -d':' -f5))
+    [[ " ${mailed[@]} " =~ " $owner " ]] && continue # Already mailed, don't spam :)
+
+    if ! $mail; then
+        echo "$owner"
+        continue
+    fi
+
+hostfqdn=$(hostname -f)
+domain=${hostfqdn#*.}
+$no_reply && sender="noreply" || sender=$USER
+owner=wegley #tmptmp
+echo "Sending message to $owner@$domain"
+${SENDMAIL:-sendmail} "$owner@$domain" <<EOF
+subject:[Disk cleanup reminder] $disk with ${sz_avail}${sz_unit} (${pc_avail}%) remaining
+from:$sender@$domain
+
+Hi ${owner_name[0]},
+
+The disk mounted at $disk has only ${sz_avail}${sz_unit} (${pc_avail}%) of space remaining. You are receiving this automated message because your files account for more than ${mail_threshold} of the used space on this disk. Please help to clean up some files at your earliest convenience.
+EOF
+
+    mailed+=($owner)
+done < <(find $disk -mindepth 1 -maxdepth $depth | xargs -P$threads -n1 du -xs | sort -rh)
+

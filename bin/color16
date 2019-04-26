@@ -1,0 +1,8 @@
+#!/bin/bash
+fg=7
+for base in {0..7}; do
+    bold=$(($base + 8))
+    printf "$(tput setaf $base)%02d$(tput sgr0) $(tput setaf $bold)%02d$(tput sgr0) $(tput setab $base)$(tput setaf $fg)%02d$(tput sgr0)\n" $base $bold $base
+    fg=0
+done
+
