@@ -36,7 +36,7 @@ URxvt*iso14755_52: false
 
 ! xterm
 XTerm*faceName: M4_FONT_NAME
-XTerm*faceSize: M4_FONT_NAME
+XTerm*faceSize: M4_FONT_SIZE
 XTerm*allowBoldFonts: false
 XTerm*scrollBar: false
 
