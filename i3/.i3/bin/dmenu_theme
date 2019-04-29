@@ -1,0 +1,16 @@
+#!/bin/bash
+I3_HOME=${I3_HOME:-~/.i3}
+I3_THEMEDIR=${I3_THEEDIR:-$I3_HOME/themes}
+themes=()
+for t in $I3_THEMEDIR/*; do
+    [[ -r $t/i3.m4 ]] || continue
+    themes+=(${t##*/})
+done
+theme=$(echo ${themes[@]} | dmenu ${1+"$@"}) || exit 1
+
+m4 -I$I3_THEMEDIR/$theme $I3_HOME/config.m4 > $I3_HOME/config
+m4 -I$I3_THEMEDIR/$theme $I3_HOME/Xresources.m4 > $I3_HOME/Xresources
+
+for script in $I3_THEMEDIR/$theme/run.d/*; do
+    $script &>/dev/null
+done
