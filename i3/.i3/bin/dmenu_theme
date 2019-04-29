@@ -6,7 +6,7 @@ for t in $I3_THEMEDIR/*; do
     [[ -r $t/i3.m4 ]] || continue
     themes+=(${t##*/})
 done
-theme=$(echo ${themes[@]} | dmenu ${1+"$@"}) || exit 1
+theme=$(printf '%s\n' "${themes[@]}" | dmenu ${1+"$@"}) || exit 1
 
 m4 -I$I3_THEMEDIR/$theme $I3_HOME/config.m4 > $I3_HOME/config
 m4 -I$I3_THEMEDIR/$theme $I3_HOME/Xresources.m4 > $I3_HOME/Xresources
@@ -14,3 +14,6 @@ m4 -I$I3_THEMEDIR/$theme $I3_HOME/Xresources.m4 > $I3_HOME/Xresources
 for script in $I3_THEMEDIR/$theme/run.d/*; do
     $script &>/dev/null
 done
+
+i3-msg restart
+

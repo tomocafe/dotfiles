@@ -10,14 +10,18 @@ exec_always --no-startup-id reload-ssh-xresources ~/.i3/Xresources
 exec --no-startup-id urxvtd -q -f -o
 
 # Set X root background color
-exec_always --no-startup-id xsetroot -solid "M4_COLOR_BG"
+exec_always --no-startup-id xsetroot -solid "M4_I3_BG"
 
 # Borders
 new_window normal 2
 hide_edge_borders both
 
 # Font
-font xft:M4_FONT_NAME:size=M4_FONT_SIZE
+ifdef(`M4_I3_COMPAT',dnl
+font M4_FONT_XLFD
+,dnl
+font pango:M4_FONT_NAME M4_FONT_SIZE
+)dnl
 
 # Mod key
 set $mod Mod1
@@ -40,9 +44,9 @@ mode "confirm-close" {
 bindsym $mod+Shift+q exec --no-startup-id close-mode -c "ssh" -c "--loginShell" "confirm-close"
 
 # start dmenu (a program launcher)
-bindsym $mod+d exec dmenu_run -i -p run -fn "M4_FONT_NAME-M4_FONT_SIZE" -nb M4_I3_BG -nf M4_COLOR_FG -sb M4_COLOR_3 -sf M4_COLOR_FG
-bindsym $mod+x exec dmenu_ssh "urxvtc -e ssh -X" -i -p ssh -fn "M4_FONT_NAME-M4_FONT_SIZE" -nb M4_I3_BG -nf M4_COLOR_FG -sb M4_COLOR_4 -sf M4_COLOR_FG
-bindsym $mod+f exec dmenu_theme -i -p theme -fn "M4_FONT_NAME-M4_FONT_SIZE" -nb M4_I3_BG -nf M4_COLOR_FG -sb M4_COLOR_5 -sf M4_COLOR_FG
+bindsym $mod+d exec dmenu_run -i -p run -fn "M4_FONT_NAME-M4_FONT_SIZE" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_3" -sf "M4_COLOR_FG"
+bindsym $mod+x exec dmenu_ssh "urxvtc -e ssh -X" -i -p ssh -fn "M4_FONT_NAME-M4_FONT_SIZE" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_4" -sf "M4_COLOR_FG"
+bindsym $mod+f exec dmenu_theme -i -p theme -fn "M4_FONT_NAME-M4_FONT_SIZE" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_5" -sf "M4_COLOR_FG"
 
 # change focus
 set $up l
@@ -156,8 +160,7 @@ bindsym $mod+Shift+c reload
 # restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
 bindsym $mod+Shift+r restart
 # exit i3 (logs you out of your X session)
-#bindsym $mod+Shift+e exec ~/.i3/exit
-bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'Exit i3?' -b 'Yes, exit i3' '~/.i3/exit'"
+bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'Exit i3?' -b 'Yes, exit i3' 'i3-msg exit'"
 
 # resize window (you can also use the mouse for that)
 mode "resize" {
@@ -190,14 +193,18 @@ client.focused M4_I3_BG M4_I3_BG M4_I3_ACTIVE_FG M4_I3_BG M4_I3_BG
 client.focused_inactive M4_I3_BG M4_I3_BG M4_COLOR_FG M4_I3_BG M4_I3_BG
 client.unfocused M4_I3_BG M4_I3_BG M4_COLOR_FG M4_I3_BG M4_I3_BG
 client.urgent M4_COLOR_9 M4_I3_BG M4_COLOR_9 M4_COLOR_9 M4_I3_BG
+ifdef(`M4_I3_COMPAT',,dnl
 client.placeholder M4_I3_BG M4_I3_BG M4_COLOR_FG M4_I3_BG M4_I3_BG
+)dnl
 client.background M4_COLOR_BG
 
 # Start i3bar to display a workspace bar (plus the system information i3status
 # finds out, if available)
 bar {
     status_command i3blocks -c ~/.i3/i3blocks.conf
+ifdef(`M4_I3_COMPAT',,dnl
     separator_symbol "·"
+)dnl
     position bottom
     tray_output none
     colors {
@@ -209,7 +216,9 @@ bar {
         active_workspace M4_I3_ACTIVE_BG M4_I3_ACTIVE_BG M4_I3_ACTIVE_FG
         inactive_workspace M4_I3_BG M4_I3_BG M4_COLOR_FG
         urgent_workspace M4_COLOR_9 M4_I3_ACTIVE_BG M4_COLOR_9
+ifdef(`M4_I3_COMPAT',,dnl
         binding_mode M4_COLOR_4 M4_I3_ACTIVE_BG M4_COLOR_4
+)dnl
     }
 }
 
