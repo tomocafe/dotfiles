@@ -1,3 +1,4 @@
+changecom()dnl
 include(color.m4)dnl
 include(font.m4)dnl
 dnl

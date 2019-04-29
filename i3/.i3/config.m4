@@ -1,8 +1,9 @@
+changecom()dnl
+include(i3.m4)dnl
+dnl
 # Do not remove this line:
 # i3 config file (v4)
 
-include(i3.m4)dnl
-dnl
 # Start some executables
 exec_always --no-startup-id xrdb -load ~/.i3/Xresources
 exec_always --no-startup-id reload-ssh-xresources ~/.i3/Xresources
