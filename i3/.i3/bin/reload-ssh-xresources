@@ -1,0 +1,16 @@
+#!/bin/bash
+xres=${1:-~/.Xresources}
+remotes=()
+re='->(.*):ssh'
+while read -r line; do
+    [[ $line =~ $re ]] || continue
+    host=${BASH_REMATCH[1]}
+    host=${host%%.*}
+    [[ " ${remotes[@]} " == *" $host "* ]] && continue # filter out duplicates
+    remotes+=($host)
+done < <(/sbin/lsof -i tcp)
+
+for host in ${remotes[@]}; do
+    echo ssh -X -aTo BatchMode=yes $host xrdb -load $xres
+done
+
