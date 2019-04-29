@@ -44,9 +44,9 @@ mode "confirm-close" {
 bindsym $mod+Shift+q exec --no-startup-id close-mode -c "ssh" -c "--loginShell" "confirm-close"
 
 # start dmenu (a program launcher)
-bindsym $mod+d exec dmenu_run -i -p run -fn "M4_FONT_NAME-M4_FONT_SIZE" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_3" -sf "M4_COLOR_FG"
-bindsym $mod+x exec dmenu_ssh "urxvtc -e ssh -X" -i -p ssh -fn "M4_FONT_NAME-M4_FONT_SIZE" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_4" -sf "M4_COLOR_FG"
-bindsym $mod+f exec dmenu_theme -i -p theme -fn "M4_FONT_NAME-M4_FONT_SIZE" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_5" -sf "M4_COLOR_FG"
+bindsym $mod+d exec dmenu_run -i -p run -fn "M4_FONT_NAME-M4_FONT_SIZE" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_3" -sf "M4_I3_ACTIVE_FG"
+bindsym $mod+x exec dmenu_ssh "urxvtc -e ssh -X" -i -p ssh -fn "M4_FONT_NAME-M4_FONT_SIZE" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_4" -sf "M4_I3_ACTIVE_FG"
+bindsym $mod+t exec dmenu_theme -i -p theme -fn "M4_FONT_NAME-M4_FONT_SIZE" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_5" -sf "M4_I3_ACTIVE_FG"
 
 # change focus
 set $up l
