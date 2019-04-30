@@ -44,9 +44,10 @@ mode "confirm-close" {
 bindsym $mod+Shift+q exec --no-startup-id close-mode -c "ssh" -c "--loginShell" "confirm-close"
 
 # start dmenu (a program launcher)
-bindsym $mod+d exec dmenu_run -i -p run -fn "M4_FONT_NAME-M4_FONT_SIZE" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_3" -sf "M4_I3_ACTIVE_FG"
-bindsym $mod+x exec dmenu_ssh "urxvtc -e ssh -X" -i -p ssh -fn "M4_FONT_NAME-M4_FONT_SIZE" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_4" -sf "M4_I3_ACTIVE_FG"
-bindsym $mod+t exec dmenu_theme -i -p theme -fn "M4_FONT_NAME-M4_FONT_SIZE" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_5" -sf "M4_I3_ACTIVE_FG"
+ifdef(`M4_I3_COMPAT',`define(`M4_I3_DMENU_FONT',`M4_FONT_XLFD')',`define(`M4_I3_DMENU_FONT',`M4_FONT_NAME-M4_FONT_SIZE')')dnl
+bindsym $mod+d exec dmenu_run -i -p run -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_3" -sf "M4_I3_ACTIVE_FG"
+bindsym $mod+x exec dmenu_ssh "urxvtc -e ssh -X" -i -p ssh -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_4" -sf "M4_I3_ACTIVE_FG"
+bindsym $mod+Shift+t exec dmenu_theme -i -p theme -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_5" -sf "M4_I3_ACTIVE_FG"
 
 # change focus
 set $up l
@@ -110,16 +111,16 @@ bindsym $mod+Shift+minus move scratchpad
 bindsym $mod+minus scratchpad show
 
 # Define workspaces
-ifdef(M4_I3_W1,,define(M4_I3_W1,`1'))dnl
-ifdef(M4_I3_W2,,define(M4_I3_W2,`2'))dnl
-ifdef(M4_I3_W3,,define(M4_I3_W3,`3'))dnl
-ifdef(M4_I3_W4,,define(M4_I3_W4,`4'))dnl
-ifdef(M4_I3_W5,,define(M4_I3_W5,`5'))dnl
-ifdef(M4_I3_W6,,define(M4_I3_W6,`6'))dnl
-ifdef(M4_I3_W7,,define(M4_I3_W7,`7'))dnl
-ifdef(M4_I3_W8,,define(M4_I3_W8,`8'))dnl
-ifdef(M4_I3_W9,,define(M4_I3_W9,`9'))dnl
-ifdef(M4_I3_W0,,define(M4_I3_W0,`0'))dnl
+ifdef(`M4_I3_W1',,`define(M4_I3_W1,`1')')dnl
+ifdef(`M4_I3_W2',,`define(M4_I3_W2,`2')')dnl
+ifdef(`M4_I3_W3',,`define(M4_I3_W3,`3')')dnl
+ifdef(`M4_I3_W4',,`define(M4_I3_W4,`4')')dnl
+ifdef(`M4_I3_W5',,`define(M4_I3_W5,`5')')dnl
+ifdef(`M4_I3_W6',,`define(M4_I3_W6,`6')')dnl
+ifdef(`M4_I3_W7',,`define(M4_I3_W7,`7')')dnl
+ifdef(`M4_I3_W8',,`define(M4_I3_W8,`8')')dnl
+ifdef(`M4_I3_W9',,`define(M4_I3_W9,`9')')dnl
+ifdef(`M4_I3_W0',,`define(M4_I3_W0,`0')')dnl
 set $w1 "M4_I3_W1"
 set $w2 "M4_I3_W2"
 set $w3 "M4_I3_W3"
