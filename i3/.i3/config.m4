@@ -5,8 +5,8 @@ dnl
 # i3 config file (v4)
 
 # Start some executables
-exec_always --no-startup-id xrdb -load ~/.i3/Xresources
-exec_always --no-startup-id reload-ssh-xresources ~/.i3/Xresources
+exec_always --no-startup-id xrdb -load ${I3_HOME:-~/.i3}/Xresources
+exec_always --no-startup-id reload-ssh-xresources ${I3_HOME:-~/.i3}/Xresources
 exec --no-startup-id urxvtd -q -f -o
 
 # Set X root background color
@@ -202,7 +202,7 @@ client.background M4_COLOR_BG
 # Start i3bar to display a workspace bar (plus the system information i3status
 # finds out, if available)
 bar {
-    status_command i3blocks -c ~/.i3/i3blocks.conf
+    status_command i3blocks -c ${I3_HOME:-~/.i3}/i3blocks.conf
 ifdef(`M4_I3_COMPAT',,dnl
     separator_symbol "·"
 )dnl
