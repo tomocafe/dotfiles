@@ -12,7 +12,7 @@ m4 $I3_M4_THEMEARGS -I$I3_HOME -I$I3_THEMEDIR/$theme $I3_HOME/config.m4 > $I3_HO
 m4 $I3_M4_THEMEARGS -I$I3_HOME -I$I3_THEMEDIR/$theme $I3_HOME/Xresources.m4 > $I3_HOME/Xresources
 
 for script in $I3_THEMEDIR/$theme/run.d/*; do
-    $script &>/dev/null
+    [[ -x $script ]] && $script &>/dev/null
 done
 
 i3-msg restart
