@@ -28,6 +28,7 @@ DISK_FORMAT = '{label} {pctused}%'
 DISK_SHORT_FORMAT = '{pctused}%'
 LOAD_FORMAT = '{label} {pctused}%'
 LOAD_SHORT_FORMAT = '{pctused}%'
+STATIC_TEXT_FORMAT = '{text}'
 
 WEATHER_API_KEY = os.environ.get('WEATHER_API_KEY') # openweathermap.org
 COMMUTE_API_KEY = os.environ.get('COMMUTE_API_KEY') # maps.googleapis.com
@@ -213,6 +214,12 @@ def load(args):
         }
     return strvals
 
+def text(args):
+    strvals = {
+        'text': args.text
+    }
+    return strvals
+
 def read_xresource_colors(args):
     import xrp
     try:
@@ -229,7 +236,7 @@ def read_xresource_colors(args):
 def colorize(strvals, args, xcolors):
     import operator
     fg = bg = None
-    for rules, op in list(zip([args.color_if_less, args.color_if_equal, args.color_if_more], [operator.lt, operator.eq, operator.gt])):
+    for rules, op in list(zip([args.color_if_less, args.color_if_equal, args.color_if_more, args.color_always], [operator.lt, operator.eq, operator.gt, None])):
         for rule in rules:
             [key, threshold, *colors] = rule.split(',')
             # Convert 16-color code to hex if Xresource mapping is present
@@ -239,7 +246,7 @@ def colorize(strvals, args, xcolors):
                 colors[1] = xcolors[colors[1]]
             # Cast threshold to be same type as value we're comparing against
             threshold = (type(strvals[key]))(threshold)
-            if key in strvals and op(strvals[key], threshold):
+            if key in strvals and (not op or op(strvals[key], threshold)):
                 if args.color_whole_block:
                     fg = colors[0] if len(colors) > 0 else None
                     bg = colors[1] if len(colors) > 1 else None
@@ -267,6 +274,7 @@ def main():
     parser.add_argument('--color-if-less', metavar='RULE', action='append', default=[], help='Color a key when its value is less than the specified threshold. Rule format: key_name,threshold,fgcolor[,bgcolor]¹')
     parser.add_argument('--color-if-equal', metavar='RULE', action='append', default=[], help='Color a key when its value is equal than the specified threshold. Rule format: key_name,threshold,fgcolor[,bgcolor]¹')
     parser.add_argument('--color-if-more', metavar='RULE', action='append', default=[], help='Color a key when its value is more than the specified threshold. Rule format: key_name,threshold,fgcolor[,bgcolor]¹')
+    parser.add_argument('--color-always', metavar='RULE', action='append', default=[], help='Color a key unconditionally. Rule format: key_name,,fgcolor[,bgcolor]¹')
     parser.add_argument('--color-whole-block', action='store_true', help='Color the entire block instead of only a key (does not require pango markup)')
     parser.add_argument('--read-xresource-colors', metavar='PATH', type=str, nargs='?', help='Read Xresources file for color definitions to use in color rule definitions.²')
     subparsers = parser.add_subparsers()
@@ -341,6 +349,12 @@ def main():
     subparser.add_argument('--format', type=str, default=LOAD_FORMAT, help='Format string to print. Default: \'%(default)s\'')
     subparser.add_argument('--short-format', metavar='FORMAT', type=str, default=LOAD_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
     subparser.set_defaults(func=load)
+    # Static text
+    subparser = subparsers.add_parser('text', help='Generate a static text blocklet')
+    subparser.add_argument('text', type=str, help='String to print')
+    subparser.add_argument('--format', type=str, default=STATIC_TEXT_FORMAT, help=argparse.SUPPRESS)
+    subparser.add_argument('--short-format', metavar='FORMAT', type=str, default=STATIC_TEXT_FORMAT, help=argparse.SUPPRESS)
+    subparser.set_defaults(func=text)
 
     args = parser.parse_args()
 
