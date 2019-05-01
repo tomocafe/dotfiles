@@ -98,11 +98,11 @@ while read -r line; do
         continue
     fi
 
-hostfqdn=$(hostname -f)
-domain=${hostfqdn#*.}
-$no_reply && sender="noreply" || sender=$USER
-echo "Sending message to $owner@$domain"
-${SENDMAIL:-sendmail} "$owner@$domain" <<EOF
+    hostfqdn=$(hostname -f)
+    domain=${hostfqdn#*.}
+    $no_reply && sender="noreply" || sender=$USER
+    echo "Sending message to $owner@$domain"
+    ${SENDMAIL:-sendmail} "$owner@$domain" <<EOF
 subject:[Disk cleanup reminder] $disk with ${sz_avail}${sz_unit} (${pc_avail}%) remaining
 from:$sender@$domain
 
