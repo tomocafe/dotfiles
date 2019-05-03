@@ -3,22 +3,49 @@
 # Ensure we are just below the home directory
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 if [[ "$(readlink -f $here/..)" != "$(readlink -f $HOME)" ]]; then
-    echo "Bootstrap expects itself to be one level below \$HOME" 1>&2
+    echo "Error: bootstrap expects itself to be one level below \$HOME" 1>&2
     exit 1
 fi
 cd $here
 
 # Warn on incompatible shell version
 if [[ ${BASH_VERSION%%.*} -lt 4 ]]; then
-    echo "Warning: requires bash 4+, this is ${BASH_VERSION}" 1>&2
+    echo "Error: requires bash 4+, this is ${BASH_VERSION}" 1>&2
+    exit 1
 fi
 
+# Error on missing required commands
+for cmd in m4 stow; do
+    if ! command -v $cmd &>/dev/null; then
+        echo "Error: command unavailable: $cmd" 1>&2
+        exit 1
+    fi
+done
+
 # Warn on missing commands
-for cmd in stow m4 xrdb xprop xsetroot xset python3; do
+for cmd in ack perl python3 stow xprop xrdb xset xsetroot; do
     if ! command -v $cmd &>/dev/null; then
         echo "Warning: command unavailable: $cmd" 1>&2
     fi
 done
+
+# Warn on missing libraries
+# Python 3
+if command -v python3 &>/dev/null; then
+    for module in argparse collections dns getch glob json math operator os psutil pycron re requests requests_toolbelt shutil socket stat sys xml xrp; do
+        if ! python3 -c "import $module" &>/dev/null; then
+            echo "Warning: python3 module unavailable: $module" 1>&2
+        fi
+    done
+fi
+# Perl
+if command -v perl &>/dev/null; then
+    for module in Cwd File::Next File::stat Term::ANSIColor; do
+        if ! perl -e "use $module;" &>/dev/null; then
+            echo "Warning: perl module unavailable: $module" 1>&2
+        fi
+    done
+fi
 
 # i3
 mkdir -p ~/.i3/bin &>/dev/null
