@@ -84,13 +84,13 @@ fi
 echo "Disk has ${sz_avail}${sz_unit} (${pc_avail}%) remaining (below threshold ${threshold})"
 echo "Finding users accounting for more than ${mail_threshold} of used space"
 mailed=()
+declare -A usage_by_owner
 while read -r line; do
     read -a stats <<< $line
     sz_used=${stats[0]}
-    subpath=${stats[1]#$disk/}
-    [[ $sz_used -lt $mail_threshold_kb ]] && break
     owner=$(stat -c %U ${stats[1]})
-    owner_name=($(getent passwd $owner | cut -d':' -f5))
+    usage_by_owner[$owner]=$((usage_by_owner[$owner] + sz_used))
+    [[ ${usage_by_owner[$owner]} -lt $mail_threshold_kb ]] && continue
     [[ " ${mailed[@]} " =~ " $owner " ]] && continue # Already mailed, don't spam :)
 
     if ! $mail; then
@@ -98,6 +98,7 @@ while read -r line; do
         continue
     fi
 
+    owner_name=($(getent passwd $owner | cut -d':' -f5))
     hostfqdn=$(hostname -f)
     domain=${hostfqdn#*.}
     $no_reply && sender="noreply" || sender=$USER
@@ -112,5 +113,5 @@ The disk mounted at $disk has only ${sz_avail}${sz_unit} (${pc_avail}%) of space
 EOF
 
     mailed+=($owner)
-done < <(find $disk -mindepth 1 -maxdepth $depth | xargs -P$threads -n1 du -xs | sort -rh)
+done < <(find $disk -mindepth 1 -maxdepth $depth | xargs -P$threads -n1 du -xs 2>/dev/null | sort -rh)
 
