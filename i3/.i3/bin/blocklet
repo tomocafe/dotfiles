@@ -68,7 +68,7 @@ def weather(args):
     if args.forecast:
         data = get('api.openweathermap.org', '/data/2.5/forecast/daily/?appid={key}&units={units}&{location}'.format(key=WEATHER_API_KEY, units=args.units, location=args.location))
         day = 0 if args.forecast == 'today' else 1
-        strvals = {
+        keytext = {
             'lo': int(data['list'][day]['temp']['min']),
             'hi': int(data['list'][day]['temp']['max']),
             'cond': data['list'][day]['weather'][0]['main'],
@@ -76,17 +76,17 @@ def weather(args):
             'humidity': int(data['list'][day]['humidity']),
             'pressure': int(data['list'][day]['pressure'])
         }
-        strvals['temp'] = strvals['hi'] # register synonym
+        keytext['temp'] = keytext['hi'] # register synonym
     else:
         data = get('api.openweathermap.org', '/data/2.5/weather/?appid={key}&units={units}&{location}'.format(key=WEATHER_API_KEY, units=args.units, location=args.location))
-        strvals = {
+        keytext = {
             'temp': int(data['main']['temp']),
             'cond': data['weather'][0]['main'],
             'wind': int(data['wind']['speed']),
             'humidity': int(data['main']['humidity']),
             'pressure': int(data['main']['pressure'])
         }
-    return strvals
+    return [keytext, {}]
 
 def aqi(args):
     import xml.etree.ElementTree as ET
@@ -103,7 +103,7 @@ def aqi(args):
         if matches:
             ozone = [int(matches.group(2)), matches.group(1), 'Ozone']
         worst = max(pm25, ozone)
-        strvals = {
+        keytext = {
             'desc' : worst[1],
             'aqi': worst[0],
             'type': worst[2]
@@ -118,12 +118,12 @@ def aqi(args):
         if matches:
             ozone = [int(matches.group(2)), matches.group(1), 'Ozone']
         worst = max(pm25, ozone)
-        strvals = {
+        keytext = {
             'desc' : worst[1],
             'aqi': worst[0],
             'type': worst[2]
         }
-    return strvals
+    return [keytext, {}]
 
 def stock(args):
     data = get('query1.finance.yahoo.com', '/v7/finance/quote?lang=en-US&region=US&corsDomain=finance.yahoo.com&symbols={symbol}'.format(symbol=args.symbol))
@@ -140,19 +140,21 @@ def stock(args):
         percent = data['quoteResponse']['result'][0]['regularMarketChangePercent']
         if status == 'REGULAR':
             indicator = args.trading_indicator
-    # Format to 2 decimal places
-    price = '{0:.2f}'.format(price)
-    change = '{0:.2f}'.format(change)
-    percent = '{0:.2f}'.format(percent)
-    strvals = {
+    # Format text to 2 decimal places, keep original values for comparison
+    keytext = {
         'symbol': args.symbol,
-        'price': price,
-        'change': change,
-        'percent': percent,
+        'price': '{0:.2f}'.format(price),
+        'change': '{0:.2f}'.format(change),
+        'percent': '{0:.2f}'.format(percent),
         'status': indicator,
         'sign': '+' if float(change) > 0 else ''
     }
-    return strvals
+    keyvals = {
+        'price': price,
+        'change': change,
+        'percent': percent
+    }
+    return [keytext, keyvals]
 
 def commute(args):
     data = get('maps.googleapis.com', '/maps/api/distancematrix/json?traffic_model=best_guess&mode={mode}&avoid={avoid}&key={key}&departure_time=now&origins={ori}&destinations={dst}&units={units}'.format(key=COMMUTE_API_KEY, mode=args.mode, avoid=args.avoid, ori=args.origin, dst=args.destination, units=args.units))
@@ -160,13 +162,13 @@ def commute(args):
     secs = data['rows'][0]['elements'][0][duration_key]['value']
     hr = int(secs / 3600)
     mins_after_hr = int(secs / 60) % 60
-    strvals = {
+    keytext = {
         'time': '{0}:{1:02d}'.format(hr, mins_after_hr),
         'mins': int(secs / 60) % 60,
         'text': data['rows'][0]['elements'][0][duration_key]['text'],
         'distance': data['rows'][0]['elements'][0]['distance']['text']
     }
-    return strvals
+    return [keytext, {}]
 
 def b2h(b):
     from math import log2
@@ -176,14 +178,14 @@ def b2h(b):
 def disk(args):
     from psutil import disk_usage
     stats = disk_usage(args.path)
-    strvals = {
+    keytext = {
         'label': args.label if args.label else args.path,
         'pctused': round(stats.percent),
         'pctfree': round(100.0 - stats.percent),
         'used': b2h(stats.used),
         'free': b2h(stats.free)
     }
-    return strvals
+    return [keytext, {}]
 
 def load(args):
     if not args.label:
@@ -191,7 +193,7 @@ def load(args):
     if args.type == 'cpu':
         from psutil import cpu_count
         load = os.getloadavg()[round(args.cpu_load_interval / 7)] # 1 min -> [0], 5 min -> [1], 15 min -> [2]
-        strvals = {
+        keytext = {
             'label': args.label if args.label else gethostname(),
             'used': load,
             'free': cpu_count() - load,
@@ -205,20 +207,20 @@ def load(args):
         elif args.mem_type == 'swap':
             from psutil import swap_memory
             stats = swap_memory()
-        strvals = {
+        keytext = {
             'label': args.label if args.label else gethostname(),
             'pctused': round(stats.percent),
             'pctfree': round(100.0 - stats.percent),
             'used': b2h(stats.used),
             'free': b2h(stats.free)
         }
-    return strvals
+    return [keytext, {}]
 
 def text(args):
-    strvals = {
+    keytext = {
         'text': args.text
     }
-    return strvals
+    return [keytext, {}]
 
 def read_xresource_colors(args):
     import xrp
@@ -233,7 +235,7 @@ def read_xresource_colors(args):
             xcolors[str(i)] = xres.resources[key]
     return xcolors
 
-def colorize(strvals, args, xcolors):
+def colorize(keytext, keyvals, args, xcolors):
     import operator
     fg = bg = None
     for rules, op in list(zip([args.color_if_less, args.color_if_equal, args.color_if_more, args.color_always], [operator.lt, operator.eq, operator.gt, None])):
@@ -244,9 +246,11 @@ def colorize(strvals, args, xcolors):
                 colors[0] = xcolors[colors[0]]
             if len(colors) > 1 and colors[1] in xcolors:
                 colors[1] = xcolors[colors[1]]
-            # Cast threshold to be same type as value we're comparing against
-            threshold = (type(strvals[key]))(threshold)
-            if key in strvals and (not op or op(strvals[key], threshold)):
+            # Use the true value for comparison if present,
+            # then cast threshold to be same type as value we're comparing against
+            val = keyvals[key] if key in keyvals else keytext[key]
+            threshold = (type(val))(threshold)
+            if key in keytext and (not op or op(val, threshold)):
                 if args.color_whole_block:
                     fg = colors[0] if len(colors) > 0 else None
                     bg = colors[1] if len(colors) > 1 else None
@@ -254,9 +258,9 @@ def colorize(strvals, args, xcolors):
                     props = ''
                     for prop, code in list(zip(['foreground', 'background'], colors)):
                         props += ' {prop}={code}'.format(prop=prop, code=code)
-                    val = strvals[key]
-                    strvals[key] = '<span{props}>{val}</span>'.format(props=props, val=val)
-    return [strvals, fg, bg]
+                    val = keytext[key]
+                    keytext[key] = '<span{props}>{val}</span>'.format(props=props, val=val)
+    return [keytext, fg, bg]
 
 ###
 ### |main|
@@ -372,15 +376,15 @@ def main():
         func = args.func
     except AttributeError:
         parser.error('too few arguments')
-    strvals = func(args)
+    [keytext, keyvals] = func(args)
 
     xcolors = {}
     if args.read_xresource_colors:
         xcolors = read_xresource_colors(args)
 
-    [strvals, fg, bg] = colorize(strvals, args, xcolors)
-    print(args.format.format(**strvals))
-    print(args.short_format.format(**strvals))
+    [keytext, fg, bg] = colorize(keytext, keyvals, args, xcolors)
+    print(args.format.format(**keytext))
+    print(args.short_format.format(**keytext))
     if fg:
         print(fg)
     if bg:
