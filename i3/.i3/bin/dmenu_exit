@@ -1,0 +1,43 @@
+#!/bin/bash
+actions=(cancel logout)
+
+# Check if i3lock is available
+if command -v i3lock &>/dev/null; then
+    lock=i3lock
+    actions+=(lock)
+else
+    lock=: # nop
+fi
+
+# Check if we can suspend, hibernate, restart, shutdown on a machine with systemd
+command -v systemctl &>/dev/null && powerctl=true || powerctl=false
+# TODO: check if we have permission to do this, e.g. not on shared enterprise host
+if $powerctl; then
+    actions+=(suspend hibernate restart shutdown)
+fi
+
+action=$(printf '%s\n' "${actions[@]}" | dmenu ${1+"$@"}) || exit 1
+case $action in
+    cancel)
+        exit 0
+        ;;
+    logout)
+        i3-msg exit
+        ;;
+    lock)
+        $lock
+        ;;
+    suspend)
+        $lock && systemctl suspend
+        ;;
+    hibernate)
+        $lock && systemctl hibernate
+        ;;
+    restart)
+        systemctl reboot
+        ;;
+    shutdown)
+        systemctl poweroff
+        ;;
+esac
+

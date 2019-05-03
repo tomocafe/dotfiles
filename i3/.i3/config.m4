@@ -48,6 +48,7 @@ ifdef(`M4_I3_COMPAT',`define(`M4_I3_DMENU_FONT',`M4_FONT_XLFD')',`define(`M4_I3_
 bindsym $mod+d exec dmenu_run -i -p run -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_3" -sf "M4_I3_ACTIVE_FG"
 bindsym $mod+x exec ${I3_HOME:-~/.i3}/bin/dmenu_ssh "urxvtc -e ssh -X" -i -p ssh -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_4" -sf "M4_I3_ACTIVE_FG"
 bindsym $mod+Shift+t exec ${I3_HOME:-~/.i3}/bin/dmenu_theme -i -p theme -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_5" -sf "M4_I3_ACTIVE_FG"
+bindsym $mod+Shift+e exec ${I3_HOME:-~/.i3}/bin/dmenu_exit -i -p exit -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_1" -sf "M4_I3_ACTIVE_FG"
 
 # change focus
 set $up l
@@ -161,7 +162,7 @@ bindsym $mod+Shift+c reload
 # restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
 bindsym $mod+Shift+r restart
 # exit i3 (logs you out of your X session)
-bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'Exit i3?' -b 'Yes, exit i3' 'i3-msg exit'"
+#bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'Exit i3?' -b 'Yes, exit i3' 'i3-msg exit'"
 
 # resize window (you can also use the mouse for that)
 mode "resize" {
