@@ -126,7 +126,7 @@ function _exportColorCodes () {
     COLORS=()
     local id
     for id in {0..15}; do
-        ${COLORS[$id]}='$(tput setaf $id)'
+        COLORS+=("$(tput setaf $id)")
     done
     # Special color codes
     export COLOR_RESET="$(tput sgr0)"
@@ -200,6 +200,178 @@ function _setTerminalTitle () {
 
 function _setTerminalTab () {
     echo -ne "\033]30;$@\007"
+}
+
+function _genPromptP4Status () {
+    [[ -n $P4CLIENT ]] || return
+    local status="$P4CLIENT"
+    declare -A openFileCtPerChangelist
+    local line
+    while read -r line; do
+        ((openFileCtPerChangelist[$line]++))
+    done < <(p4 -ztag -F %change% opened -C $P4CLIENT)
+    local clientOpts=$(p4 -ztag -F %Options% client -o $P4CLIENT)
+    clientOpts=":${clientOpts// /:}:"
+    if [[ $clientOpts =~ :locked: ]]; then
+        status+="*"
+    fi
+    # Show open file count in default changelist first
+    if [[ ${openFileCtPerChangelist[default]+x} ]]; then
+        status+=" (${openFileCtPerChangelist[default]})"
+    fi
+    # Then show any non-default changelists
+    local cl
+    for cl in ${!openFileCtPerChangelist[@]}; do
+        [[ $cl == 'default' ]] && continue
+        status+=" (@$cl ${openFileCtPerChangelist[$cl]})"
+    done
+    echo "$status"
+}
+
+function _genPromptGitStatus () {
+    if ! git status -s &>/dev/null; then
+        # We are not in a git repository
+        return
+    fi
+    # Count the number of changed/untracked/conflict/staged files
+    local line
+    local changedCt=0
+    local untrackedCt=0
+    local conflictCt=0
+    local stagedCt=0
+    while read -r line; do
+        case "${line:0:2}" in
+            *M*)   let changedCt++ ;;
+            *U*)   let conflictCt++ ;;
+            \?\?) let untrackedCt++ ;;
+            *)    let stagedCt++ ;;
+        esac
+    done < <(LC_ALL=C git status --untracked-files=all --porcelain)
+    uncleanFileStats=()
+    [[ $changedCt -gt 0 ]] && uncleanFileStats+=("M:$changedCt")
+    [[ $conflictCt -gt 0 ]] && uncleanFileStats+=("U:$conflictCt")
+    [[ $untrackedCt -gt 0 ]] && uncleanFileStats+=("?:$untrackedCt")
+    [[ $stagedCt -gt 0 ]] && uncleanFileStats+=("*:$stagedCt")
+    # Use remote origin URL to determine repo name, otherwise use top level directory name
+    local remoteOriginUrl=$(git config --get remote.origin.url 2>/dev/null)
+    case "$remoteOriginUrl" in
+        *github.com*)
+            repoName=${remoteOriginUrl##*github.com/}
+            ;;
+        *)
+            repoName=$(git rev-parse --show-toplevel)
+            repoName=${repoName##*/}
+            ;;
+    esac
+    # Determine the current branch
+    branch=$(git symbolic-ref -q HEAD)
+    branch=${branch#refs/heads/}
+    echo "$repoName $branch${uncleanFileStats:+(${uncleanFileStats[@]})}"
+}
+
+function _genPromptJobCt () {
+    local ct=0
+    local line
+    while read -r line; do
+        let ct++
+    done < <(jobs)
+    [[ $ct -gt 0 ]] && echo "{$jobct}"
+}
+
+function _setPrompt () {
+    # Save the return code from the previous command first!
+    local rc=$?
+    # Make sure colors are exported (caching saves time compared to many tput calls)
+    [[ ${#COLORS[@]} -gt 0 ]] || _exportColorCodes
+    # Storage
+    local sep=' '
+    local blockText=()
+    local blockColor=()
+    local block
+    # Header
+    blockText+=('┌─ ')
+    [[ $rc -eq 0 ]] && blockColor+=(${COLORS[10]}) || blockColor+=(${COLORS[1]}) # bright green if last command successful, red otherwise
+    # Hostname
+    blockText+=("${HOSTNAME%%.*}") # strip domain if present
+    case $(_getRootProcess) in
+        # Color hostname differently if root process is a connection daemon (e.g. sshd)
+        # This is a warning that closing the terminal will close a connection 
+        sshd|sge_execd)
+            blockColor+=(${COLORS[9]}) # orange (bright red)
+            ;;
+        *)
+            blockColor+=(${COLORS[3]}) # yellow
+            ;;
+    esac
+    # TTY
+    local tty=$(tty)
+    blockText+=(':')
+    blockColor+=(${COLOR_RESET})
+    blockText+=("${tty##*/}")
+    blockColor+=(${COLORS[4]}) # blue
+    # P4/git status
+    # Precedence: if cwd is part of a git repository, use git status; else use P4 status based on environment variables
+    block=$(_genPromptGitStatus)
+    [[ -n $block ]] || block=$(_genPromptP4Status)
+    if [[ -n $block ]]; then
+        blockText+=("$sep")
+        blockColor+=(${COLOR_RESET})
+        blockText+=("$block")
+        blockColor+=(${COLORS[5]}) # magenta
+    fi
+    local lastTitleBlockIndex=${#blockText[@]} # for setting title/tab, stop printing here
+    # Background job count
+    block=$(_genPromptJobCt)
+    if [[ -n $block ]]; then
+        blockText+=("$sep")
+        blockColor+=(${COLOR_RESET})
+        blockText+=("$block")
+        blockColor+=(${COLORS[$COLOR_BG_BOLD_ID]}) # bold bg color 
+    fi
+    # Set up right justification
+    local lhsCharCt=0
+    for block in "${blockText[@]}"; do
+        let lhsCharCt+=${#block}
+    done
+    # Current working directory (right justified)
+    local _pwd=${PWD/#$HOME/\~}
+    local dirpath="${_pwd%/*}/"
+    local dirname="${_pwd##*/}"
+    [[ $dirname == '~' ]] && dirpath=''
+    if [[ $((lhsCharCt + ${#_pwd})) -ge $COLUMNS ]]; then
+        # If the full path is too long, use only the directory name
+        dirpath=''
+    fi
+    local cenCharCt=$((COLUMNS - lhsCharCt - ${#dirpath} - ${#dirname} - 2)) # offset -2 for parentheses around cwd
+    [[ $cenCharCt -lt 1 ]] && cenCharCt=1
+    local cenText=$(printf "%${cenCharCt}s" "")
+    blockText+=("$cenText")
+    blockColor+=(${COLOR_RESET})
+    blockText+=('(')
+    blockColor+=(${COLOR_RESET})
+    if [[ -n "$dirpath" ]]; then
+        blockText+=("$dirpath")
+        blockColor+=(${COLOR_RESET})
+    fi
+    blockText+=("$dirname")
+    blockColor+=(${COLORS[$COLOR_FG_BOLD_ID]}) # bold fg color
+    blockText+=(')')
+    blockColor+=(${COLOR_RESET})
+    # Set status line
+    local i=0
+    PS1="\r"
+    local titleText=""
+    while [[ $i -lt ${#blockText[@]} ]]; do
+        PS1+="\[${blockColor[$i]}\]${blockText[$i]}"
+        [[ $i -gt 0 && $i -le $lastTitleBlockIndex ]] && titleText+="${blockText[$i]}" # skip header
+        let i++
+    done
+    # Set prompt
+    PS1+="\n\[${blockColor[0]}\]\$\[${COLOR_RESET}\] "
+    export PS1
+    # Set the terminal title/tab
+    _setTerminalTitle "$titleText"
+    #_setTerminalTab "$titleText"
 }
 
 ###############################################################################
