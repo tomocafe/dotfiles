@@ -136,7 +136,7 @@ function _exportColorCodes () {
         unset COLOR_FG_ID
         local line
         while read -r line; do
-            if [[ $line =~ *background: ]]; then
+            if [[ $line =~ \*background: ]]; then
                 local code=${line##*#}
                 local r="0x${code:0:2}"
                 local g="0x${code:2:2}"
@@ -146,6 +146,7 @@ function _exportColorCodes () {
                 for i in $r $g $b; do
                     [[ $i -ge 0x7f ]] && let ct++
                 done
+                echo "$r $g $b -> $ct"
                 if [[ $ct -ge 2 ]]; then
                     # Background mostly light => black fg, white bg
                     export COLOR_FG_ID=0
