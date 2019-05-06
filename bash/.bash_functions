@@ -12,72 +12,79 @@ function _join () {
 # Path manipulation
 ###############################################################################
 
-function _inPath () {
-    [[ $# -eq 1 ]] || return 2
-    [[ ":${PATH}:" =~ ":${1}:" ]] && return 0
+# Base functions to manipulate colon-delimited lists
+
+function _inPathBase () {
+    [[ $# -eq 2 ]] || return 2
+    eval [[ ":\${$1}:" =~ ":${2}:" ]] && return 0
     return 1
 }
 
-function _prependPath () {
-    local _paths=($@)
-    local _sep=${PATH:+${_paths:+:}}
+function _prependPathBase () {
+    local _paths=(${@:2})
     local IFS=':'
-    export PATH=${_paths[*]}${_sep}${PATH}
+    eval export $1=\${_paths[*]}\${$1:+\${_paths:+:}}\${$1}
 }
 
-function _appendPath () {
-    local _paths=($@)
-    local _sep=${PATH:+${_paths:+:}}
+function _appendPathBase () {
+    local _paths=(${@:2})
     local IFS=':'
-    export PATH=${PATH}${_sep}${_paths[*]}
+    eval export $1=\${$1}\${$1:+\${_paths:+:}}\${_paths[*]}
 }
 
-function _prependPathUnique () {
+function _prependUniquePathBase () {
     local _path
-    for _path in $@; do
-        _inPath $_path || _prependPath $_path
+    for _path in ${@:2}; do
+        _inPathBase $1 $_path || _prependPathBase $1 $_path
     done
 }
 
-function _appendPathUnique () {
+function _appendUniquePathBase () {
     local _path
-    for _path in $@; do
-        _inPath $_path || _appendPath $_path
+    for _path in ${@:2}; do
+        _inPathBase $1 $_path || _appendPathBase $1 $_path
     done
 }
 
-function _removeFromPath () {
+function _removeFromPathBase () {
     local _path
     local _newpath
-    for _path in $@; do
-        _inPath $_path || continue
-        _newpath=":${PATH}:"
+    local _found=1
+    for _path in ${@:2}; do
+        _inPathBase $1 $_path || continue
+        eval _newpath=":\${$1}:"
         _newpath=${_newpath//:$_path:/:}
         _newpath=${_newpath#:}
         _newpath=${_newpath%:}
-        export PATH="$_newpath"
+        eval export $1="$_newpath"
+        _found=0
     done
+    return $_found
 }
 
-function _swapInPath () {
-    [[ $# -eq 2 ]] || return
-    _inPath $1 || return
-    _inPath $2 || return
-    _inPath "@SWAPPING@" && return # sentinel value
-    local _newpath=":$PATH:"
-    _newpath=${_newpath//:$1:/:@SWAPPING@:}
-    _newpath=${_newpath//:$2:/:$1:}
-    _newpath=${_newpath//:@SWAPPING@:/:$2:}
+function _swapInPathBase () {
+    [[ $# -eq 3 ]] || return 2
+    _inPathBase $1 $2 || return 1
+    _inPathBase $1 $3 || return 1
+    _inPathBase $1 "@SWAPPING@" && return # sentinel value
+    eval local _newpath=":\$$1:"
+    _newpath=${_newpath//:$2:/:@SWAPPING@:}
+    _newpath=${_newpath//:$3:/:$2:}
+    _newpath=${_newpath//:@SWAPPING@:/:$3:}
     _newpath=${_newpath#:}
     _newpath=${_newpath%:}
-    export PATH="$_newpath"
+    eval export $1="$_newpath"
+    return 0
 }
 
-function _inCdPath () {
-    [[ $# -eq 1 ]] || return 2
-    [[ ":${CDPATH}:" =~ ":${1}:" ]] && return 0
-    return 1
-}
+# Instantiate functions for common colon-delimited lists, e.g. PATH
+for _p in PATH LD_LIBRARY_PATH LD_PRELOAD_PATH CDPATH; do
+    _f=$(echo ${_p,,} | sed -r 's/(^|_)([a-z])/\U\2/g') # snake to pascal case
+    _f=${_f//path/Path} # always capitalize path
+    for _a in _in _prepend _prependUnique _append _appendUnique _removeFrom _swapIn; do
+        eval "function ${_a}${_f} { ${_a}PathBase $_p \$@; }"
+    done
+done
 
 ###############################################################################
 # Messaging
