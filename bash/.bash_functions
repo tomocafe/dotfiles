@@ -146,7 +146,6 @@ function _exportColorCodes () {
                 for i in $r $g $b; do
                     [[ $i -ge 0x7f ]] && let ct++
                 done
-                echo "$r $g $b -> $ct"
                 if [[ $ct -ge 2 ]]; then
                     # Background mostly light => black fg, white bg
                     export COLOR_FG_ID=0
