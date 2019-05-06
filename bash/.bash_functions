@@ -275,7 +275,7 @@ function _genPromptJobCt () {
     while read -r line; do
         let ct++
     done < <(jobs)
-    [[ $ct -gt 0 ]] && echo "{$jobct}"
+    [[ $ct -gt 0 ]] && echo "{$ct}"
 }
 
 function _setPrompt () {
