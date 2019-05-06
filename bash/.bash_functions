@@ -381,6 +381,12 @@ function _setPrompt () {
     #_setTerminalTab "$titleText"
 }
 
+function _setFastPrompt () {
+    unset PROMPT_COMMAND
+    export PROMPT_DIRTRIM=4
+    export PS1="\r\[${COLORS[$COLOR_FG_BOLD_ID]}\]┌─ \[${COLORS[3]}\]\h\[${COLOR_RESET}\]:\[${COLORS[4]}\]\l\[${COLOR_RESET}\] (\w)\n\[${COLORS[$COLOR_FG_BOLD_ID]}\]$\[${COLOR_RESET}\] "
+}
+
 ###############################################################################
 # Terminal related
 ###############################################################################

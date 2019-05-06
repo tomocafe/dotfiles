@@ -1,0 +1,33 @@
+source ~/.bash_functions
+
+# Aliases
+alias ls="\ls --color=auto -F"
+alias dc="cd .."
+alias which="type"
+
+# Set prompt
+if [[ $- == *i* ]]; then
+    shopt -s checkwinsize
+    _exportColorCodes
+    export PROMPT_COMMAND=_setPrompt
+fi
+
+# Directory colors
+if [[ -r ~/.dircolors ]]; then
+    # Static color rules in .dircolors file
+    eval $(dircolors -b ~/.dircolors)
+    # Dynamic color rules altered as follows:
+    _ow=({ow,tw}"=1;35;4${COLOR_BG_BOLD_ID}")
+    _tmp=({*~,*#,*#*,*.swp,*.swo,*\,v}"=1;3${COLOR_BG_BOLD_ID}")
+    export LS_COLORS="$LS_COLORS:$(_join : ${_ow[@]}):$(_join : ${_tmp[@]})"
+fi
+
+# Grep colors
+#export GREP_COLOR="9${COLOR_FG_ID};4${COLOR_BG_BOLD_ID}"
+
+# Disable command-not-found handler
+unset command_not_found_handle
+
+# Disable annoying password popup
+unset SSH_ASKPASS
+
