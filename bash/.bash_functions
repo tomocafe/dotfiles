@@ -345,11 +345,11 @@ function _setPrompt () {
     local dirpath="${_pwd%/*}/"
     local dirname="${_pwd##*/}"
     [[ $dirname == '~' ]] && dirpath=''
-    if [[ $((lhsCharCt + ${#_pwd})) -ge $COLUMNS ]]; then
+    if [[ $((lhsCharCt + ${#dirpath} + ${#dirname} + 2)) -ge $COLUMNS ]]; then # offset +2 for parentheses
         # If the full path is too long, use only the directory name
         dirpath=''
     fi
-    local cenCharCt=$((COLUMNS - lhsCharCt - ${#dirpath} - ${#dirname} - 2)) # offset -2 for parentheses around cwd
+    local cenCharCt=$((COLUMNS - lhsCharCt - ${#dirpath} - ${#dirname} - 2)) # offset -2 for parentheses
     [[ $cenCharCt -lt 1 ]] && cenCharCt=1
     local cenText=$(printf "%${cenCharCt}s" "")
     blockText+=("$cenText")
