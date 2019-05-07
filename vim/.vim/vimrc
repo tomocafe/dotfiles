@@ -1,0 +1,33 @@
+set backspace=2
+
+set tabstop=4
+set shiftwidth=4
+set softtabstop=4
+set expandtab
+set smarttab
+
+:au FileType cpp setlocal tabstop=2 shiftwidth=2 softtabstop=2 cindent
+:au FileType tcl setlocal tabstop=2 shiftwidth=2 softtabstop=2
+:au FileType make setlocal noexpandtab
+
+set cursorline
+set hlsearch
+set showmatch
+set matchtime=0
+syntax enable
+
+set number
+set relativenumber
+nmap <F3> :set nu! rnu!<CR>
+
+nnoremap Q <nop>
+
+" *last-position-jump*
+:au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g`\"" | endif
+
+" Source theme last
+try
+    source ~/.vim/theme
+catch
+endtry
+
