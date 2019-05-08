@@ -4,8 +4,9 @@ source ~/.bash_functions
 
 # Aliases
 alias ls="\ls --color=auto -F"
-alias dc="cd .."
 alias which="type"
+function dc () { local _d=${@: -1}; cd ${_d:-..}; }
+complete -F _dcBackwardsPathCompletion dc
 
 # Set prompt
 if [[ $- == *i* ]]; then

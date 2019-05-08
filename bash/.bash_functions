@@ -413,10 +413,17 @@ function _forkUrxvtDaemonized () {
 
 
 ###############################################################################
-# Path completion
+# Completion
 ###############################################################################
 
-
+function _dcBackwardsPathCompletion () {
+    # $1=cmd $2=cur $3=pre
+    local cwd=$3
+    [[ "@@$cwd@@" == "@@$1@@" ]] && cwd=$PWD # initialize to pwd
+    [[ "$cwd" == "/" ]] && return # hit the bottom
+    local upd=${cwd%/*}
+    COMPREPLY=(${upd:-/})
+}
 
 ###############################################################################
 # Platform checking
