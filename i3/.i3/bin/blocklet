@@ -164,7 +164,7 @@ def commute(args):
     mins_after_hr = int(secs / 60) % 60
     keytext = {
         'time': '{0}:{1:02d}'.format(hr, mins_after_hr),
-        'mins': int(secs / 60) % 60,
+        'mins': int(secs / 60),
         'text': data['rows'][0]['elements'][0][duration_key]['text'],
         'distance': data['rows'][0]['elements'][0]['distance']['text']
     }
