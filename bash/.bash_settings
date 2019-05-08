@@ -7,6 +7,8 @@ alias ls="\ls --color=auto -F"
 alias which="type"
 function dc () { local _d=${@: -1}; cd ${_d:-..}; }
 complete -F _dcBackwardsPathCompletion dc
+alias compress="_compress"
+alias extract="_extract"
 
 # Set prompt
 if [[ $- == *i* ]]; then

@@ -11,6 +11,25 @@ function _join () {
 }
 
 ###############################################################################
+# Messaging
+###############################################################################
+
+function _putError () 
+{
+    echo -e "\e[31m└─ Error ──── \e[0m$@" 1>&2
+}
+
+function _putWarning () 
+{
+    echo -e "\e[91m└─ Warning ── \e[0m$@" 1>&2
+}
+
+function _putInfo () 
+{
+    echo -e "\e[36m└─ Info ───── \e[0m$@" 1>&2
+}
+
+###############################################################################
 # Path manipulation
 ###############################################################################
 
@@ -87,25 +106,6 @@ for _p in PATH LD_LIBRARY_PATH LD_PRELOAD_PATH CDPATH; do
         eval "function ${_a}${_f} { ${_a}PathBase $_p \$@; }"
     done
 done
-
-###############################################################################
-# Messaging
-###############################################################################
-
-function _putError () 
-{
-    echo -e "\e[31m└─ Error ──── \e[0m$@" 1>&2
-}
-
-function _putWarning () 
-{
-    echo -e "\e[91m└─ Warning ── \e[0m$@" 1>&2
-}
-
-function _putInfo () 
-{
-    echo -e "\e[36m└─ Info ───── \e[0m$@" 1>&2
-}
 
 ###############################################################################
 # Process related
@@ -407,12 +407,6 @@ function _forkUrxvtDaemonized () {
 }
 
 ###############################################################################
-# Directory structure
-###############################################################################
-
-
-
-###############################################################################
 # Completion
 ###############################################################################
 
@@ -426,6 +420,34 @@ function _dcBackwardsPathCompletion () {
 }
 
 ###############################################################################
-# Platform checking
+# Utilities
 ###############################################################################
+
+function _archiveHandlerBase () {
+    # Compress: $0 true  archive.extension <files>
+    # Extract:  $0 false archive.extension
+    [[ $# -ge 2 ]] || return 2
+    local _compress=$1
+    shift
+    case ${1,,} in
+        *.tar.gz|*.tgz) $_compress && tar czvf $@ || tar xzvf $@ ;;
+        *.tar.bz2|*.tbz2) $_compress && tar cjvf $@ || tar xjvf $@ ;;
+        *.tar) $_compress && tar cvf $@ || tar xvf $@ ;;
+        *.gz) $_compress && gzip <$2 >$1 || gunzip $@ ;;
+        *.bz2) $_compress && bzip2 <$2 >$1 || bunzip2 $@ ;;
+        *.lzh|*.lha) $_compress && lha c $@ || lha x $@ ;;
+        *.zip) $_compress && zip $@ || unzip $@ ;;
+        *.Z) $_compress && command compress <$2 >$1 || command uncompress $@ ;;
+        *.7z) $_compress && 7z a $@ || 7z x $@ ;;
+        *) _putError "unknown archive format"; return 1 ;;
+    esac
+}
+
+function _compress () {
+    _archiveHandlerBase true $@
+}
+
+function _extract () {
+    _archiveHandlerBase false $@
+}
 
