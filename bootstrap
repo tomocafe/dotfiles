@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Ensure we are just below the home directory
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+if [[ "$(readlink -f $here/..)" != "$(readlink -f $HOME)" ]]; then
+    echo "Bootstrap expects itself to be one level below \$HOME"
+    exit 1
+fi
+cd $here
+
+# i3
+mkdir -p ~/.i3/bin &>/dev/null
+${STOW:-stow} i3
+
+# bash
+mkdir -p ~/bin &>/dev/null
+${STOW:-stow} bash
+
+# vim
+mkdir -p ~/.vim/colors &>/dev/null
+${STOW:-stow} vim
+
