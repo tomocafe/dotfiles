@@ -13,8 +13,11 @@ mkdir -p ~/.i3/bin &>/dev/null
 ${STOW:-stow} i3
 
 # bash
-mkdir -p ~/bin &>/dev/null
 ${STOW:-stow} bash
+
+# bin
+mkdir -p ~/bin &>/dev/null
+${STOW:-stow} bin
 
 # vim
 mkdir -p ~/.vim/colors &>/dev/null
