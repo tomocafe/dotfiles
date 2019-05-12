@@ -142,7 +142,6 @@ function _exportColorCodes () {
     export COLOR_TRESET="$(tput reset)"
     # Map xrdb global background to closest b/w 16-bit color codes
     if command -v xrdb &>/dev/null; then
-        unset COLOR_FG_ID
         local line
         while read -r line; do
             if [[ $line =~ \*background: ]]; then
@@ -168,8 +167,8 @@ function _exportColorCodes () {
                     export COLOR_BG_ID=8
                     export COLOR_BG_BOLD_ID=0
                 fi
+                break
             fi
-            [[ -z $COLOR_FG_ID ]] || break 
         done < <(xrdb -query)
     fi
 }
@@ -183,7 +182,7 @@ function _showColors () {
             local col=$((id + offset))
             local hex=$(xrdb -query 2>/dev/null | grep "^*color$col:")
             hex=${hex##*#}
-            printf "$(tput setaf $col)%3s$(tput sgr0) $(tput setab $col)$(tput setaf $fg)%3s$(tput sgr0) #%s\t" $col $col $hex
+            printf "$(tput setaf $col)%3s$(tput sgr0) $(tput setab $col)$(tput setaf $fg)%3s$(tput sgr0) %s%6s\t" $col $col ${hex:+#} $hex
             fg=0
         done
         echo
