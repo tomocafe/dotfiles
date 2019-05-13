@@ -6,7 +6,7 @@ dnl
 
 # Start some executables
 exec_always --no-startup-id xrdb -load ${I3_HOME:-~/.i3}/Xresources
-exec_always --no-startup-id reload-ssh-xresources ${I3_HOME:-~/.i3}/Xresources
+exec_always --no-startup-id ${I3_HOME:-~/.i3}/bin/reload-ssh-xresources ${I3_HOME:-~/.i3}/Xresources
 exec --no-startup-id urxvtd -q -f -o
 
 # Set X root background color
@@ -41,13 +41,13 @@ mode "confirm-close" {
     bindsym n mode default
     bindsym Escape mode default
 }
-bindsym $mod+Shift+q exec --no-startup-id close-mode -c "ssh" -c "--loginShell" "confirm-close"
+bindsym $mod+Shift+q exec --no-startup-id ${I3_HOME:-~/.i3}/bin/close-mode -c "ssh" -c "--loginShell" "confirm-close"
 
 # start dmenu (a program launcher)
 ifdef(`M4_I3_COMPAT',`define(`M4_I3_DMENU_FONT',`M4_FONT_XLFD')',`define(`M4_I3_DMENU_FONT',`M4_FONT_NAME-M4_FONT_SIZE')')dnl
 bindsym $mod+d exec dmenu_run -i -p run -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_3" -sf "M4_I3_ACTIVE_FG"
-bindsym $mod+x exec dmenu_ssh "urxvtc -e ssh -X" -i -p ssh -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_4" -sf "M4_I3_ACTIVE_FG"
-bindsym $mod+Shift+t exec dmenu_theme -i -p theme -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_5" -sf "M4_I3_ACTIVE_FG"
+bindsym $mod+x exec ${I3_HOME:-~/.i3}/bin/dmenu_ssh "urxvtc -e ssh -X" -i -p ssh -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_4" -sf "M4_I3_ACTIVE_FG"
+bindsym $mod+Shift+t exec ${I3_HOME:-~/.i3}/bin/dmenu_theme -i -p theme -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_5" -sf "M4_I3_ACTIVE_FG"
 
 # change focus
 set $up l
