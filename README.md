@@ -44,6 +44,24 @@ For i3wm:
 
 The file `.bash_settings` includes common aliases, settings, and functions and should be sourced from the user's `.bashrc` or `.bash_profile` on the system. The `.bashrc` file is not included in this repository since it may need to be vastly different depending on the system; hence, everything deemed common enough is moved into the `.bash_settings` file. The `.bash_functions` file defines helpful functions and is included by the `.bash_settings` script.
 
+### Features
+
+* Full-line prompt with git/Perforce status, background job count, last command status, and right-justified current working directory (with truncation)
+    * Hostname colored differently if root process is a connection daemon, warning that closing the shell may close a connection
+* (Optional) fast, basic prompt
+* Sets `$LS_COLORS`
+* Handy commands:
+    * `dc` (backwards `cd`) with tab completion to go up the directory tree to a desired directory
+    * `mcd` (make and change to directory)
+    * `hc` (hard copy) replaces symbolic links with copies of the source files/directories
+    * `compress` and `extract` to work generically with archive files
+* Helper functions:
+    * `_join` joins the arguments with a given delimiter
+    * Pretty status messages: `_putError`, `_putWarning`, `_putInfo`
+    * Path manipulation: `_{in,prepend,prependUnique,append,appendUnique,removeFrom,swapIn}{Path,LdLibraryPath,LdPreloadPath,CdPath}`
+    * Check lists of files/commands/variables: `_check{Set,Command,Readable,Writeable,Executable,Exists,Directory,Link}`
+    * `_showColors` shows 16-color palette in detail and also show all supported terminal colors
+
 ## i3wm
 
 The configuration of `i3` is managed by `m4` to generate configuration files based on a selected theme. To set up `i3` for first use, using the `gruvbox-dark` theme as an example:
@@ -90,7 +108,7 @@ xset fp rehash
 
 # Set up environment to run i3wm
 export I3_HOME=~/.i3
-# Following needed only if i3 is installed in a non-standard location
+# Following needed only if i3 is installed in a non-standard location, e.g. ~/i3wm-el6/i3-4.8
 export PATH="${PATH:+$PATH:}${HOME}/i3wm-el6/i3-4.8/bin:${I3_HOME}/bin"
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}${HOME}/i3wm-el6/i3-4.8/lib"
 # Following needed only if i3 is an old version without pango support
