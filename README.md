@@ -82,7 +82,7 @@ If you are not launching `i3` from a login manager, you may need to create an `~
 
 An example xsession file to launch `i3`:
 
-```
+```shell
 # Use local fonts for X11
 xset +fp $HOME/.fonts
 xset fp rehash
