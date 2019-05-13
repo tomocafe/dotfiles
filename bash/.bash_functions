@@ -10,6 +10,22 @@ function _join () {
     echo "$*"
 }
 
+function _hardCopy () {
+    local f
+    for f in $@; do
+        f=${f%/}
+        if [[ -L $f ]]; then
+            local src=$(readlink -f $f)
+            unlink $f && cp -r $src $f
+        fi
+    done
+}
+
+function _makeChangeDirectory () {
+    # Pass in mkdir arguments and/or multiple directories, cd to the last directory given
+    command mkdir $@ && command cd ${@: -1}
+}
+
 ###############################################################################
 # Messaging
 ###############################################################################
@@ -105,6 +121,42 @@ for _p in PATH LD_LIBRARY_PATH LD_PRELOAD_PATH CDPATH; do
     for _a in _in _prepend _prependUnique _append _appendUnique _removeFrom _swapIn; do
         eval "function ${_a}${_f} { ${_a}PathBase $_p \$@; }"
     done
+done
+
+###############################################################################
+# Checking functions
+###############################################################################
+
+function _checkSet () {
+    local v
+    for v in $@; do
+        eval test -z \${$v+x} && return 1 # unset
+        eval test -z \${$v} && return 2 # set, but empty
+    done
+    return 0
+}
+
+function _checkCommand () {
+    local cmd
+    for cmd in $@; do
+        $(command -v $cmd) &>/dev/null || return 1
+    done
+    return 0
+}
+
+function _checkFileTypeBase () {
+    local flag=$1
+    shift
+    local f
+    for f in $@; do
+        test -$flag $f || return 1
+    done
+    return 0
+}
+
+# Instantiate functions for common file type checks
+for _t in r:Readable w:Writeable x:Executable e:Exists d:Directory L:Link; do
+    eval "function _check${_t#*:} { _checkFileTypeBase ${_t%:*} \$@; }"
 done
 
 ###############################################################################
