@@ -31,6 +31,12 @@ For i3wm:
 * `i3blocks`
 * `xrdb`, `xprop`, `xset`, `xsetroot`
 
+## Themes
+
+* `gruvbox-dark`
+* `solarized-dark`
+* `solarized-light`
+
 ---
 
 ## bash
@@ -97,7 +103,7 @@ Modification of `$PATH` (and etc.) can be skipped if `i3` is installed system-wi
 
 ## vim
 
-This provides a basic `vimrc` configuration and provides theme support. To apply the theme gruvbox-dark, for example:
+This provides a basic `vimrc` configuration and provides theme support. To apply the theme `gruvbox-dark`, for example:
 
 ```shell
 cd ~/.vim
