@@ -139,7 +139,7 @@ function _checkSet () {
 function _checkCommand () {
     local cmd
     for cmd in $@; do
-        $(command -v $cmd) &>/dev/null || return 1
+        command -v $cmd &>/dev/null || return 1
     done
     return 0
 }
