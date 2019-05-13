@@ -30,6 +30,7 @@ For i3wm:
 * `i3`
 * `i3blocks`
 * `xrdb`, `xprop`, `xset`, `xsetroot`
+* `rxvt-unicode` (`urxvt`)
 
 ## Themes
 
