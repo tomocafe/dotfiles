@@ -3,7 +3,7 @@
 source ~/.bash_functions
 
 # Aliases
-alias ls="\ls --color=auto -F"
+alias ls="command ls --color=auto -F"
 alias which="type"
 alias hc="_hardCopy"
 alias compress="_compress"
@@ -29,8 +29,22 @@ if [[ -r ~/.dircolors ]]; then
     export LS_COLORS="$LS_COLORS:$(_join : ${_ow[@]}):$(_join : ${_tmp[@]})"
 fi
 
-# Grep colors
-#export GREP_COLOR="9${COLOR_FG_ID};4${COLOR_BG_BOLD_ID}"
+# ack/ag settings
+IFS= read -d '' _ack_options <<EOF
+--color-filename='green'
+--color-match='bold red'
+--color-lineno='blue'
+--type-set=cc:ext:c,cc,cpp,cxx
+--type-set=hh:ext:h,hh,hpp,hxx
+EOF
+export ACK_OPTIONS="${_ack_options//$'\n'/ }"
+IFS= read -d '' _ag_options <<EOF
+--color-path='32'
+--color-match='1;31'
+--color-line-number='34'
+EOF
+export AG_OPTIONS="${_ag_options//$'\n'/ }"
+alias ag="command ag $AG_OPTIONS"
 
 # Disable command-not-found handler
 unset command_not_found_handle
