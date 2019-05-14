@@ -257,7 +257,7 @@ def colorize(keytext, keyvals, args, xcolors):
                 else:
                     props = ''
                     for prop, code in list(zip(['foreground', 'background'], colors)):
-                        props += ' {prop}={code}'.format(prop=prop, code=code)
+                        props += ' {prop}="{code}"'.format(prop=prop, code=code)
                     val = keytext[key]
                     keytext[key] = '<span{props}>{val}</span>'.format(props=props, val=val)
     return [keytext, fg, bg]
