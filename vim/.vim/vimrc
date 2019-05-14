@@ -25,6 +25,22 @@ nnoremap Q <nop>
 " *last-position-jump*
 :au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g`\"" | endif
 
+set backup
+set swapfile
+set undofile
+if !isdirectory($HOME."/.vim/backups")
+    silent! execute "!mkdir ~/.vim/backups"
+endif
+set backupdir=~/.vim/backups//
+if !isdirectory($HOME."/.vim/swaps")
+    silent! execute "!mkdir ~/.vim/swaps"
+endif
+set directory=~/.vim/swaps//
+if !isdirectory($HOME."/.vim/undos")
+    silent! execute "!mkdir ~/.vim/undos"
+endif
+set undodir=~/.vim/undos//
+
 " Source theme last
 try
     source ~/.vim/theme

@@ -1,0 +1,3 @@
+#!/bin/bash
+rm -rf ~/.vim/{backups,swaps,undos} &>/dev/null
+

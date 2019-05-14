@@ -9,7 +9,7 @@ alias hc="_hardCopy"
 alias compress="_compress"
 alias extract="_extract"
 alias mcd="_makeChangeDirectory"
-function dc () { local _d=${@: -1}; cd ${_d:-..}; }
+function dc () { [[ $# -gt 0 ]] && local _d=${@: -1}; cd ${_d:-..}; }
 complete -F _dcBackwardsPathCompletion dc
 
 # Set prompt
