@@ -1,0 +1,115 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+
+use Term::ANSIColor;
+use File::stat;
+use Cwd;
+
+my $ENGINE = "ack";
+my $PAGER = "less -SFXRM";
+my $CACHEDIR = "$ENV{'HOME'}/.cache/search";
+my $CACHESIZE = 10;
+
+my $opts = $ENV{uc($ENGINE) . "_OPTIONS"};
+
+# Retrieve all cache files sorted ascending by modification time
+sub getcaches {
+    opendir (my $D, $CACHEDIR) or die $!;
+    my @files = grep { $_ !~ m/^\.+$/ } readdir($D);
+    @files = sort { (stat "$CACHEDIR/$a")->[10] <=> (stat "$CACHEDIR/$b")->[10] } @files;
+    return @files;
+}
+
+# Set up the cache file for later recall
+# Generates a cache file name with the timestamp and truncated encoded arguments
+sub setcache {
+    # Clean up the oldest cache file once the cache overflows
+    my @old = getcaches ();
+    while (scalar @old >= $CACHESIZE) {
+        unlink (shift @old);
+    }
+    # Encode and truncate arguments as the new cache file name
+    my $encoded = join '%20', @_;
+    $encoded =~ s/ /%20/g;
+    $encoded =~ s/\*/%2a/g;
+    $encoded =~ s/\//%2f/g;
+    my $maxlen = 40;
+    for (my $offset = 2; $offset > 0; $offset--) {
+        if (length($encoded) >= $maxlen - $offset + 3 && 
+            substr($encoded, $maxlen - $offset, 3) =~ m/%2[0af]/) {
+            $maxlen -= $offset;
+            last;
+        }
+    }
+    my $cache = $CACHEDIR . "/" . time() . ":" . substr($encoded, 0, $maxlen);
+    return $cache;
+}
+
+# Increment the index in base-36
+sub b36inc {
+    my ($p, $d) = (substr($_[0], 0, length($_[0]) - 1), substr ($_[0], -1));
+    if    ($d eq '9') { $_[0] =        $p  . "a";  }
+    elsif ($d eq 'k') { $_[0] =        $p  . "m";  } # skip L for legibility
+    elsif ($d eq 'z') { $_[0] = b36inc($p) . "0";  }
+    else              { $_[0] =        $p  . ++$d; }
+}
+
+# Strip ANSI color codes from the string
+# This should be replaced by Term::ANSIColor but it requires v2.01+
+sub colorstrip {
+    my $dirty = shift @_;
+    (my $clean = $dirty) =~ s/\e\[\d+(?>(;\d+)*)m//g;
+    return $clean;
+}
+
+sub search {
+    # Open a pipe to invoke the search engine
+    my @args = map { "\"$_\"" } @_; # re-quote all arguments to pass to the engine
+    open (my $I, '-|', "$ENGINE --group --color $opts @args") or die $!;
+    my $O = undef;
+    my $F = undef;
+    my $id = 0;
+    # For each line of the search engine output (stdout)
+    while (my $line = <$I>) {
+        # Append a base-36 index in front of matches
+        if (colorstrip($line) =~ m/^[0-9]+:/) {
+            b36inc $id;
+            $line = sprintf "%s%-3s%s %s", color('cyan'), $id, color('reset'), "$line";
+        }
+        # Pipe to the output pager
+        unless ($O) {
+            open ($O, "|$PAGER") or die $!;
+        }
+        print $O "$line";
+        # Write to the cache
+        unless ($F) {
+            open ($F, '>', setcache(@_)) or die $!;
+            # Print a header to the cache file
+            print $F "::@_\n";
+            print $F "::" . cwd . "\n";
+            print $F "::" . scalar localtime() . "\n";
+        }
+        print $F "$line";
+    }
+    close $I;
+    close $O if $O;
+    close $F if $F;
+}
+
+=pod
+sub recall {
+### TODO
+}
+=cut
+
+search (@ARGV);
+
+# Following is temporary:
+my @caches = getcaches ();
+my $oldest = shift @caches;
+my $newest = pop @caches;
+print "Oldest cache is $oldest\n";
+print "Newest cache is $newest\n";
+
