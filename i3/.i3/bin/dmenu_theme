@@ -1,6 +1,6 @@
 #!/bin/bash
 I3_HOME=${I3_HOME:-~/.i3}
-I3_THEMEDIR=${I3_THEEDIR:-$I3_HOME/themes}
+I3_THEMEDIR=${I3_THEMEDIR:-$I3_HOME/themes}
 themes=()
 for t in $I3_THEMEDIR/*; do
     [[ -r $t/i3.m4 ]] || continue
