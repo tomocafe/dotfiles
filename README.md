@@ -153,7 +153,7 @@ search-ack --cpp pattern # same as above
 search-ag --cpp pattern # using ag instead, but same result
 search-select # show all matches (again)
 search-select +1 # same as above, explicitly requesting cache #1 (the default)
-search-select 1z # open the match indexed as "1f" in the default editor
+search-select 1z # open the match indexed as "1z" in the default editor
 search-select +1 1z # same as above
 search-select 1z "p4 edit {}" # run the command "p4 edit" on the matched file
 search-list-cache # show an indexed list of previous search results in the cache
