@@ -130,7 +130,6 @@ sub listcaches {
         for (my $i = 1; $i < scalar @header; $i++) {
             printf "%${w}s %s", ' ', $header[$i];
         }
-        print "\n";
     }
 }
 
