@@ -84,7 +84,7 @@ m4 -Ithemes/gruvbox-dark config.m4 > config
 
 If the system has an old version of `i3` without `pango` support, add the `-DM4_I3_COMPAT` flag to `m4`.
 
-The `i3` configuration relies on scripts supplied under `$I3_HOME/bin`, where `$I3_HOME` is the directory where the configuration is stored, usually `~/.i3`. Either the environment variable `$I3_HOME` must be set accordingly _before_ launching `i3`, or the configuration must be stored at the default location of `~/.i3` for the configuration to find these scripts.
+The `i3` configuration relies on scripts supplied under `$I3_HOME/bin`, where `$I3_HOME` is the directory containing the `i3` `config` file, usually `~/.i3`. Either the environment variable `$I3_HOME` must be set accordingly _before_ launching `i3`, or the configuration must be stored at the default location of `~/.i3` for the configuration to find these scripts.
 
 ### i3blocks
 
@@ -100,9 +100,9 @@ interval=5
 
 ### Other features
 
-* <kbd>Mod</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd> brings up a `dmenu` to select and apply a theme (including `vim`)
+* <kbd>Mod</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd> brings up a `dmenu` to select and apply a theme (includes `vim` theming)
 * <kbd>Mod</kbd>+<kbd>X</kbd> brings up a `dmenu` to launch a terminal and connect via `ssh` to a selected server (from the known hosts on the system)
-* <kbd>Mod</kbd>+<kbd>Shift</kbd>+<kbd>Q</kbd> checks if the window being killed has a connection daemon as a root process (e.g. `sshd`) and enters `close-mode` to confirm killing the window by pressing <kbd>Y</kbd> to avoid accidentally closing a session
+* <kbd>Mod</kbd>+<kbd>Shift</kbd>+<kbd>Q</kbd> checks if the window being killed has a connection daemon as a root process (e.g. `sshd`) and enters `confirm-close` mode to confirm killing the window by pressing <kbd>Y</kbd> to avoid accidentally closing a session
 * `blocklet` is a script to generate `i3blocks` blocklets for weather, traffic, stock ticker, system stats, etc.
 
 ### xsession
