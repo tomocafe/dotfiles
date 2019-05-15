@@ -98,12 +98,13 @@ command=date
 interval=5
 ```
 
+`blocklet` is a script to generate `i3blocks` blocklets for weather, traffic, stock ticker, system stats, etc. For detailed usage, use `blocklet -h` and `blocklet <command> -h`. Some commands require API keys to be set in the environment (`$WEATHER_API_KEY` for [openweathermap.org](https://openweathermap.org), `$COMMUTE_API_KEY` for [maps.googleapis.com](https://maps.googleapis.com)).
+
 ### Other features
 
 * <kbd>Mod</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd> brings up a `dmenu` to select and apply a theme (includes `vim` theming)
 * <kbd>Mod</kbd>+<kbd>X</kbd> brings up a `dmenu` to launch a terminal and connect via `ssh` to a selected server (from the known hosts on the system)
 * <kbd>Mod</kbd>+<kbd>Shift</kbd>+<kbd>Q</kbd> checks if the window being killed has a connection daemon as a root process (e.g. `sshd`) and enters `confirm-close` mode to confirm killing the window by pressing <kbd>Y</kbd> to avoid accidentally closing a session
-* `blocklet` is a script to generate `i3blocks` blocklets for weather, traffic, stock ticker, system stats, etc.
 
 ### xsession
 
