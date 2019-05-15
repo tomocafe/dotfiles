@@ -46,6 +46,11 @@ EOF
 export AG_OPTIONS="${_ag_options//$'\n'/ }"
 alias ag="command ag $AG_OPTIONS"
 
+alias s="search-ack"
+alias sag="search-ag"
+alias a="search-select"
+alias sls="search-list-cache"
+
 # Disable command-not-found handler
 unset command_not_found_handle
 

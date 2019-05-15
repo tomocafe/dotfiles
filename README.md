@@ -25,6 +25,7 @@ stow bash
 * `m4`
 * `bash` (4.1+)
 * `python3`
+* `perl` (5.x)
 
 For i3wm:
 * `i3`
@@ -136,4 +137,10 @@ m4 -Ithemes/gruvbox-dark theme.m4 > theme
 ```
 
 If using `dmenu_theme` from `i3`, the `vim` theming will be handled automatically.
+
+## search
+
+The script `search` will invoke `ack`, passing through all arguments, and return the matches in a base-36-indexed paged list. The companion command `search-select` allows you to select a match by its index and perform an arbitrary action, by default it opens `$EDITOR` on the matched file at the matching line number. Issuing `search-select` with no argument recalls all the match results. The last 10 searches are cached; you can list the caches with `search-list-cache` and then prefix any invocation of `search-select` with the argument `+<cache ID>` to draw from a different cache than the default (1). Searching with `ag` is supported by using `search-ag` instead of `search-ack` or just `search`. To perform an arbitrary non-default action on the selection using `search-select`, append the command as the last argument using `{file}` as a placeholder for the match's file path and {line} as the match's line number, or alternatively, the first occurrence of `{}` will receive the file path and the second will receive the line number.
+
+The `bash` settings in this environment alias `search` to `s`, `search-select` to `a`, and `search-list-cache` to `sls`.
 

@@ -7,18 +7,27 @@ use Term::ANSIColor;
 use File::stat;
 use Cwd;
 
+###
+### |defaults|
+###
+
 my $ENGINE = "ack";
+my $ENGINEOPTS = $ENV{'SEARCH_ENGINEOPTS'}; # default is <ENGINE>_OPTIONS environment variable, e.g. ACK_OPTIONS
 my $PAGER = "less -SFXRM";
-my $CACHEDIR = "$ENV{'HOME'}/.cache/search";
-my $CACHESIZE = 10;
+my $EDITOR = $ENV{'EDITOR'} ? $ENV{'EDITOR'} : 'vim';
+my $ACTION = "$EDITOR {} +{}";
+my $CACHEDIR = $ENV{'SEARCH_CACHEDIR'} ? $ENV{'SEARCH_CACHEDIR'} : "$ENV{'HOME'}/.cache/search";
+my $CACHESIZE = $ENV{'SEARCH_CACHESIZE'} ? $ENV{'SEARCH_CACHESIZE'} : 10;
 
-my $opts = $ENV{uc($ENGINE) . "_OPTIONS"};
+###
+### |subroutines|
+###
 
-# Retrieve all cache files sorted ascending by modification time
+# Retrieve all cache files sorted descending by modification time
 sub getcaches {
     opendir (my $D, $CACHEDIR) or die $!;
     my @files = grep { $_ !~ m/^\.+$/ } readdir($D);
-    @files = sort { (stat "$CACHEDIR/$a")->[10] <=> (stat "$CACHEDIR/$b")->[10] } @files;
+    @files = sort { (stat "$CACHEDIR/$b")->[10] <=> (stat "$CACHEDIR/$a")->[10] } @files;
     return @files;
 }
 
@@ -28,7 +37,8 @@ sub setcache {
     # Clean up the oldest cache file once the cache overflows
     my @old = getcaches ();
     while (scalar @old >= $CACHESIZE) {
-        unlink (shift @old);
+        my $rem = pop @old;
+        unlink "$CACHEDIR/$rem" or warn "Failed to clean up cache: $rem";
     }
     # Encode and truncate arguments as the new cache file name
     my $encoded = join '%20', @_;
@@ -58,15 +68,18 @@ sub b36inc {
 
 # Strip ANSI color codes from the string
 # This should be replaced by Term::ANSIColor but it requires v2.01+
+# ag uses \e[K (clear to end of line) which also needs stripping
 sub colorstrip {
     my $dirty = shift @_;
-    (my $clean = $dirty) =~ s/\e\[\d+(?>(;\d+)*)m//g;
+    (my $clean = $dirty) =~ s/\e\[(\d+(?>(;\d+)*)m|K)//g;
     return $clean;
 }
 
+# Captures search engine output and pipes to pager, appending indices in front of matches
 sub search {
     # Open a pipe to invoke the search engine
     my @args = map { "\"$_\"" } @_; # re-quote all arguments to pass to the engine
+    my $opts = $ENGINEOPTS ? $ENGINEOPTS : $ENV{uc($ENGINE) . "_OPTIONS"};
     open (my $I, '-|', "$ENGINE --group --color $opts @args") or die $!;
     my $O = undef;
     my $F = undef;
@@ -75,7 +88,7 @@ sub search {
     while (my $line = <$I>) {
         # Append a base-36 index in front of matches
         if (colorstrip($line) =~ m/^[0-9]+:/) {
-            b36inc $id;
+            b36inc $id; # start with 1 since it is easier to reach than 0 on the keyboard
             $line = sprintf "%s%-3s%s %s", color('cyan'), $id, color('reset'), "$line";
         }
         # Pipe to the output pager
@@ -98,18 +111,112 @@ sub search {
     close $F if $F;
 }
 
-=pod
-sub recall {
-### TODO
+# List caches available (with search arguments, working directory, time and date of search)
+sub listcaches {
+    my $id = 0;
+    foreach my $cache (getcaches ()) {
+        $id++;
+        $id %= 10 if $CACHESIZE == 10; # use 0 for 10 if the cache is only 10-wide
+        open (my $fd, '<', "$CACHEDIR/$cache") or die $!;
+        my @header = ();
+        while (my $line = <$fd>) {
+            last unless $line =~ m/^::/;
+            $line =~ s/^:://;
+            push @header, $line;
+        }
+        close $fd;
+        my $w = ($CACHESIZE > 10) ? 3 : 1;
+        printf "%s%${w}s%s %s%s%s", color('cyan'), $id, color('reset'), color('green'), $header[0], color('reset');
+        for (my $i = 1; $i < scalar @header; $i++) {
+            printf "%${w}s %s", ' ', $header[$i];
+        }
+        print "\n";
+    }
 }
-=cut
 
-search (@ARGV);
+# Given a cache, re-list the matches
+sub listmatches {
+    my $cache = shift @_;
+    $cache = (getcaches)[0] unless $cache;
+    open (my $I, '<', "$CACHEDIR/$cache") or die $!;
+    open (my $O, "|$PAGER") or die $!;
+    while (my $line = <$I>) {
+        next if $line =~ m/^::/; # skip headers
+        print $O "$line";
+    }
+}
 
-# Following is temporary:
-my @caches = getcaches ();
-my $oldest = shift @caches;
-my $newest = pop @caches;
-print "Oldest cache is $oldest\n";
-print "Newest cache is $newest\n";
+# Invoke the action (e.g. editor) on the selected match
+sub openselection {
+    my ($filepath, $lineno) = @_;
+    my $cmd = $ACTION;
+    $cmd =~ s/{file}/$filepath/g;
+    $cmd =~ s/{line}/$lineno/g;
+    $cmd =~ s/{}/$filepath/; # replace first occurrence of {} with filepath
+    $cmd =~ s/{}/$lineno/; # replace second occurrence of {} with lineno
+    exec $ENV{'SHELL'}, "-c", $cmd; 
+}
+
+# Select a match by index from the given cache
+sub selectmatch {
+    my ($id, $cache) = @_;
+    $cache = (getcaches)[0] unless $cache;
+    my @header = ();
+    my $curfile = '';
+    open (my $I, '<', "$CACHEDIR/$cache") or die $!;
+    while (my $line = <$I>) {
+        chomp $line;
+        $line = colorstrip($line);
+        if ($line =~ m/^::/) {
+            $line =~ s/^:://;
+            push @header, $line;
+        }
+        elsif ($line =~ m/^[0-9a-z]+\s+[0-9]+:/) {
+            if (my ($lineno) = ($line =~ m/^${id}\s+([0-9]+):/)) {
+                openselection "$header[1]/$curfile", $lineno;
+                last;
+            }
+        }
+        elsif ($line !~ m/^$/) {
+            $curfile = $line;
+        } 
+    }
+}
+
+###
+### |main|
+###
+
+# Interpret executable name (symlink) to select action and parameters
+if ($0 =~ m/ack/)   { $ENGINE = "ack"; }
+elsif ($0 =~ m/ag/) { $ENGINE = "ag";  }
+
+if ($0 =~ m/list-cache/) {
+    listcaches;
+}
+elsif ($0 =~ m/select/) {
+    # Check for specific cache ID
+    my $cache = undef;
+    while (scalar @ARGV and $ARGV[0] =~ m/^\+[0-9]+$/) {
+        (my $cacheid = $ARGV[0]) =~ s/^\+//;
+        $cacheid = 10 if $cacheid == 0;
+        $cache = (getcaches)[$cacheid - 1];
+        shift @ARGV;
+    }
+    # Set action if specified
+    if ($ARGV[1]) {
+        $ACTION = "$ARGV[1]";
+    }
+    # No selection, re-list all matches in the cache
+    if (scalar @ARGV == 0) {
+        listmatches $cache;
+    }
+    # Open the selected match
+    else {
+        selectmatch $ARGV[0], $cache;
+    }
+}
+else {
+    search (@ARGV);
+}
 
