@@ -25,6 +25,7 @@ my $CACHESIZE = $ENV{'SEARCH_CACHESIZE'} ? $ENV{'SEARCH_CACHESIZE'} : 10;
 
 # Retrieve all cache files sorted descending by modification time
 sub getcaches {
+    mkdir $CACHEDIR unless -d $CACHEDIR;
     opendir (my $D, $CACHEDIR) or die $!;
     my @files = grep { $_ !~ m/^\.+$/ } readdir($D);
     @files = sort { (stat "$CACHEDIR/$b")->[10] <=> (stat "$CACHEDIR/$a")->[10] } @files;
@@ -137,6 +138,7 @@ sub listcaches {
 sub listmatches {
     my $cache = shift @_;
     $cache = (getcaches)[0] unless $cache;
+    return unless $cache;
     open (my $I, '<', "$CACHEDIR/$cache") or die $!;
     open (my $O, "|$PAGER") or die $!;
     while (my $line = <$I>) {
@@ -160,6 +162,7 @@ sub openselection {
 sub selectmatch {
     my ($id, $cache) = @_;
     $cache = (getcaches)[0] unless $cache;
+    return unless $cache;
     my @header = ();
     my $curfile = '';
     open (my $I, '<', "$CACHEDIR/$cache") or die $!;
