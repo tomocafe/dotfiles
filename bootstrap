@@ -35,3 +35,7 @@ ${STOW:-stow} bin
 mkdir -p ~/.vim/colors &>/dev/null
 ${STOW:-stow} vim
 
+# gdb 
+mkdir -p ~/.cgdb &>/dev/null
+${STOW:-stow} gdb
+

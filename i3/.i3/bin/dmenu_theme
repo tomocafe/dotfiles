@@ -21,5 +21,10 @@ if [[ -r ~/.vim/theme.m4 ]] && [[ -d ~/.vim/themes/$theme ]]; then
     m4 -I$HOME/.vim -I$HOME/.vim/themes/$theme ~/.vim/theme.m4 > ~/.vim/theme
 fi
 
+# Update cgdb theme (if applicable)
+if [[ -r ~/.cgdb/cgdbrc.m4 ]] && [[ -d ~/.cgdb/themes/$theme ]]; then
+    m4 -I$HOME/.cgdb -I$HOME/.cgdb/themes/$theme ~/.cgdb/cgdbrc.m4 > ~/.cgdb/cgdbrc
+fi
+
 i3-msg restart
 
