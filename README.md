@@ -96,11 +96,11 @@ A working example:
 markup=pango
 
 [local_cpu]
-command=${HOME}/.i3/bin/blocklet --read-xresource-colors ~/.i3/Xresources --color-if-more pctused,79,9 --color-if-more pctused,99,1 load cpu --format "CPU {used} {pctused}%" --short-format "CPU {pctused}%"
+command=${HOME}/.i3/bin/blocklet --read-xresource-colors ~/.i3/Xresources --color-if-more pctused,74,9 --color-if-more pctused,99,1 load cpu --format "CPU {used} {pctused}%" --short-format "CPU {pctused}%"
 interval=10
 
 [local_vm]
-command=${HOME}/.i3/bin/blocklet --read-xresource-colors ~/.i3/Xresources --color-if-more pctused,79,9 --color-if-more pctused,99,1 load mem --mem-type virtual --format "VM {free} {pctused}%" --short-format "CPU {pctused}%"
+command=${HOME}/.i3/bin/blocklet --read-xresource-colors ~/.i3/Xresources --color-if-more pctused,74,9 --color-if-more pctused,89,1 load mem --mem-type virtual --format "VM {free} {pctused}%" --short-format "VM {pctused}%"
 interval=10
 
 [disk]
@@ -116,7 +116,7 @@ command=${HOME}/.i3/bin/blocklet --read-xresource-colors ~/.i3/Xresources --colo
 interval=1200
 
 [weather]
-command=source ${HOME}/.api_keys && ${HOME}/.i3/bin/blocklet weather zip=94536
+command=source ${HOME}/.api_keys && ${HOME}/.i3/bin/blocklet weather zip=95110
 interval=600
 
 [time]
