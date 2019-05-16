@@ -90,11 +90,37 @@ The `i3` configuration relies on scripts supplied under `$I3_HOME/bin`, where `$
 
 You will need to create an `i3blocks` configuration file at `$I3_HOME/i3blocks.conf`. It is not checked in since it is commonly written differently for each system, based on differing needs. See the [`i3blocks` documentation](https://github.com/vivien/i3blocks) for instructions on how to write the configuration file.
 
-A minimal example:
+A working example:
 
 ```
+markup=pango
+
+[local_cpu]
+command=/home/evan/.i3/bin/blocklet --read-xresource-colors ~/.i3/Xresources --color-if-more pctused,79,9 --color-if-more pctused,99,1 load cpu --format "CPU {used} {pctused}%" --short-format "CPU {pctused}%"
+interval=10
+
+[local_vm]
+command=/home/evan/.i3/bin/blocklet --read-xresource-colors ~/.i3/Xresources --color-if-more pctused,79,9 --color-if-more pctused,99,1 load mem --mem-type virtual --format "VM {free} {pctused}%" --short-format "CPU {pctused}%"
+interval=10
+
+[disk]
+command=/home/evan/.i3/bin/blocklet --read-xresource-colors ~/.i3/Xresources --color-if-more pctused,74,9 --color-if-more pctused,89,1 disk ${HOME} --format "Disk {free} {pctused}%" --short-format "Disk {pctused}%"
+interval=600
+
+[commute]
+command=source /home/evan/.api_keys && /home/evan/.i3/bin/blocklet --schedule '* 5-12 * * 1-5' --read-xresource-colors ~/.i3/Xresources --color-whole-block --color-if-more mins,49,9 --color-if-more mins,59,1 commute "${HOME_ADDR}" "${WORK_ADDR}" --format "Work {time}"
+interval=300
+
+[stock]
+command=/home/evan/.i3/bin/blocklet --read-xresource-colors ~/.i3/Xresources --color-if-less percent,-0.99,1 --color-if-more percent,0.99,2 stock NDAQ
+interval=1200
+
+[weather]
+command=source /home/evan/.api_keys && /home/evan/.i3/bin/blocklet weather zip=94536
+interval=600
+
 [time]
-command=date
+command=date +"%A %-d %B %-I:%M %p"; date +"%a %-d %b %-I:%M"
 interval=5
 ```
 
