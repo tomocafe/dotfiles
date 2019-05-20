@@ -111,7 +111,7 @@ def aqi(args):
     else:
         text = ET.fromstring(get('feeds.enviroflash.info', '/rss/realtime/{location}.xml'.format(location=args.location), False, False)).find('./channel/item/description').text.replace('\n', '')
         matches = re.search('(\w+) *- ([0-9]+) AQI - Particle', text)
-        pm25 = ozone = [0, 'Unknown', 'Unknown']
+        pm25 = ozone = [-1, 'Unknown', 'Unknown']
         if matches:
             pm25 = [int(matches.group(2)), matches.group(1), 'PM2.5']
         matches = re.search('(\w+) *- ([0-9]+) AQI - Ozone', text)
@@ -120,7 +120,7 @@ def aqi(args):
         worst = max(pm25, ozone)
         keytext = {
             'desc' : worst[1],
-            'aqi': worst[0],
+            'aqi': 'NA' if worst[0] == -1 else worst[0],
             'type': worst[2]
         }
     return [keytext, {}]
