@@ -6,4 +6,4 @@ define(M4_COLOR_CONSTANT_FG,`5')
 define(M4_COLOR_STATEMENT_FG,`1')
 define(M4_COLOR_PREPROC_FG,`6')
 define(M4_COLOR_TYPE_FG,`1')
-divert(0)
+divert(0)dnl
