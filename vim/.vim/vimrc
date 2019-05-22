@@ -41,6 +41,20 @@ if !isdirectory($HOME."/.vim/undos")
 endif
 set undodir=~/.vim/undos//
 
+" Disable swap/etc on large files (>10M)
+let g:LargeFileSz = 10 * 1024 * 1024
+augroup LargeFile
+    au!
+    autocmd BufReadPre * let sz=getfsize(expand("<afile>")) | if sz > g:LargeFileSz || sz == -2 | call LargeFileMode() | endif
+augroup END
+function! LargeFileMode()
+    " Disable swap file, undo; unload hidden buffers for memory savings
+    setlocal noswapfile
+    setlocal undolevels=-1
+    setlocal bufhidden=unload
+    autocmd VimEnter * echo "Large file mode activated"
+endfunction
+
 " Source theme last
 try
     source ~/.vim/theme
