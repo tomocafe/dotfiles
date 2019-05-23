@@ -30,9 +30,8 @@ if standalone:
     # Load gdb-dashboard if available and system supports it (gdb 7.7+ with Python 2.7+)
     if ((gdb_version_info[0] > 7 or (gdb_version_info[0] == 7 and gdb_version_info[1] >= 7))
     and (sys.version_info[0] > 2 or (sys.version_info[0] == 2 and sys.version_info[1] >= 7))
-    and os.path.exists(os.path.expanduser('~/.gdb-dashboard/gdb_dashboard.py'))):
-        sys.path.append(os.path.expanduser('~/.gdb-dashboard'))
-        import gdb_dashboard
+    and os.path.exists(os.path.expanduser('~/.gdb-dashboard'))):
+        gdb.execute('source ~/.gdb-dashboard')
     # Standalone session without dashboard
     else:
         # Colorize prompt
