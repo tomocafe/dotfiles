@@ -5,6 +5,7 @@ source ~/.bash_functions
 # Aliases
 alias ls="command ls --color=auto -F"
 alias which="type"
+alias ssh-tmp="command ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
 alias hc="_hardCopy"
 alias compress="_compress"
 alias extract="_extract"
