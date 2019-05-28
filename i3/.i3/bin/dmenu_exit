@@ -11,9 +11,31 @@ fi
 
 # Check if we can suspend, hibernate, restart, shutdown on a machine with systemd
 command -v systemctl &>/dev/null && powerctl=true || powerctl=false
-# TODO: check if we have permission to do this, e.g. not on shared enterprise host
 if $powerctl; then
     actions+=(suspend hibernate restart shutdown)
+fi
+
+# Process i3lock arguments
+# Using sentinel flags to separate them from dmenu arguments
+# First set of arguments is used to give switches for the i3lock-color fork
+# If that version of i3lock is not the one in the PATH, the command will fail and we will fall back to the original version of i3lock with simple arguments
+lockargs=()
+if [[ $1 == '--start-i3lock-args' ]]; then
+    shift
+    while [[ $# -gt 0 && $1 != '--end-i3lock-args' ]]; do
+        lockargs+=("$1")
+        shift
+    done
+    [[ $# -gt 0 ]] && shift
+fi
+fallbackargs=()
+if [[ $1 == '--start-i3lock-fallback-args' ]]; then
+    shift
+    while [[ $# -gt 0 && $1 != '--end-i3lock-fallback-args' ]]; do
+        fallbackargs+=("$1")
+        shift
+    done
+    [[ $# -gt 0 ]] && shift
 fi
 
 action=$(printf '%s\n' "${actions[@]}" | dmenu ${1+"$@"}) || exit 1
@@ -25,13 +47,13 @@ case $action in
         i3-msg exit
         ;;
     lock)
-        $lock
+        $lock "${lockargs[@]}" || $lock "${fallbackargs[@]}"
         ;;
     suspend)
-        $lock && systemctl suspend
+        $lock "${lockargs[@]}" || $lock "${fallbackargs[@]}" && systemctl suspend
         ;;
     hibernate)
-        $lock && systemctl hibernate
+        $lock "${lockargs[@]}" || $lock "${fallbackargs[@]}" && systemctl hibernate
         ;;
     restart)
         systemctl reboot
@@ -40,4 +62,6 @@ case $action in
         systemctl poweroff
         ;;
 esac
+# The following message can be useful if one tries to invoke systemctl without proper permission
+[[ $? -eq 0 ]] || i3-nagbar -t warning -m "Failed to $action"
 
