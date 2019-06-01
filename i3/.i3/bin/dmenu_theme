@@ -10,6 +10,7 @@ theme=$(printf '%s\n' "${themes[@]}" | dmenu ${1+"$@"}) || exit 1
 
 m4 $I3_M4_THEMEARGS -I$I3_HOME -I$I3_THEMEDIR/$theme $I3_HOME/config.m4 > $I3_HOME/config
 m4 $I3_M4_THEMEARGS -I$I3_HOME -I$I3_THEMEDIR/$theme $I3_HOME/Xresources.m4 > $I3_HOME/Xresources
+m4 $I3_M4_THEMEARGS -I$I3_HOME -I$I3_THEMEDIR/$theme ~/.config/dunst/dunstrc.m4 > ~/.config/dunst/dunstrc
 
 # Run any pre-processing scripts (if applicable)
 for script in $I3_THEMEDIR/$theme/run.d/*; do
