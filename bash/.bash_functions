@@ -323,6 +323,7 @@ function _genPromptGitStatus () {
             repoName=${repoName##*/}
             ;;
     esac
+    repoName=${repoName%.git}
     # Determine the current branch
     branch=$(git symbolic-ref -q HEAD)
     branch=${branch#refs/heads/}
