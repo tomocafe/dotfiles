@@ -68,8 +68,13 @@ def purge(files, args):
 def ls(files, args):
     import time
     for f in files:
-        if args.time:
-            print(time.strftime('%x %X', time.localtime(os.path.getctime(f))), f)
+        if args.verbose:
+            inodes = get_inodes(f)
+            if len(inodes) == 1:
+                inode = list(inodes.keys())[0]
+            else:
+                inode = "DIR"
+            print(inode, time.strftime('%x %X', time.localtime(os.path.getctime(f))), f)
         else:
             print(f)
 
@@ -89,7 +94,7 @@ def main():
     if dopurge:
         parser.add_argument('-f', '--force', action='store_true', help='Do not interactively prompt for each removal')
     else:
-        parser.add_argument('-t', '--time', action='store_true', help='Show creation times of backup files')
+        parser.add_argument('-v', '--verbose', action='store_true', help='Show statistics of backup files')
 
     args = parser.parse_args()
 

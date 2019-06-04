@@ -197,14 +197,14 @@ The `bash` settings in this environment alias `search` to `s`, `search-select` t
 
 ## ls-backup
 
-The script `ls-backup` will locate any versions of a given file or directory in a backup (a.k.a. snapshot) directory anywhere up the directory tree. You must give 2 arguments to define the backup structure: a name for the backup directory, and the depth of the backup structure. The results are sorted by modification time, which can be explicitly shown with the `-t` flag. The companion script `purge` (actually just a symlink to the same script) will interactively remove backup files matching the same inode (or optionally, `--all` or `-a` will remove all matching files, regardless of inode).
+The script `ls-backup` will locate any versions of a given file or directory in a backup (a.k.a. snapshot) directory anywhere up the directory tree. You must give 2 arguments to define the backup structure: a name for the backup directory, and the depth of the backup structure. The results are sorted by modification time, which can be explicitly shown with the `-v` flag. The companion script `purge` (actually just a symlink to the same script) will interactively remove backup files matching the same inode (or optionally, `--all` or `-a` will remove all matching files, regardless of inode).
 
 Examples:
 ```shell
-$ ls-backup -I.snapshot -d2 big_log_file.txt
-/disk/.snapshot/nightly.1/project/abc/big_log_file.txt
-/disk/.snapshot/nightly.0/project/abc/big_log_file.txt
-/disk/.snapshot/hourly.0/project/abc/big_log_file.txt
+$ ls-backup -v -I.snapshot -d2 big_log_file.txt
+2175384707 05/20/19 18:30:49 /disk/.snapshot/nightly.1/project/abc/big_log_file.txt
+2175385731 05/25/19 09:16:58 /disk/.snapshot/nightly.0/project/abc/big_log_file.txt
+2175385731 05/25/19 09:16:58 /disk/.snapshot/hourly.0/project/abc/big_log_file.txt
 $ purge -I.snapshot -d2 big_log_file.txt
 Remove /disk/.snapshot/nightly.0/project/abc/big_log_file.txt? (Yy) > y
 Removing /disk/.snapshot/nightly.0/project/abc/big_log_file.txt
