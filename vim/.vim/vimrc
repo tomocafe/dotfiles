@@ -18,7 +18,7 @@ syntax enable
 
 set number
 set relativenumber
-nmap <F3> :set nu! rnu!<CR>
+nmap <F3> <Esc>:set nu! rnu!<CR>
 
 nnoremap Q <nop>
 

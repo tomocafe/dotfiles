@@ -1,0 +1,11 @@
+" Remove menu/toolbar/scrollbar by default, toggle with F11
+function! ToggleGuiComponents()
+    if &guioptions=='i'
+        exec('set guioptions=imTrL')
+    else
+        exec('set guioptions=i')
+    endif
+endfunction
+set guioptions=i
+nmap <F11> <Esc>:call ToggleGuiComponents()<CR>
+
