@@ -32,6 +32,7 @@ For i3wm:
 * `i3blocks`
 * `xrdb`, `xprop`, `xset`, `xsetroot`
 * `rxvt-unicode` (`urxvt`)
+* Optional: `i3lock`, `dunst`
 
 ## Themes
 
@@ -65,6 +66,7 @@ The file `.bash_settings` includes common aliases, settings, and functions and s
     * `mcd` (make and change to directory)
     * `hc` (hard copy) replaces symbolic links with copies of the source files/directories
     * `compress` and `extract` to work generically with archive files
+    * `ssh-tmp` to launch SSH without host key checking
 * Helper functions:
     * `_join` joins the arguments with a given delimiter
     * Pretty status messages: `_putError`, `_putWarning`, `_putInfo`
@@ -116,7 +118,7 @@ command=${HOME}/.i3/bin/blocklet --read-xresource-colors ~/.i3/Xresources --colo
 interval=1200
 
 [weather]
-command=source ${HOME}/.api_keys && ${HOME}/.i3/bin/blocklet weather zip=95110
+command=source ${HOME}/.api_keys && ${HOME}/.i3/bin/blocklet weather zip="${HOME_ZIP}"
 interval=600
 
 [time]
@@ -126,11 +128,16 @@ interval=5
 
 `blocklet` is a script to generate `i3blocks` blocklets for weather, traffic, stock ticker, system stats, etc. For detailed usage, use `blocklet -h` and `blocklet <command> -h`. Some commands require API keys to be set in the environment (`$WEATHER_API_KEY` for [openweathermap.org](https://openweathermap.org), `$COMMUTE_API_KEY` for [maps.googleapis.com](https://maps.googleapis.com)).
 
+### i3lock
+
+If `i3lock` is installed, this environment attempts to style the lock screen using the [`i3lock-color` fork](https://github.com/PandorasFox/i3lock-color) according to the selected theme, showing the time and date as well as the authentication ring. Rather than use the available transparent blur function, this styling uses a solid color background for the lock screen, for both speed and security. If the installed `i3lock` is not using the `i3lock-color` fork, it will fallback to using the limited default options.
+
 ### Other features
 
 * <kbd>Mod</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd> brings up a `dmenu` to select and apply a theme (includes `vim` theming)
 * <kbd>Mod</kbd>+<kbd>X</kbd> brings up a `dmenu` to launch a terminal and connect via `ssh` to a selected server (from the known hosts on the system)
 * <kbd>Mod</kbd>+<kbd>Shift</kbd>+<kbd>Q</kbd> checks if the window being killed has a connection daemon as a root process (e.g. `sshd`) and enters `confirm-close` mode to confirm killing the window by pressing <kbd>Y</kbd> to avoid accidentally closing a session
+* <kbd>Mod</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> brings up a `dmenu` to select from exit options: logout, lock (if `i3lock` is available), shutdown, restart, hibernate, and suspend (if `systemctl` is available)
 
 ### xsession
 
@@ -188,3 +195,19 @@ search-list-cache # show an indexed list of previous search results in the cache
 
 The `bash` settings in this environment alias `search` to `s`, `search-select` to `a`, and `search-list-cache` to `sls`.
 
+## ls-backup
+
+The script `ls-backup` will locate any versions of a given file or directory in a backup (a.k.a. snapshot) directory anywhere up the directory tree. You must give 2 arguments to define the backup structure: a name for the backup directory, and the depth of the backup structure. The results are sorted by modification time, which can be explicitly shown with the `-t` flag. The companion script `purge` (actually just a symlink to the same script) will interactively remove backup files matching the same inode (or optionally, `--all` or `-a` will remove all matching files, regardless of inode).
+
+Examples:
+```shell
+$ ls-backup -I.snapshot -d2 big_log_file.txt
+/disk/.snapshot/nightly.1/project/abc/big_log_file.txt
+/disk/.snapshot/nightly.0/project/abc/big_log_file.txt
+/disk/.snapshot/hourly.0/project/abc/big_log_file.txt
+$ purge -I.snapshot -d2 big_log_file.txt
+Remove /disk/.snapshot/nightly.0/project/abc/big_log_file.txt? (Yy) > y
+Removing /disk/.snapshot/nightly.0/project/abc/big_log_file.txt
+Remove /disk/.snapshot/hourly.0/project/abc/big_log_file.txt? (Yy) > y
+Removing /disk/.snapshot/nightly.0/project/abc/big_log_file.txt
+```
