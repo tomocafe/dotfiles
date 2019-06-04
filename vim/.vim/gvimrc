@@ -9,3 +9,6 @@ endfunction
 set guioptions=i
 nmap <F11> <Esc>:call ToggleGuiComponents()<CR>
 
+" Set font
+set guifont=Roboto\ Mono\ Medium\ 11
+
