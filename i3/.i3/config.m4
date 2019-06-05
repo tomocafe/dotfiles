@@ -7,7 +7,7 @@ dnl
 # Start some executables
 exec_always --no-startup-id xrdb -load ${I3_HOME:-~/.i3}/Xresources
 exec_always --no-startup-id ${I3_HOME:-~/.i3}/bin/reload-ssh-xresources ${I3_HOME:-~/.i3}/Xresources
-exec_always --no-startup-id killall -9 dunst; exec dunst
+exec_always --no-startup-id killall -9 dunst; exec dunst -conf ${I3_HOME:-~/.i3}/dunstrc
 exec --no-startup-id urxvtd -q -f -o
 
 # Set X root background color
