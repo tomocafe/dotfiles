@@ -48,8 +48,10 @@ if command -v perl &>/dev/null; then
 fi
 
 # i3
-mkdir -p ~/.i3/bin &>/dev/null
+mkdir -p ${I3_HOME:-~/.i3}/bin &>/dev/null
 ${STOW:-stow} i3
+(cd ${I3_HOME:-~/.i3} && make) &>/dev/null
+touch ${I3_HOME:-~/.i3}/i3blocks.conf
 
 # bash
 ${STOW:-stow} bash

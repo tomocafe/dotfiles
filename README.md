@@ -23,6 +23,7 @@ stow bash
 
 * `stow`
 * `m4`
+* GNU `make`
 * `bash` (4.1+)
 * `python3`
 * `perl` (5.x)
@@ -76,15 +77,16 @@ The file `.bash_settings` includes common aliases, settings, and functions and s
 
 ## i3wm
 
-The configuration of `i3` is managed by `m4` to generate configuration files based on a selected theme. To set up `i3` for first use, using the `gruvbox-dark` theme as an example:
+The configuration of `i3` uses `make` and `m4` to generate configuration files based on a selected theme. To set up `i3` for first use, go to `~/.i3` and run `make`, which selects the `gruvbox-dark` theme by default. To select a different theme, supply `make` with the `THEME` variable, for example:
 
-```
+```shell
 cd ~/.i3
-m4 -Ithemes/gruvbox-dark Xresources.m4 > Xresources
-m4 -Ithemes/gruvbox-dark config.m4 > config
+make THEME=gruvbox-dark
 ```
 
-If the system has an old version of `i3` without `pango` support, add the `-DM4_I3_COMPAT` flag to `m4`.
+This step is automatically performed by the `bootstrap` script. To change themes, simply `make clean` and `make` again with the selected `THEME` variable. This is automated by the `dmenu_theme` script.
+
+If the system has an old version of `i3` without `pango` support, set the environment variable the `I3_M4_THEMEARGS="-DM4_I3_COMPAT"`, which is picked up by `m4` to disable certain features that are unsupported on older systems.
 
 The `i3` configuration relies on scripts supplied under `$I3_HOME/bin`, where `$I3_HOME` is the directory containing the `i3` `config` file, usually `~/.i3`. Either the environment variable `$I3_HOME` must be set accordingly _before_ launching `i3`, or the configuration must be stored at the default location of `~/.i3` for the configuration to find these scripts.
 
