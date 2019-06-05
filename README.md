@@ -160,6 +160,9 @@ export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}${HOME}/i3wm-el6/i3
 # Following needed only if i3 is an old version without pango support
 export I3_M4_THEMEARGS="-DM4_I3_COMPAT"
 
+# Used by i3-sensible-terminal (and others) to decide which terminal to launch
+export TERMINAL="urxvtc"
+
 # Start i3wm
 exec i3 ${I3_HOME:+-c $I3_HOME/config} </dev/null
 ```
