@@ -476,6 +476,28 @@ function _dcBackwardsPathCompletion () {
 # Utilities
 ###############################################################################
 
+function _history () {
+    # Invoke standard history command if piping/redirecting
+    if [[ ! -t 1 ]]; then
+        command history $@
+        return $?
+    fi
+    # Make sure colors are exported (caching saves time compared to many tput calls)
+    [[ ${#COLORS[@]} -gt 0 ]] || _exportColorCodes
+    # Run the following in a subshell to avoid leaking HISTTIMEFORMAT
+    (
+        export HISTTIMEFORMAT="${HISTTIMEFORMAT:-[%D %T]  }"
+        local line
+        while IFS= read -r line; do
+            if [[ $line =~ ^([[:space:]]*)([[:digit:]]+)\ \ (\[.*?\])\ \ (.*)$ ]]; then
+                printf "${BASH_REMATCH[1]}${COLORS[6]}${BASH_REMATCH[2]}${COLOR_TRESET}  ${COLORS[4]}${BASH_REMATCH[3]}${COLOR_TRESET}  ${BASH_REMATCH[4]}\n";
+            else
+                echo "$line";
+            fi
+        done < <(history) | less -SFXRM +G
+    )
+}
+
 function _archiveHandlerBase () {
     # Compress: $0 true  archive.extension <files>
     # Extract:  $0 false archive.extension
