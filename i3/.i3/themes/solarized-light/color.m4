@@ -29,4 +29,12 @@ define(M4_COLOR_15,`#fdf6e3')
 define(M4_COLOR_POINTERFG,`#586e75')
 define(M4_COLOR_POINTERBG,`M4_COLOR_BG')
 define(M4_COLOR_CURSOR,`M4_COLOR_POINTERFG')
+
+dnl Increase HSL luminence by 10%
+define(M4_COLOR_ACCENT_1,`#e25b59')
+define(M4_COLOR_ACCENT_2,`#b0cc00')
+define(M4_COLOR_ACCENT_3,`#e5ac00')
+define(M4_COLOR_ACCENT_4,`#4ea2de')
+define(M4_COLOR_ACCENT_5,`#dc609c')
+define(M4_COLOR_ACCENT_6,`#34cabe')
 divert(0)dnl

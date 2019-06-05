@@ -211,16 +211,20 @@ ifdef(`M4_I3_COMPAT',,dnl
     position bottom
     tray_output none
     colors {
-        background M4_I3_BG
-        statusline M4_COLOR_FG
-        separator M4_COLOR_FG
+ifdef(`M4_I3_BAR_BG',,`define(`M4_I3_BAR_BG',`M4_I3_BG')')dnl
+ifdef(`M4_I3_BAR_ACTIVE_BG',,`define(`M4_I3_BAR_ACTIVE_BG',`M4_I3_ACTIVE_BG')')dnl
+ifdef(`M4_I3_BAR_FG',,`define(`M4_I3_BAR_FG',`M4_COLOR_FG')')dnl
+ifdef(`M4_I3_BAR_ACTIVE_FG',,`define(`M4_I3_BAR_ACTIVE_FG',`M4_I3_ACTIVE_FG')')dnl
+        background M4_I3_BAR_BG
+        statusline M4_I3_BAR_FG
+        separator M4_I3_BAR_FG
         # class border bg fg
-        focused_workspace M4_I3_ACTIVE_BG M4_I3_ACTIVE_BG M4_I3_ACTIVE_FG
-        active_workspace M4_I3_ACTIVE_BG M4_I3_ACTIVE_BG M4_I3_ACTIVE_FG
-        inactive_workspace M4_I3_BG M4_I3_BG M4_COLOR_FG
-        urgent_workspace M4_COLOR_9 M4_I3_ACTIVE_BG M4_COLOR_9
+        focused_workspace M4_I3_BAR_ACTIVE_BG M4_I3_BAR_ACTIVE_BG M4_I3_BAR_ACTIVE_FG
+        active_workspace M4_I3_BAR_ACTIVE_BG M4_I3_BAR_ACTIVE_BG M4_I3_BAR_ACTIVE_FG
+        inactive_workspace M4_I3_BAR_BG M4_I3_BAR_BG M4_I3_BAR_FG
+        urgent_workspace M4_COLOR_9 M4_I3_BAR_ACTIVE_BG M4_COLOR_9
 ifdef(`M4_I3_COMPAT',,dnl
-        binding_mode M4_COLOR_4 M4_I3_ACTIVE_BG M4_COLOR_4
+        binding_mode M4_COLOR_4 M4_I3_BAR_ACTIVE_BG M4_COLOR_4
 )dnl
     }
 }

@@ -29,4 +29,12 @@ define(M4_COLOR_15,`#ebdbb2')
 define(M4_COLOR_POINTERFG,`#bdae93')
 define(M4_COLOR_POINTERBG,`M4_COLOR_BG')
 define(M4_COLOR_CURSOR,`M4_COLOR_POINTERFG')
+
+dnl Accent colors from light mode bold palette
+define(M4_COLOR_ACCENT_1,`#9d0006')
+define(M4_COLOR_ACCENT_2,`#79740e')
+define(M4_COLOR_ACCENT_3,`#b57614')
+define(M4_COLOR_ACCENT_4,`#076678')
+define(M4_COLOR_ACCENT_5,`#8f3f71')
+define(M4_COLOR_ACCENT_6,`#427b58')
 divert(0)dnl
