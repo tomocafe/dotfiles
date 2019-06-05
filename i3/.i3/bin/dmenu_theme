@@ -8,24 +8,9 @@ for t in $I3_THEMEDIR/*; do
 done
 theme=$(printf '%s\n' "${themes[@]}" | dmenu ${1+"$@"}) || exit 1
 
-m4 $I3_M4_THEMEARGS -I$I3_HOME -I$I3_THEMEDIR/$theme $I3_HOME/config.m4 > $I3_HOME/config
-m4 $I3_M4_THEMEARGS -I$I3_HOME -I$I3_THEMEDIR/$theme $I3_HOME/Xresources.m4 > $I3_HOME/Xresources
-m4 $I3_M4_THEMEARGS -I$I3_HOME -I$I3_THEMEDIR/$theme $I3_HOME/dunstrc.m4 > $I3_HOME/dunstrc
-
-# Run any pre-processing scripts (if applicable)
-for script in $I3_THEMEDIR/$theme/run.d/*; do
-    [[ -x $script ]] && $script &>/dev/null
-done
-
-# Update vim theme (if applicable)
-if [[ -r ~/.vim/theme.m4 ]] && [[ -d ~/.vim/themes/$theme ]]; then
-    m4 -I$HOME/.vim -I$HOME/.vim/themes/$theme ~/.vim/theme.m4 > ~/.vim/theme
-fi
-
-# Update cgdb theme (if applicable)
-if [[ -r ~/.cgdb/cgdbrc.m4 ]] && [[ -d ~/.cgdb/themes/$theme ]]; then
-    m4 -I$HOME/.cgdb -I$HOME/.cgdb/themes/$theme ~/.cgdb/cgdbrc.m4 > ~/.cgdb/cgdbrc
-fi
+cd $I3_HOME || exit 1
+make clean
+make THEME=${theme} || exit 2
 
 i3-msg restart
 
