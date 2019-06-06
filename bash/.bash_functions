@@ -490,7 +490,7 @@ function _history () {
         local line
         while IFS= read -r line; do
             if [[ $line =~ ^([[:space:]]*)([[:digit:]]+)\ \ (\[.*?\])\ \ (.*)$ ]]; then
-                printf "${BASH_REMATCH[1]}${COLORS[6]}${BASH_REMATCH[2]}${COLOR_TRESET}  ${COLORS[4]}${BASH_REMATCH[3]}${COLOR_TRESET}  ${BASH_REMATCH[4]}\n";
+                echo -e "${BASH_REMATCH[1]}${COLORS[6]}${BASH_REMATCH[2]}${COLOR_TRESET}  ${COLORS[4]}${BASH_REMATCH[3]}${COLOR_TRESET}  ${BASH_REMATCH[4]}";
             else
                 echo "$line";
             fi
