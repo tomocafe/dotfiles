@@ -255,11 +255,15 @@ function _showColors () {
 ###############################################################################
 
 function _setTerminalTitle () {
-    echo -ne "\033]0;$@\007"
+    echo -ne "\033]0;${TERMINAL_LABEL}$@\007"
 }
 
 function _setTerminalTab () {
-    echo -ne "\033]30;$@\007"
+    echo -ne "\033]30;${TERMINAL_LABEL}$@\007"
+}
+
+function _setTerminalLabel () {
+    export TERMINAL_LABEL="$@"
 }
 
 function _genPromptP4Status () {
