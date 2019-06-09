@@ -53,6 +53,9 @@ alias sag="search-ag"
 alias a="search-select"
 alias sls="search-list-cache"
 
+# Set default editor
+export EDITOR="vim"
+
 # Disable command-not-found handler
 unset command_not_found_handle
 
