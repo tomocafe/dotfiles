@@ -70,5 +70,6 @@ unset SSH_ASKPASS
 # Otherwise, go to $HOME
 if [[ $- == *i* ]]; then
     cd ${FORK_DIR:-$HOME}
+    unset FORK_DIR
 fi
 
