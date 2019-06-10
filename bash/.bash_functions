@@ -450,17 +450,9 @@ function _setFastPrompt () {
 # Terminal related
 ###############################################################################
 
-function _launchUrxvtDaemonized () {
-    urxvtc &>/dev/null
-    if [[ $? -eq 2 ]]; then
-        # Need to start the daemon and then run the client
-        urxvtd -q -o -f
-        urxvtc &>/dev/null
-    fi
-}
-
-function _forkUrxvtDaemonized () {
-    (FORK_DIR=$PWD _launchUrxvtDaemonized &) # put it in a subshell to silence bash job control messages
+function _fork () {
+    _checkSet TERMINAL || return 1
+    (FORK_DIR=$PWD $TERMINAL &) # put in a subshell to silence bash job control messages
 }
 
 ###############################################################################

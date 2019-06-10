@@ -6,6 +6,7 @@ source ~/.bash_functions
 alias ls="command ls --color=auto -F"
 alias which="type"
 alias ssh-tmp="command ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
+alias f="_fork"
 alias hc="_hardCopy"
 alias compress="_compress"
 alias extract="_extract"
@@ -56,9 +57,24 @@ alias sls="search-list-cache"
 # Set default editor
 export EDITOR="vim"
 
+# Set the default terminal, if not already set
+if ! _checkSet TERMINAL; then
+    export TERMINAL="urxvt-launch"
+fi
+
 # Disable command-not-found handler
 unset command_not_found_handle
 
 # Disable annoying password popup
 unset SSH_ASKPASS
+
+# If this is a forked terminal, go the parent shell's directory
+# Otherwise, go to $HOME
+if [[ $- == *i* ]]; then
+    if _checkSet FORK_DIR; then
+        cd $FORK_DIR
+    else
+        cd
+    fi
+fi
 
