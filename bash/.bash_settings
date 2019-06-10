@@ -58,9 +58,7 @@ alias sls="search-list-cache"
 export EDITOR="vim"
 
 # Set the default terminal, if not already set
-if ! _checkSet TERMINAL; then
-    export TERMINAL="urxvt-launch"
-fi
+export TERMINAL=${TERMINAL:-urxvt-launch}
 
 # Disable command-not-found handler
 unset command_not_found_handle
@@ -71,10 +69,6 @@ unset SSH_ASKPASS
 # If this is a forked terminal, go the parent shell's directory
 # Otherwise, go to $HOME
 if [[ $- == *i* ]]; then
-    if _checkSet FORK_DIR; then
-        cd $FORK_DIR
-    else
-        cd
-    fi
+    cd ${FORK_DIR:-$HOME}
 fi
 
