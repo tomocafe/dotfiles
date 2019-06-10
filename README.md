@@ -68,6 +68,8 @@ The file `.bash_settings` includes common aliases, settings, and functions and s
     * `hc` (hard copy) replaces symbolic links with copies of the source files/directories
     * `compress` and `extract` to work generically with archive files
     * `ssh-tmp` to launch SSH without host key checking
+    * `history` shows colorized history with timestamps, piped to the `less` pager (unless `stdout` is redirected)
+    * `f` "forks" a new terminal from within the current shell environment to duplicate a shell session with all its settings
 * Helper functions:
     * `_join` joins the arguments with a given delimiter
     * Pretty status messages: `_putError`, `_putWarning`, `_putInfo`
