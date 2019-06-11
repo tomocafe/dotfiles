@@ -48,7 +48,8 @@ augroup LargeFile
     autocmd BufReadPre * let sz=getfsize(expand("<afile>")) | if sz > g:LargeFileSz || sz == -2 | call LargeFileMode() | endif
 augroup END
 function! LargeFileMode()
-    " Disable swap file, undo; unload hidden buffers for memory savings
+    " Disable backup, swap, and undo; unload hidden buffers for memory savings
+    setlocal nobackup
     setlocal noswapfile
     setlocal undolevels=-1
     setlocal bufhidden=unload
