@@ -452,7 +452,7 @@ function _setFastPrompt () {
 
 function _fork () {
     _checkSet TERMINAL || return 1
-    (FORK_DIR=$PWD $TERMINAL $@ &) # put in a subshell to silence bash job control messages
+    (FORK_DIR=$PWD $TERMINAL $@ &>/dev/null &) # put in a subshell to silence bash job control messages
 }
 
 ###############################################################################
