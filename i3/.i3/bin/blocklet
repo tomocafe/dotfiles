@@ -95,11 +95,11 @@ def aqi(args):
         data = get('feeds.enviroflash.info', '/rss/forecast/{location}.xml'.format(location=args.location), False, False)
         text = ET.fromstring(get('feeds.enviroflash.info', '/rss/forecast/{location}.xml'.format(location=args.location), False, False)).find('./channel/item/description').text.replace('\n', '')
         day = 'Today' if args.forecast == 'today' else 'Tomorrow'
-        matches = re.search('{day}.*: (\w+) *- ([0-9]+) AQI - Particle'.format(day=day), text)
+        matches = re.search('{day}.*: *([\w ]+\w) *- ([0-9]+) AQI - Particle'.format(day=day), text)
         pm25 = ozone = [0, 'Unknown', 'Unknown']
         if matches:
             pm25 = [int(matches.group(2)), matches.group(1), 'PM2.5']
-        matches = re.search('{day}.*: (\w+) *- ([0-9]+) AQI - Ozone'.format(day=day), text)
+        matches = re.search('{day}.*: *([\w ]+\w) *- ([0-9]+) AQI - Ozone'.format(day=day), text)
         if matches:
             ozone = [int(matches.group(2)), matches.group(1), 'Ozone']
         worst = max(pm25, ozone)
@@ -110,11 +110,11 @@ def aqi(args):
         }
     else:
         text = ET.fromstring(get('feeds.enviroflash.info', '/rss/realtime/{location}.xml'.format(location=args.location), False, False)).find('./channel/item/description').text.replace('\n', '')
-        matches = re.search('(\w+) *- ([0-9]+) AQI - Particle', text)
+        matches = re.search(' *([\w ]+\w) *- ([0-9]+) AQI - Particle', text)
         pm25 = ozone = [-1, 'Unknown', 'Unknown']
         if matches:
             pm25 = [int(matches.group(2)), matches.group(1), 'PM2.5']
-        matches = re.search('(\w+) *- ([0-9]+) AQI - Ozone', text)
+        matches = re.search(' *([\w ]+\w) *- ([0-9]+) AQI - Ozone', text)
         if matches:
             ozone = [int(matches.group(2)), matches.group(1), 'Ozone']
         worst = max(pm25, ozone)
