@@ -221,8 +221,13 @@ function _exportColorCodes () {
                 fi
                 break
             fi
-        done < <(xrdb -query)
+        done < <(xrdb -query 2>/dev/null)
     fi
+    # Set sensible defaults for dark background
+    export COLOR_FG_ID=${COLOR_FG_ID:-7}
+    export COLOR_FG_BOLD_ID=${COLOR_FG_BOLD_ID:-15}
+    export COLOR_BG_ID=${COLOR_BG_ID:-8}
+    export COLOR_BG_BOLD_ID=${COLOR_BG_BOLD_ID:-0}
 }
 
 function _showColors () {
