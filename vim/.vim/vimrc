@@ -66,8 +66,8 @@ endtry
 " Status line
 " User1-9 defined in _theme.m4
 set statusline=
-set statusline+=%6*%n> "buffernr
-set statusline+=%1*\ %f   "filename
+set statusline+=%6*%n> "buffer number
+set statusline+=%1*\ %t "basename
 set statusline+=%9*\ %m%r%w%h "modified/readonly/preview/help
 set statusline+=%3*%y "filetype
 set statusline+=%4*\ %{''.(&fenc!=''?&fenc:&enc).''} "encoding
