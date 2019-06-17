@@ -10,6 +10,7 @@ set smarttab
 :au FileType tcl setlocal tabstop=2 shiftwidth=2 softtabstop=2
 :au FileType make setlocal noexpandtab
 
+set laststatus=2
 set cursorline
 set hlsearch
 set showmatch
@@ -56,9 +57,23 @@ function! LargeFileMode()
     autocmd VimEnter * echo "Large file mode activated"
 endfunction
 
-" Source theme last
+" Source theme (invokes colorscheme)
 try
     source ~/.vim/theme
 catch
 endtry
+
+" Status line
+" User1-9 defined in _theme.m4
+set statusline=
+set statusline+=%6*%n> "buffernr
+set statusline+=%1*\ %f   "filename
+set statusline+=%9*\ %m%r%w%h "modified/readonly/preview/help
+set statusline+=%3*%y "filetype
+set statusline+=%4*\ %{''.(&fenc!=''?&fenc:&enc).''} "encoding
+set statusline+=%4*/%{&ff} "fileformat
+set statusline+=%1*%= "right justify
+set statusline+=%5*x%B "character code under cursor
+set statusline+=%2*\ %c,%l/%L "col/row/total
+set statusline+=%6*\ %p%% "line%
 
