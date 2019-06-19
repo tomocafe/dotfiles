@@ -20,7 +20,7 @@ dunstrc: dunstrc.m4 themes/$(THEME)/i3.m4
 
 # The following targets are optional
 $(HOME)/.vim/theme: themes/$(THEME)/color.m4
-	test -r $(HOME)/.vim/theme.m4 && m4 -I$(HOME)/.vim -I$(HOME)/.vim/themes/$(THEME) -Ithemes/$(THEME) $(HOME)/.vim/theme.m4 > $(HOME)/.vim/theme || true
+	test -r $(HOME)/.vim/theme.m4 && cd $(HOME)/.vim && make THEME=$(THEME) || true
 
 $(HOME)/.cgdb/cgdbrc:
 	test -r $(HOME)/.cgdb/cgdbrc.m4 && m4 -I$(HOME)/.cgdb -I$(HOME)/.cgdb/themes/$(THEME) $(HOME)/.cgdb/cgdbrc.m4 > $(HOME)/.cgdb/cgdbrc || true
