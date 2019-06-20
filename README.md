@@ -184,7 +184,7 @@ If using `dmenu_theme` from `i3`, the `vim` theming will be handled automaticall
 
 ## search
 
-The script `search` will invoke [`ack`](https://github.com/beyondgrep/ack2), passing through all arguments, and return the matches in a base-36-indexed paged list. The companion command `search-select` allows you to select a match by its index and perform an arbitrary action, by default opening the matched file to the matching line number using `$EDITOR` from your environment settings. Issuing `search-select` with no argument recalls all the match results. The last 10 searches are cached; you can list the caches with `search-list-cache` and then prefix any invocation of `search-select` with the argument `+<cache ID>` to draw from a different cache from the default (1). Searching with [`ag`](https://github.com/ggreer/the_silver_searcher) is supported by using `search-ag` instead of `search` or `search-ack`. To perform an arbitrary non-default action on the selection using `search-select`, append the command as the last argument using `{file}` as a placeholder for the match's file path and `{line}` as the match's line number, or alternatively, the first occurrence of `{}` will receive the file path and the second will receive the line number.
+The script `search` will invoke [`ack`](https://github.com/beyondgrep/ack2), passing through all arguments, and return the matches in a base-36-indexed paged list. The companion command `search-select` allows you to select a match by its index and perform an arbitrary action, by default opening the matched file to the matching line number using `$EDITOR` from your environment settings. Issuing `search-select` with no argument recalls all the match results. The last 10 searches are cached; you can list the caches with `search-list-cache` and then prefix any invocation of `search-select` with the argument `+<cache ID>` to draw from a different cache from the default (`0`: the most recent). Searching with [`ag`](https://github.com/ggreer/the_silver_searcher) is supported by using `search-ag` instead of `search` or `search-ack`. To perform an arbitrary non-default action on the selection using `search-select`, append the command as the last argument using `{file}` as a placeholder for the match's file path and `{line}` as the match's line number, or alternatively, the first occurrence of `{}` will receive the file path and the second will receive the line number.
 
 Examples:
 
@@ -193,9 +193,9 @@ search --cpp pattern # invokes "ack --cpp pattern"
 search-ack --cpp pattern # same as above
 search-ag --cpp pattern # using ag instead, but same result
 search-select # show all matches (again)
-search-select +1 # same as above, explicitly requesting cache #1 (the default)
+search-select +0 # same as above, explicitly requesting cache #0 (the default)
 search-select 1z # open the match indexed as "1z" in the default editor
-search-select +1 1z # same as above
+search-select +0 1z # same as above
 search-select 1z "p4 edit {}" # run the command "p4 edit" on the matched file
 search-list-cache # show an indexed list of previous search results in the cache
 ```

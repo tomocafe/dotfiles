@@ -116,8 +116,6 @@ sub search {
 sub listcaches {
     my $id = 0;
     foreach my $cache (getcaches ()) {
-        $id++;
-        $id %= 10 if $CACHESIZE == 10; # use 0 for 10 if the cache is only 10-wide
         open (my $fd, '<', "$CACHEDIR/$cache") or die $!;
         my @header = ();
         while (my $line = <$fd>) {
@@ -126,18 +124,19 @@ sub listcaches {
             push @header, $line;
         }
         close $fd;
-        my $w = ($CACHESIZE > 10) ? 3 : 1;
+        my $w = length($CACHESIZE - 1);
         printf "%s%${w}s%s %s%s%s", color('cyan'), $id, color('reset'), color('green'), $header[0], color('reset');
         for (my $i = 1; $i < scalar @header; $i++) {
             printf "%${w}s %s", ' ', $header[$i];
         }
+        $id++;
     }
 }
 
 # Given a cache, re-list the matches
 sub listmatches {
-    my $cache = shift @_;
-    $cache = (getcaches)[0] unless $cache;
+    my $cacheid = shift @_;
+    my $cache = (getcaches)[$cacheid];
     return unless $cache;
     open (my $I, '<', "$CACHEDIR/$cache") or die $!;
     open (my $O, "|$PAGER") or die $!;
@@ -160,8 +159,8 @@ sub openselection {
 
 # Select a match by index from the given cache
 sub selectmatch {
-    my ($id, $cache) = @_;
-    $cache = (getcaches)[0] unless $cache;
+    my ($id, $cacheid) = @_;
+    my $cache = (getcaches)[$cacheid];
     return unless $cache;
     my @header = ();
     my $curfile = '';
@@ -198,11 +197,9 @@ if ($0 =~ m/list-cache/) {
 }
 elsif ($0 =~ m/select/) {
     # Check for specific cache ID
-    my $cache = undef;
+    my $cache = 0;
     while (scalar @ARGV and $ARGV[0] =~ m/^\+[0-9]+$/) {
-        (my $cacheid = $ARGV[0]) =~ s/^\+//;
-        $cacheid = 10 if $cacheid == 0;
-        $cache = (getcaches)[$cacheid - 1];
+        ($cache = $ARGV[0]) =~ s/^\+//;
         shift @ARGV;
     }
     # Set action if specified
