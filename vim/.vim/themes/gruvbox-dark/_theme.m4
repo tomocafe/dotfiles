@@ -1,7 +1,9 @@
 changecom()dnl
 include(color.m4)dnl
-set t_Co=256
-let g:gruvbox_termcolors=16
+if !has("gui_running")
+    set t_Co=256
+    let g:gruvbox_termcolors=16
+endif
 set background=dark
 try
     colorscheme gruvbox
