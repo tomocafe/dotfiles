@@ -1,6 +1,6 @@
 # dotfiles
 
-Common settings and scripts to bring up a system for comfortable use. Includes setup files for [i3wm](https://i3wm.org), [bash](https://www.gnu.org/software/bash), [vim](https://www.vim.org). and more.
+Common settings and scripts to bring up a system for comfortable use. Includes setup files for [i3wm](https://i3wm.org), [bash](https://www.gnu.org/software/bash), [vim](https://www.vim.org), and more.
 
 ## Getting Started
 
@@ -177,7 +177,7 @@ This provides a basic `vimrc` configuration and provides theme support. To apply
 
 ```shell
 cd ~/.vim
-m4 -Ithemes/gruvbox-dark theme.m4 > theme
+make THEME=gruvbox-dark
 ```
 
 If using `dmenu_theme` from `i3`, the `vim` theming will be handled automatically.
