@@ -231,15 +231,31 @@ endif
 
 " reset to 16 colors fallback
 if g:gruvbox_termcolors == 16
-  "let s:bg0[1]    = 0
-  "MOD: switched color0 in Xresources to S_bg1,
-  "changing bg0 to transparent and bg1 to modded color0.
-  "After doing this, may need to suppress E420 messages
-  let s:bg0[1]    = "NONE"
-  let s:bg1[1]    = 0
-  "MOD: defining fg4 and bg4
-  let s:fg4[1]    = 7
-  let s:bg4[1]    = 8
+  "MOD: map fg/bg shade colors to 16-color palette
+  "NONE uses default from Xresources
+  let s:bg0[1] = "NONE" "Normal bg
+  let s:fg1[1] = "NONE" "Normal fg
+  let s:vim_bg = ['NONE', 'NONE']
+  let s:vim_fg = ['NONE', 'NONE']
+  if s:is_dark
+    let s:bg1[1] = 0
+    let s:bg2[1] = 0
+    let s:bg3[1] = 8
+    let s:bg4[1] = 8
+    let s:fg0[1] = 15
+    let s:fg2[1] = 15
+    let s:fg3[1] = 7
+    let s:fg4[1] = 7
+  else
+    let s:bg1[1] = 15
+    let s:bg2[1] = 15
+    let s:bg3[1] = 7
+    let s:bg4[1] = 7
+    let s:fg0[1] = 8
+    let s:fg2[1] = 8
+    let s:fg3[1] = 0
+    let s:fg4[1] = 0
+  endif
   let s:gray[1]   = 8
   let s:red[1]    = 9
   "MOD: use 9 (orange) for both red/orange
@@ -249,15 +265,6 @@ if g:gruvbox_termcolors == 16
   let s:blue[1]   = 12
   let s:purple[1] = 13
   let s:aqua[1]   = 14
-  "let s:fg1[1]    = 15
-  "MOD: just use fg from Xresources
-  let s:fg1[1]    = "NONE"
-  "MOD: using fg2 for 15 (bright white), unused so far
-  let s:fg2[1]    = 15
-  "MOD: redefine these, it aborts when used in s:HL function
-  "and causes the rest of the script not to be read
-  let s:vim_bg = ['NONE', 'NONE']
-  let s:vim_fg = ['NONE', 'NONE']
 endif
 
 " save current relative colors back to palette dictionary
@@ -587,7 +594,8 @@ hi! link Directory GruvboxGreenBold
 hi! link Title GruvboxGreenBold
 
 " Error messages on the command line
-call s:HL('ErrorMsg',   s:bg0, s:red, s:bold)
+"MOD: fg0 (bright) on red
+call s:HL('ErrorMsg', s:fg0, s:red, s:bold)
 " More prompt: -- More --
 hi! link MoreMsg GruvboxYellowBold
 " Current mode message: -- INSERT --
@@ -633,8 +641,10 @@ else
 endif
 
 call s:HL('Comment', s:gray, s:none, s:italicize_comments)
-call s:HL('Todo', s:vim_fg, s:vim_bg, s:bold . s:italic)
-call s:HL('Error', s:red, s:vim_bg, s:bold . s:inverse)
+"MOD: fg0 (bright) on default bg
+call s:HL('Todo', s:fg0, s:vim_bg, s:bold . s:italic)
+"MOD: fg0 (bright) on red
+call s:HL('Error', s:fg0, s:red, s:bold)
 
 " Generic statement
 hi! link Statement GruvboxRed
