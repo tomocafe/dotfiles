@@ -64,14 +64,17 @@ catch
 endtry
 
 " Status line
-" User1-9 defined in _theme.m4
+" User1-9, {Def,Ro,Mod}Header defined in _theme.m4
+function! StatusLineHeader()
+    return '  '.bufnr('%').' '
+endfunction
 set statusline=
-set statusline+=%6*%n: "buffer number
+set statusline+=%#DefHeader#%{&mod?'':&readonly?'':StatusLineHeader()} "default header
+set statusline+=%#RoHeader#%{&mod?'':&readonly?StatusLineHeader():''} "readonly header
+set statusline+=%#ModHeader#%{&mod?StatusLineHeader():''} "modified header
 set statusline+=%1*\ %t "basename
-set statusline+=%9*\ %m%r%w%h "modified/readonly/preview/help
-set statusline+=%3*%y "filetype
-set statusline+=%4*\ %{''.(&fenc!=''?&fenc:&enc).''} "encoding
-set statusline+=%4*/%{&ff} "fileformat
+set statusline+=%3*\ %y "filetype
+set statusline+=%4*\ %{''.(&fenc!=''?&fenc:&enc).''}/%{&ff} "encoding/fileformat
 set statusline+=%1*%= "right justify
 set statusline+=%5*x%B "character code under cursor
 set statusline+=%2*\ %c,%l/%L "col/row/total
