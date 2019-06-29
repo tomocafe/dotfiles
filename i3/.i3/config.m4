@@ -8,7 +8,9 @@ dnl
 exec_always --no-startup-id xrdb -load ${I3_HOME:-~/.i3}/Xresources
 exec_always --no-startup-id ${I3_HOME:-~/.i3}/bin/reload-ssh-xresources ${I3_HOME:-~/.i3}/Xresources
 exec_always --no-startup-id killall -9 dunst; exec dunst -conf ${I3_HOME:-~/.i3}/dunstrc
-exec --no-startup-id urxvtd -q -f -o
+ifdef(`M4_TERMINAL_DAEMON',dnl
+exec_always --no-startup-id M4_TERMINAL_DAEMON
+)dnl
 
 # Set X root background color
 exec_always --no-startup-id xsetroot -solid "M4_I3_BG"
@@ -31,7 +33,7 @@ set $mod Mod1
 floating_modifier $mod
 
 # start a terminal
-bindsym $mod+Return exec urxvtc
+bindsym $mod+Return exec M4_TERMINAL
 
 # kill focused window
 #bindsym $mod+Shift+q kill
