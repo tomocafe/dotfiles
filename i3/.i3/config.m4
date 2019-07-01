@@ -44,7 +44,7 @@ mode "confirm-close" {
     bindsym n mode default
     bindsym Escape mode default
 }
-bindsym $mod+Shift+q exec --no-startup-id ${I3_HOME:-~/.i3}/bin/close-mode -c "ssh" -c "--loginShell" "confirm-close"
+bindsym $mod+Shift+q exec --no-startup-id ${I3_HOME:-~/.i3}/bin/close-mode "confirm-close" SHELL_ROOT_PROC "sshd|sge_execd"
 
 # start dmenu (a program launcher)
 ifdef(`M4_I3_COMPAT',`define(`M4_I3_DMENU_FONT',`M4_FONT_XLFD')',`define(`M4_I3_DMENU_FONT',`M4_FONT_NAME-M4_FONT_SIZE')')dnl
