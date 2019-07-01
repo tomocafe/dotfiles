@@ -9,16 +9,6 @@ if ! command -v xprop &>/dev/null || ! command -v i3-msg &>/dev/null || [[ $# -l
     exit 1
 fi
 
-function getProperty () {
-    local val=$(xprop -id $wid $1)
-    echo ${val#*= }
-}
-
-function setMode () {
-    i3-msg mode "$1"
-    exit 0
-}
-
 while [[ $# -ge 2 ]]; do
     val=$(xprop -id $wid $1); val=${val#*= }
     if [[ $val =~ $2 ]]; then
