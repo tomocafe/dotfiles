@@ -433,7 +433,7 @@ function _setPrompt () {
     local titleText=""
     while [[ $i -lt ${#blockText[@]} ]]; do
         PS1+="\[${blockColor[$i]}\]${blockText[$i]}"
-        [[ $i -gt 0 && $i -le $lastTitleBlockIndex ]] && titleText+="${blockText[$i]}" # skip header
+        [[ $i -gt 0 && $i -lt $lastTitleBlockIndex ]] && titleText+="${blockText[$i]}" # skip header
         let i++
     done
     # Set prompt
