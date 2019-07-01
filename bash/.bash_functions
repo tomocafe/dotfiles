@@ -485,13 +485,14 @@ function _history () {
     fi
     # Make sure colors are exported (caching saves time compared to many tput calls)
     [[ ${#COLORS[@]} -gt 0 ]] || _exportColorCodes
+    local reset='\033[m' # COLOR_RESET/TRESET (tput sgr0/reset) are not handled well by less, just hardcode this sequence
     # Run the following in a subshell to avoid leaking HISTTIMEFORMAT
     (
         export HISTTIMEFORMAT="${HISTTIMEFORMAT:-[%D %T]  }"
         local line
         while IFS= read -r line; do
             if [[ $line =~ ^([[:space:]]*)([[:digit:]]+)\ \ (\[.*?\])\ \ (.*)$ ]]; then
-                echo -e "${BASH_REMATCH[1]}${COLORS[6]}${BASH_REMATCH[2]}${COLOR_TRESET}  ${COLORS[4]}${BASH_REMATCH[3]}${COLOR_TRESET}  ${BASH_REMATCH[4]}";
+                echo -e "${BASH_REMATCH[1]}${COLORS[6]}${BASH_REMATCH[2]}${reset}  ${COLORS[4]}${BASH_REMATCH[3]}${reset}  ${BASH_REMATCH[4]}";
             else
                 echo "$line";
             fi
