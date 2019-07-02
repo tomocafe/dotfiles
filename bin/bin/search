@@ -124,8 +124,8 @@ sub listcaches {
             push @header, $line;
         }
         close $fd;
-        my $w = length($CACHESIZE - 1);
-        printf "%s%${w}s%s %s%s%s", color('cyan'), $id, color('reset'), color('green'), $header[0], color('reset');
+        my $w = length($CACHESIZE); # +1 for leading '+'
+        printf "%s%${w}s%s %s%s%s", color('cyan'), '+' . $id, color('reset'), color('green'), $header[0], color('reset');
         for (my $i = 1; $i < scalar @header; $i++) {
             printf "%${w}s %s", ' ', $header[$i];
         }
