@@ -509,9 +509,11 @@ function _archiveHandlerBase () {
     case ${1,,} in
         *.tar.gz|*.tgz) $_compress && tar czvf $@ || tar xzvf $@ ;;
         *.tar.bz2|*.tbz2) $_compress && tar cjvf $@ || tar xjvf $@ ;;
+        *.tar.xz|*.txz) $_compress && tar cJvf $@ || tar xJvf $@ ;;
         *.tar) $_compress && tar cvf $@ || tar xvf $@ ;;
         *.gz) $_compress && gzip <$2 >$1 || gunzip $@ ;;
         *.bz2) $_compress && bzip2 <$2 >$1 || bunzip2 $@ ;;
+        *.xz) $_compress && xz <$2 >$1 || unxz $@ ;;
         *.lzh|*.lha) $_compress && lha c $@ || lha x $@ ;;
         *.zip) $_compress && zip $@ || unzip $@ ;;
         *.Z) $_compress && command compress <$2 >$1 || command uncompress $@ ;;
