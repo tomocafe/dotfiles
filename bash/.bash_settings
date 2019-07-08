@@ -67,7 +67,7 @@ unset command_not_found_handle
 unset SSH_ASKPASS
 
 # Save the root process of this interactive shell to an X window property
-if [[ $- == *i* ]] && _checkCommand xprop; then
+if [[ $- == *i* ]] && _checkCommand xprop && _checkSet DISPLAY; then
     # Get the current active window ID
     wid=$(xprop -root _NET_ACTIVE_WINDOW); wid=${wid##* }
     xprop -id $wid -f SHELL_ROOT_PROC 8s -set SHELL_ROOT_PROC $(_getRootProcess)
