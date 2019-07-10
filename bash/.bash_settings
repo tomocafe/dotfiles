@@ -66,9 +66,6 @@ unset command_not_found_handle
 # Disable annoying password popup
 unset SSH_ASKPASS
 
-# Save the root process of this interactive shell to an X window property
-_writeShellRootProcXProp
-
 # If this is a forked terminal, go the parent shell's directory
 # Otherwise, go to $HOME
 if [[ $- == *i* ]]; then

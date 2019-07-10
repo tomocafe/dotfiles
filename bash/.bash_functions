@@ -178,6 +178,14 @@ function _getRootProcess () {
     done
 }
 
+function _writeShellRootProcXProp () {
+    if [[ $- == *i* ]] && _checkCommand xprop && _checkSet DISPLAY; then
+        # Get the current active window ID
+        wid=$(xprop -root _NET_ACTIVE_WINDOW); wid=${wid##* }
+        xprop -id $wid -f SHELL_ROOT_PROC 8s -set SHELL_ROOT_PROC $(_getRootProcess)
+    fi
+}
+
 ###############################################################################
 # Colors
 ###############################################################################
@@ -363,7 +371,8 @@ function _setPrompt () {
     [[ $rc -eq 0 ]] && blockColor+=(${COLORS[10]}) || blockColor+=(${COLORS[1]}) # bright green if last command successful, red otherwise
     # Hostname
     blockText+=("${HOSTNAME%%.*}") # strip domain if present
-    case $(_getRootProcess) in
+    local rootProc=$(_getRootProcess)
+    case $rootProc in
         # Color hostname differently if root process is a connection daemon (e.g. sshd)
         # This is a warning that closing the terminal will close a connection 
         sshd|sge_execd)
@@ -436,12 +445,15 @@ function _setPrompt () {
         [[ $i -gt 0 && $i -lt $lastTitleBlockIndex ]] && titleText+="${blockText[$i]}" # skip header
         let i++
     done
+    titleText+=" ($rootProc)"
     # Set prompt
     PS1+="\n\[${blockColor[0]}\]\$\[${COLOR_RESET}\] "
     export PS1
     # Set the terminal title/tab
     _setTerminalTitle "$titleText"
     #_setTerminalTab "$titleText"
+    # Update X window property
+    _writeShellRootProcXProp
 }
 
 function _setFastPrompt () {
@@ -458,14 +470,6 @@ function _setFastPrompt () {
 function _fork () {
     _checkSet TERMINAL || return 1
     (FORK_DIR=$PWD $TERMINAL $FORK_TERMINAL_OPTS $@ &>/dev/null &) # put in a subshell to silence bash job control messages
-}
-
-function _writeShellRootProcXProp () {
-    if [[ $- == *i* ]] && _checkCommand xprop && _checkSet DISPLAY; then
-        # Get the current active window ID
-        wid=$(xprop -root _NET_ACTIVE_WINDOW); wid=${wid##* }
-        xprop -id $wid -f SHELL_ROOT_PROC 8s -set SHELL_ROOT_PROC $(_getRootProcess)
-    fi
 }
 
 ###############################################################################
