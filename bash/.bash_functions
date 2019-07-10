@@ -460,6 +460,14 @@ function _fork () {
     (FORK_DIR=$PWD $TERMINAL $FORK_TERMINAL_OPTS $@ &>/dev/null &) # put in a subshell to silence bash job control messages
 }
 
+function _writeShellRootProcXProp () {
+    if [[ $- == *i* ]] && _checkCommand xprop && _checkSet DISPLAY; then
+        # Get the current active window ID
+        wid=$(xprop -root _NET_ACTIVE_WINDOW); wid=${wid##* }
+        xprop -id $wid -f SHELL_ROOT_PROC 8s -set SHELL_ROOT_PROC $(_getRootProcess)
+    fi
+}
+
 ###############################################################################
 # Completion
 ###############################################################################
