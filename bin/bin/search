@@ -154,7 +154,7 @@ sub openselection {
     $cmd =~ s/{line}/$lineno/g;
     $cmd =~ s/{}/$filepath/; # replace first occurrence of {} with filepath
     $cmd =~ s/{}/$lineno/; # replace second occurrence of {} with lineno
-    exec $ENV{'SHELL'}, "-c", $cmd; 
+    exec $ENV{'SHELL'}, "-c", $cmd;  # using this instead of system honors user's shell instead of using /bin/sh
 }
 
 # Select a match by index from the given cache
@@ -198,8 +198,14 @@ if ($0 =~ m/list-cache/) {
 elsif ($0 =~ m/select/) {
     # Check for specific cache ID
     my $cache = 0;
-    while (scalar @ARGV and $ARGV[0] =~ m/^\+[0-9]+$/) {
-        ($cache = $ARGV[0]) =~ s/^\+//;
+    while (scalar @ARGV and $ARGV[0] =~ m/^[+%][0-9]+$/) {
+        ($cache = $ARGV[0]) =~ s/^[+%]//;
+        if (substr($ARGV[0], 0, 1) eq '%') {
+            # Touch the cache file and reset cache ID to 0
+            if (system('touch', "$CACHEDIR/" . (getcaches)[$cache]) == 0) {
+                $cache = 0;
+            }
+        }
         shift @ARGV;
     }
     # Set action if specified
