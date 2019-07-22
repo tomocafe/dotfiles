@@ -163,19 +163,28 @@ done
 # Process related
 ###############################################################################
 
-function _getRootProcess () {
+function _getRootProcessBase () {
+    local _output=$1; shift
     local _pid=${1:-$$}
     while true; do
         local _stat=($(</proc/$_pid/stat))
         local _ppid=${_stat[3]}
         # Check if we found the root process
         if [[ $_ppid -eq 1 ]]; then
-            echo $(ps -p $_pid -o comm=)
+            echo $(ps -p $_pid -o $_output=)
             break
         fi
         # Advance to parent
         _pid=${_stat[3]}
     done
+}
+
+function _getRootProcess () {
+    _getRootProcessBase 'comm' $@
+}
+
+function _getRootProcessArgs () {
+    _getRootProcessBase 'args' $@
 }
 
 function _writeShellRootProcXProp () {
