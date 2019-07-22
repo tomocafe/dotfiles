@@ -55,7 +55,17 @@ alias a="search-select"
 alias sls="search-list-cache"
 
 # Set default editor
-export EDITOR="vim"
+EDITOR="vim"
+case "$(_getRootProcessArgs)" in
+    # Use vscode if the shell was launched by vscode itself
+    *vscode-insiders*)
+        EDITOR="code-insiders -r"
+        ;;
+    *vscode*)
+        EDITOR="code -r"
+        ;;
+esac
+export EDITOR
 
 # Set the default terminal, if not already set
 export TERMINAL=${TERMINAL:-urxvt-launch}
