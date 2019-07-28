@@ -116,15 +116,16 @@ bindsym $mod+minus scratchpad show
 
 ifdef(`M4_I3_HEADLESS',,dnl
 # Peripheral controls
-bindsym XF86MonBrightnessUp exec --no-startup-id peripheral-control brightness up
-bindsym XF86MonBrightnessDown exec --no-startup-id peripheral-control brightness down
-bindsym XF86AudioPlay exec --no-startup-id peripheral-control media play-pause
-bindsym XF86AudioPause exec --no-startup-id peripheral-control media pause
-bindsym XF86AudioPrev exec --no-startup-id peripheral-control media previous
-bindsym XF86AudioNext exec --no-startup-id peripheral-control media next
-bindsym XF86AudioRaiseVolume exec --no-startup-id peripheral-control volume up
-bindsym XF86AudioLowerVolume exec --no-startup-id peripheral-control volume down
-bindsym XF86AudioMute exec --no-startup-id peripheral-control volume mute
+bindsym XF86MonBrightnessUp exec --no-startup-id ${I3_HOME:-~/.i3}/bin/peripheral-control brightness up
+bindsym XF86MonBrightnessDown exec --no-startup-id ${I3_HOME:-~/.i3}/bin/peripheral-control brightness down
+bindsym XF86AudioPlay exec --no-startup-id ${I3_HOME:-~/.i3}/bin/peripheral-control media play-pause
+bindsym XF86AudioPause exec --no-startup-id ${I3_HOME:-~/.i3}/bin/peripheral-control media pause
+bindsym XF86AudioStop exec --no-startup-id ${I3_HOME:-~/.i3}/bin/peripheral-control media stop
+bindsym XF86AudioPrev exec --no-startup-id ${I3_HOME:-~/.i3}/bin/peripheral-control media previous
+bindsym XF86AudioNext exec --no-startup-id ${I3_HOME:-~/.i3}/bin/peripheral-control media next
+bindsym XF86AudioRaiseVolume exec --no-startup-id ${I3_HOME:-~/.i3}/bin/peripheral-control volume up
+bindsym XF86AudioLowerVolume exec --no-startup-id ${I3_HOME:-~/.i3}/bin/peripheral-control volume down
+bindsym XF86AudioMute exec --no-startup-id ${I3_HOME:-~/.i3}/bin/peripheral-control volume mute
 )dnl
 
 # Define workspaces
