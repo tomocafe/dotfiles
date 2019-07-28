@@ -1,0 +1,43 @@
+#!/bin/bash
+
+case "${1}" in
+    brightness)
+        case "${2}" in
+            up)
+                light -A ${3:-10}
+                ;;
+            down)
+                light -U ${3:-10}
+                ;;
+        esac
+        # Notify
+        curr=$(light -G)
+        dunstify --replace=7301 "Brightness $curr"
+        ;;
+    media)
+        playerctl "$2" # play-pause, pause, previous, next
+        ;;
+    volume)
+        case "${2}" in
+            up)
+                amixer -D pulse sset Master ${3:-5%}+
+                paplay /usr/share/sounds/freedesktop/stereo/audio-volume-change.oga
+                ;;
+            down)
+                amixer -D pulse sset Master ${3:-5%}-
+                paplay /usr/share/sounds/freedesktop/stereo/audio-volume-change.oga
+                ;;
+            mute)
+                amixer -D pulse sset Master toggle-mute
+                ;;
+        esac
+        # Notify
+        mute="muted"
+        while read -r line; do
+            [[ $line =~ \[on\] ]] && mute=""
+            [[ $line =~ \[([[:digit:]]+)%\] ]] && vol=${BASH_REMATCH[1]}
+        done < <(amixer -D pulse get Master)
+        dunstify --replace=7302 "Volume ${mute:+$mute, }${vol}%"
+        ;;
+esac
+
