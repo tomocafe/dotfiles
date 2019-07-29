@@ -23,11 +23,16 @@ STOCK_TRADING_INDICATOR='*'
 STOCK_AFTERHOURS_INDICATOR='^'
 COMMUTE_FORMAT = '{time}'
 COMMUTE_SHORT_FORMAT = '{time}'
+COMMUTE_TIME_FORMAT = '{H}:{M:02}'
 COMMUTE_MODE = 'driving'
 DISK_FORMAT = '{label} {pctused}%'
 DISK_SHORT_FORMAT = '{pctused}%'
 LOAD_FORMAT = '{label} {pctused}%'
 LOAD_SHORT_FORMAT = '{pctused}%'
+BATTERY_FORMAT = 'BAT {pctfree}%{indicator}'
+BATTERY_SHORT_FORMAT = 'BAT {pctfree}%{indicator}'
+BATTERY_TIME_FORMAT = '{H}:{M:02}'
+BATTERY_CHARGING_INDICATOR = '+'
 STATIC_TEXT_FORMAT = '{text}'
 
 WEATHER_API_KEY = os.environ.get('WEATHER_API_KEY') # openweathermap.org
@@ -63,6 +68,17 @@ def get(domain, resource, json=True, https=True):
     url = protocol + server + resource
     response = requests.get(url, headers=headers, verify=False) # TODO: get rid of verify=False
     return response.json() if json else response.text
+
+def formatsecs(secs, fmt):
+    from string import Formatter
+    f = Formatter()
+    fields = [tup[1] for tup in f.parse(fmt)]
+    r = secs
+    vals = {}
+    for pos, mod in (['D', 84600], ['H', 3600], ['M', 60], ['S', 1]):
+        if pos in fields:
+            vals[pos], r = divmod(r, mod)
+    return f.format(fmt, **vals)
 
 def weather(args):
     if args.forecast:
@@ -160,15 +176,14 @@ def commute(args):
     data = get('maps.googleapis.com', '/maps/api/distancematrix/json?traffic_model=best_guess&mode={mode}&avoid={avoid}&key={key}&departure_time=now&origins={ori}&destinations={dst}&units={units}'.format(key=COMMUTE_API_KEY, mode=args.mode, avoid=args.avoid, ori=args.origin, dst=args.destination, units=args.units))
     duration_key = 'duration_in_traffic' if args.mode == 'driving' else 'duration'
     secs = data['rows'][0]['elements'][0][duration_key]['value']
-    hr = int(secs / 3600)
-    mins_after_hr = int(secs / 60) % 60
     keytext = {
-        'time': '{0}:{1:02d}'.format(hr, mins_after_hr),
-        'mins': int(secs / 60),
-        'text': data['rows'][0]['elements'][0][duration_key]['text'],
+        'time': formatsecs(secs, args.time_format),
         'distance': data['rows'][0]['elements'][0]['distance']['text']
     }
-    return [keytext, {}]
+    keyvals = {
+        'time': formatsecs(secs, '{M}')
+    }
+    return [keytext, keyvals]
 
 def b2h(b):
     from math import log2
@@ -214,6 +229,20 @@ def load(args):
             'used': b2h(stats.used),
             'free': b2h(stats.free)
         }
+    return [keytext, {}]
+
+def battery(args):
+    from psutil import sensors_battery
+    stats = sensors_battery()
+    if not stats:
+        return [{}, {}]
+    keytext = {
+        'pctused': round(stats.percent),
+        'pctfree': round(100.0 - stats.percent),
+        'status': 'Discharging' if not stats.power_plugged else ('Charging' if stats.percent < 100 else 'Charged'),
+        'indicator': args.charging_indicator if (stats.power_plugged and not stats.percent >= 100) else '',
+        'time': '' if stats.power_plugged else formatsecs(stats.timeleft, args.time_format)
+    }
     return [keytext, {}]
 
 def text(args):
@@ -321,13 +350,15 @@ def main():
     # Commute
     subparser = subparsers.add_parser('commute', help='Generate commute blocklet', epilog="""
         Available keys for formatting:
-        {time} {mins} {text} {distance}
+        {time} {distance}
+        (time interpreted in minutes if used in --color-if-*)
     """)
     subparser.add_argument('origin', type=str, help='Origin address')
     subparser.add_argument('destination', type=str, help='Destination address')
     subparser.add_argument('--mode', type=str, default=COMMUTE_MODE, choices=['driving', 'walking', 'bicycling', 'transit'])
     subparser.add_argument('--avoid', type=str, nargs='?', choices=['tolls', 'highways', 'ferries', 'indoor'])
     subparser.add_argument('--units', type=str, default=UNITS, choices=['imperial', 'metric'])
+    subparser.add_argument('--time-format', type=str, default=COMMUTE_TIME_FORMAT, help='Time format string. Default: \'%(default)s\'')
     subparser.add_argument('--format', type=str, default=COMMUTE_FORMAT, help='Format string to print. Default: \'%(default)s\'')
     subparser.add_argument('--short-format', metavar='FORMAT', type=str, default=COMMUTE_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
     subparser.set_defaults(func=commute)
@@ -353,6 +384,16 @@ def main():
     subparser.add_argument('--format', type=str, default=LOAD_FORMAT, help='Format string to print. Default: \'%(default)s\'')
     subparser.add_argument('--short-format', metavar='FORMAT', type=str, default=LOAD_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
     subparser.set_defaults(func=load)
+    # Battery
+    subparser = subparsers.add_parser('battery', help='Generate battery blocklet', epilog="""
+        Available keys for formatting:
+        {pctused} {pctfree} {status} {indicator} {time}
+    """)
+    subparser.add_argument('--charging-indicator', type=str, default=BATTERY_CHARGING_INDICATOR, help='Status indicator for when the battery is charging. Default=\'%(default)s\'')
+    subparser.add_argument('--time-format', type=str, default=BATTERY_TIME_FORMAT, help='Time format string. Default: \'%(default)s\'')
+    subparser.add_argument('--format', type=str, default=BATTERY_FORMAT, help='Format string to print. Default: \'%(default)s\'')
+    subparser.add_argument('--short-format', metavar='FORMAT', type=str, default=BATTERY_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
+    subparser.set_defaults(func=battery)
     # Static text
     subparser = subparsers.add_parser('text', help='Generate a static text blocklet')
     subparser.add_argument('text', type=str, help='String to print')
@@ -377,6 +418,9 @@ def main():
     except AttributeError:
         parser.error('too few arguments')
     [keytext, keyvals] = func(args)
+
+    if not keytext:
+        return
 
     xcolors = {}
     if args.read_xresource_colors:
