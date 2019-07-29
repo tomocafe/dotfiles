@@ -114,7 +114,7 @@ command=${HOME}/.i3/bin/blocklet --read-xresource-colors ~/.i3/Xresources --colo
 interval=600
 
 [commute]
-command=source ${HOME}/.api_keys && ${HOME}/.i3/bin/blocklet --schedule '* 5-12 * * 1-5' --read-xresource-colors ~/.i3/Xresources --color-whole-block --color-if-more mins,49,9 --color-if-more mins,59,1 commute "${HOME_ADDR}" "${WORK_ADDR}" --format "Work {time}"
+command=source ${HOME}/.api_keys && ${HOME}/.i3/bin/blocklet --schedule '* 5-12 * * 1-5' --read-xresource-colors ~/.i3/Xresources --color-whole-block --color-if-more time,49,9 --color-if-more time,59,1 commute "${HOME_ADDR}" "${WORK_ADDR}" --format "Work {time}"
 interval=300
 
 [stock]
