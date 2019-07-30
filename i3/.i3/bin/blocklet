@@ -237,8 +237,8 @@ def battery(args):
     if not stats:
         return [{}, {}]
     keytext = {
-        'pctused': round(stats.percent),
-        'pctfree': round(100.0 - stats.percent),
+        'pctfree': round(stats.percent),
+        'pctused': round(100.0 - stats.percent),
         'status': 'Discharging' if not stats.power_plugged else ('Charging' if stats.percent < 100 else 'Charged'),
         'indicator': args.charging_indicator if (stats.power_plugged and not stats.percent >= 100) else '',
         'time': '' if stats.power_plugged else formatsecs(stats.timeleft, args.time_format)
