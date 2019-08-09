@@ -9,7 +9,7 @@ exec_always --no-startup-id xrdb -merge ${I3_HOME:-~/.i3}/Xresources
 exec_always --no-startup-id ${I3_HOME:-~/.i3}/bin/reload-ssh-xresources ${I3_HOME:-~/.i3}/Xresources
 exec_always --no-startup-id killall -9 dunst; exec dunst -conf ${I3_HOME:-~/.i3}/dunstrc
 ifdef(`M4_TERMINAL_DAEMON',dnl
-exec_always --no-startup-id M4_TERMINAL_DAEMON
+exec --no-startup-id M4_TERMINAL_DAEMON
 )dnl
 
 # Set X root background color
