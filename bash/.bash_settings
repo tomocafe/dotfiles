@@ -64,6 +64,9 @@ case "$(_getRootProcessArgs)" in
     *vscode*)
         EDITOR="code -r"
         ;;
+    *code-oss*)
+        EDITOR="code-oss -r"
+        ;;
 esac
 export EDITOR
 
