@@ -1,0 +1,35 @@
+window:
+    dimensions:
+        columns: 80
+        lines: 24
+font:
+    normal:
+        family: Roboto Mono
+    bold:
+        style: Regular
+    italic:
+        style: Italic
+    size: 11.0
+colors:
+    primary:
+        background: '#000000'
+        foreground: '#e0e0e0' # grey 300
+    normal:
+        black: '#212121' # grey 900
+        red: '#f44336' # red 500
+        green: '#4caf50' # green 500
+        yellow: '#ffc107' # amber 500
+        blue: '#2196f3' # blue 500
+        magenta: '#ec407a' # pink 400
+        cyan: '#00bcd4' # cyan 500
+        white: '#eeeeee' # grey 200 
+    bright:
+        black: '#9e9e9e' # grey 500
+        red: '#ff5722' # deep orange 500
+        green: '#8bc34a' # light green 500
+        yellow: '#ffeb3b' # yellow 500
+        blue: '#04a9f4' # light blue 500
+        magenta: '#ba68c8' # purple 300
+        cyan: '#80deea' # cyan 200
+        white: '#fafafa' # grey 50
+
