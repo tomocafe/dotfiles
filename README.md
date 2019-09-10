@@ -32,8 +32,9 @@ For i3wm:
 * `i3`
 * `i3blocks`
 * `xrdb`, `xprop`, `xset`, `xsetroot`
-* `rxvt-unicode` (`urxvt`)
 * Optional: `i3lock`, `dunst`
+
+You use your terminal of choice, but these dotfiles set `rxvt-unicode` (`urxvt`) by default and also provides configuration files for `alacritty`.
 
 ## Themes
 
@@ -68,8 +69,8 @@ The file `.bash_settings` includes common aliases, settings, and functions and s
     * `hc` (hard copy) replaces symbolic links with copies of the source files/directories
     * `compress` and `extract` to work generically with archive files
     * `ssh-tmp` to launch SSH without host key checking
-    * `history` shows colorized history with timestamps, piped to the `less` pager (unless `stdout` is redirected)
-    * `f` "forks" a new terminal from within the current shell environment to duplicate a shell session with all its settings
+    * `history` (<kbd>Ctrl</kbd>+<kbd>H</kbd>)shows colorized history with timestamps, piped to the `less` pager (unless `stdout` is redirected)
+    * `f` (<kbd>Ctrl</kbd>+<kbd>F</kbd>)"forks" a new terminal from within the current shell environment to duplicate a shell session with all its settings
 * Helper functions:
     * `_join` joins the arguments with a given delimiter
     * Pretty status messages: `_putError`, `_putWarning`, `_putInfo`
@@ -79,14 +80,14 @@ The file `.bash_settings` includes common aliases, settings, and functions and s
 
 ## i3wm
 
-The configuration of `i3` uses `make` and `m4` to generate configuration files based on a selected theme. To set up `i3` for first use, go to `~/.i3` and run `make`, which selects the `gruvbox-dark` theme by default. To select a different theme, supply `make` with the `THEME` variable, for example:
+This `i3` setup uses `make` and `m4` to generate configuration files based on a selected theme. To set up `i3` for first use, go to `~/.i3` and run `make`, which selects the `gruvbox-dark` theme by default. To select a different theme, supply `make` with the `THEME` variable, for example:
 
 ```shell
 cd ~/.i3
 make THEME=gruvbox-dark
 ```
 
-This step is automatically performed by the `bootstrap` script. To change themes, simply `make clean` and `make` again with the selected `THEME` variable. This is automated by the `dmenu_theme` script.
+This step is automatically performed by the `bootstrap` script. To change themes, simply `make clean` and `make` again with the selected `THEME` variable. This is automated by the `dmenu_theme` script (<kbd>Mod</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd>).
 
 If the system has an old version of `i3` without `pango` support, set the environment variable the `I3_M4_THEMEARGS="-DM4_I3_COMPAT"`, which is picked up by `m4` to disable certain features that are unsupported on older systems.
 
@@ -102,27 +103,27 @@ A working example:
 markup=pango
 
 [local_cpu]
-command=${HOME}/.i3/bin/blocklet --read-xresource-colors ~/.i3/Xresources --color-if-more pctused,74,9 --color-if-more pctused,99,1 load cpu --format "CPU {used} {pctused}%" --short-format "CPU {pctused}%"
+command=${I3_HOME:-~/.i3}/bin/blocklet --read-xresource-colors ~/.i3/Xresources --color-if-more pctused,74,9 --color-if-more pctused,99,1 load cpu --format "CPU {used} {pctused}%" --short-format "CPU {pctused}%"
 interval=10
 
 [local_vm]
-command=${HOME}/.i3/bin/blocklet --read-xresource-colors ~/.i3/Xresources --color-if-more pctused,74,9 --color-if-more pctused,89,1 load mem --mem-type virtual --format "VM {free} {pctused}%" --short-format "VM {pctused}%"
+command=${I3_HOME:-~/.i3}/bin/blocklet --read-xresource-colors ~/.i3/Xresources --color-if-more pctused,74,9 --color-if-more pctused,89,1 load mem --mem-type virtual --format "VM {free} {pctused}%" --short-format "VM {pctused}%"
 interval=10
 
 [disk]
-command=${HOME}/.i3/bin/blocklet --read-xresource-colors ~/.i3/Xresources --color-if-more pctused,74,9 --color-if-more pctused,89,1 disk ${HOME} --format "Disk {free} {pctused}%" --short-format "Disk {pctused}%"
+command=${I3_HOME:-~/.i3}/bin/blocklet --read-xresource-colors ~/.i3/Xresources --color-if-more pctused,74,9 --color-if-more pctused,89,1 disk ${HOME} --format "Disk {free} {pctused}%" --short-format "Disk {pctused}%"
 interval=600
 
 [commute]
-command=source ${HOME}/.api_keys && ${HOME}/.i3/bin/blocklet --schedule '* 5-12 * * 1-5' --read-xresource-colors ~/.i3/Xresources --color-whole-block --color-if-more time,49,9 --color-if-more time,59,1 commute "${HOME_ADDR}" "${WORK_ADDR}" --format "Work {time}"
+command=source ${HOME}/.api_keys && ${I3_HOME:-~/.i3}/bin/blocklet --schedule '* 5-12 * * 1-5' --read-xresource-colors ~/.i3/Xresources --color-whole-block --color-if-more time,49,9 --color-if-more time,59,1 commute "${HOME_ADDR}" "${WORK_ADDR}" --format "Work {time}"
 interval=300
 
 [stock]
-command=${HOME}/.i3/bin/blocklet --read-xresource-colors ~/.i3/Xresources --color-if-less percent,-0.99,1 --color-if-more percent,0.99,2 stock NDAQ
+command=${I3_HOME:-~/.i3}/bin/blocklet --read-xresource-colors ~/.i3/Xresources --color-if-less percent,-0.99,1 --color-if-more percent,0.99,2 stock NDAQ
 interval=1200
 
 [weather]
-command=source ${HOME}/.api_keys && ${HOME}/.i3/bin/blocklet weather zip="${HOME_ZIP}"
+command=source ${HOME}/.api_keys && ${I3_HOME:-~/.i3}/bin/blocklet weather zip="${HOME_ZIP}"
 interval=600
 
 [time]
@@ -142,6 +143,7 @@ If `i3lock` is installed, this environment attempts to style the lock screen usi
 * <kbd>Mod</kbd>+<kbd>X</kbd> brings up a `dmenu` to launch a terminal and connect via `ssh` to a selected server (from the known hosts on the system)
 * <kbd>Mod</kbd>+<kbd>Shift</kbd>+<kbd>Q</kbd> checks if the window being killed has a connection daemon as a root process (e.g. `sshd`) and enters `confirm-close` mode to confirm killing the window by pressing <kbd>Y</kbd> to avoid accidentally closing a session
 * <kbd>Mod</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> brings up a `dmenu` to select from exit options: logout, lock (if `i3lock` is available), shutdown, restart, hibernate, and suspend (if `systemctl` is available)
+* XF86 keys configured to control peripherals (e.g. volume, brightness, media control) and display relevant notifications using `dunst`
 
 ### xsession
 
@@ -160,7 +162,10 @@ export I3_HOME=~/.i3
 export PATH="${PATH:+$PATH:}${HOME}/i3wm-el6/i3-4.8/bin:${I3_HOME}/bin"
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}${HOME}/i3wm-el6/i3-4.8/lib"
 # Following needed only if i3 is an old version without pango support
-export I3_M4_THEMEARGS="-DM4_I3_COMPAT"
+I3_M4_THEMEARGS+=" -DM4_I3_COMPAT"
+# Following needed only if running i3 in a headless system (skips peripheral control settings)
+I3_M4_THEMEARGS+=" -DM4_I3_HEADLESS"
+export I3_M4_THEMEARGS
 
 # Used by i3-sensible-terminal (and others) to decide which terminal to launch
 export TERMINAL="urxvtc"
@@ -173,7 +178,7 @@ Modification of `$PATH` (and etc.) can be skipped if `i3` is installed system-wi
 
 ## vim
 
-This provides a basic `vimrc` configuration and provides theme support. To apply the theme `gruvbox-dark`, for example:
+These dotfiles provide a basic `vimrc` configuration with theme support. To apply the theme `gruvbox-dark`, for example:
 
 ```shell
 cd ~/.vim
