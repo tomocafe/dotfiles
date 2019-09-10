@@ -15,6 +15,10 @@ alias history="_history"
 function dc () { [[ $# -gt 0 ]] && local _d=${@: -1}; cd ${_d:-..}; }
 complete -F _dcBackwardsPathCompletion dc
 
+# Key bindings
+bind -x '"\C-f":_fork'
+bind -x '"\C-h":_history'
+
 # Set prompt
 if [[ $- == *i* ]]; then
     shopt -s checkwinsize
