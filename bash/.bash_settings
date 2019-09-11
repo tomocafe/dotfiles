@@ -1,5 +1,10 @@
 # vim:ft=sh
 
+if [[ ${BASH_VERSINFO:-0} -lt 4 ]]; then
+    echo "${BASH_SOURCE[0]}: requires bash version 4 or later, this is $BASH_VERSION" 1>&2
+    return 1
+fi
+
 source ~/.bash_functions
 
 # Aliases
