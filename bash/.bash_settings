@@ -70,12 +70,12 @@ case "$(_getRootProcessArgs)" in
     *vscode-insiders*)
         EDITOR="code-insiders -r"
         ;;
-    *vscode*)
-        EDITOR="code -r"
-        ;;
     *code-oss*)
         EDITOR="code-oss -r"
         ;;
+    *vscode*)
+        EDITOR="code -r"
+        ;;        
 esac
 export EDITOR
 
