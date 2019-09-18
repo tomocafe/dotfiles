@@ -194,8 +194,7 @@ elsif ($0 =~ m/ag/) { $ENGINE = "ag";  }
 
 # Adjust default action for editors that do not follow +lineno syntax
 if ($EDITOR =~ m/code/) {
-    $ACTION = "$EDITOR -g {}:{}"; # CLI doesn't support --goto yet, see github.com/microsoft/vscode-remote-release/issues/768
-    $ACTION = "$EDITOR {}"; # workaround: open file without jumping to line
+    $ACTION = "$EDITOR -g {}:{}";
 }
 
 if ($0 =~ m/list-cache/) {
