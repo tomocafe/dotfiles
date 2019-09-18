@@ -21,6 +21,7 @@ set relativenumber
 
 nmap <F2> <Esc>:noh<CR>
 nmap <F3> <Esc>:set nu! rnu!<CR>
+nmap <F4> <Esc>:set wrap!<CR>
 nnoremap Q <nop>
 
 " *last-position-jump*
