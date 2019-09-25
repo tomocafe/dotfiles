@@ -175,7 +175,7 @@ function _getRootProcessBase () {
             break
         fi
         # Advance to parent
-        _pid=${_stat[3]}
+        _pid=$_ppid
     done
 }
 
@@ -185,6 +185,21 @@ function _getRootProcess () {
 
 function _getRootProcessArgs () {
     _getRootProcessBase 'args' $@
+}
+
+function _matchProcessTree () {
+    local _pattern=$1; shift
+    local _pid=${1:-$$}
+    while true; do
+        local _stat=($(</proc/$_pid/stat))
+        local _ppid=${_stat[3]}
+        # Check if processes up the tree match pattern
+        [[ $(ps -p $_pid -o args=) =~ $_pattern ]] && return 0
+        [[ $_ppid -eq 1 ]] && break
+        # Advance to parent
+        _pid=$_ppid
+    done
+    return 1
 }
 
 function _writeShellRootProcXProp () {

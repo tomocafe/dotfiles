@@ -70,18 +70,13 @@ alias sls="search-list-cache"
 
 # Set default editor
 EDITOR="vim"
-case "$(_getRootProcessArgs)" in
-    # Use vscode if the shell was launched by vscode itself
-    *vscode-insiders*)
-        EDITOR="code-insiders -r"
-        ;;
-    *code-oss*)
-        EDITOR="code-oss -r"
-        ;;
-    *vscode*)
-        EDITOR="code -r"
-        ;;        
-esac
+if _matchProcessTree "vscode-insiders"; then
+    EDITOR="code-insiders -r"
+elif _matchProcessTree "code-oss"; then
+    EDITOR="code-oss -r"
+elif _matchProcessTree "vscode"; then
+    EDITOR="code -r"
+fi
 export EDITOR
 
 # Set the default terminal, if not already set
