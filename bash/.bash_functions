@@ -329,8 +329,8 @@ function _genPromptGitStatus () {
         case "${line:0:2}" in
             *M*)   let changedCt++ ;;
             *U*)   let conflictCt++ ;;
-            \?\?) let untrackedCt++ ;;
-            *)    let stagedCt++ ;;
+            \?\?)  let untrackedCt++ ;;
+            *)     let stagedCt++ ;;
         esac
     done < <(LC_ALL=C git status --untracked-files=all --porcelain)
     uncleanFileStats=()
@@ -341,9 +341,11 @@ function _genPromptGitStatus () {
     # Use remote origin URL to determine repo name, otherwise use top level directory name
     local remoteOriginUrl=$(git config --get remote.origin.url 2>/dev/null)
     case "$remoteOriginUrl" in
-        *github.com*)
-            repoName=${remoteOriginUrl##*github.com/}
-            ;;
+        *.com/*) repoName=${remoteOriginUrl##*.com/} ;;
+        *.org/*) repoName=${remoteOriginUrl##*.org/} ;;
+        *.edu/*) repoName=${remoteOriginUrl##*.edu/} ;;
+        *.net/*) repoName=${remoteOriginUrl##*.net/} ;;
+        *.io/*)  repoName=${remoteOriginUrl##*.io/}  ;;
         *)
             repoName=$(git rev-parse --show-toplevel)
             repoName=${repoName##*/}
@@ -353,7 +355,7 @@ function _genPromptGitStatus () {
     # Determine the current branch
     branch=$(git symbolic-ref -q HEAD)
     branch=${branch#refs/heads/}
-    echo "$repoName $branch${uncleanFileStats:+(${uncleanFileStats[@]})}"
+    echo "$repoName $branch ${uncleanFileStats:+(${uncleanFileStats[@]})}"
 }
 
 function _genPromptJobCt () {
