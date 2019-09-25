@@ -193,12 +193,24 @@ def b2h(b):
 def disk(args):
     from psutil import disk_usage
     stats = disk_usage(args.path)
+    free, used, percent = stats.free, stats.used, stats.percent
+    if args.sub_dir:
+        used = 0
+        for root, dirs, files in os.walk(args.path):
+            for f in files:
+                f = os.path.join(root, f)
+                if not os.path.islink(f):
+                    used += os.path.getsize(f)
+        percent = 100.0 * used / free
+    if args.quota:
+        free = max(0, args.quota - used)
+        percent = 100.0 * used / args.quota
     keytext = {
         'label': args.label if args.label else args.path,
-        'pctused': round(stats.percent),
-        'pctfree': round(100.0 - stats.percent),
-        'used': b2h(stats.used),
-        'free': b2h(stats.free)
+        'pctused': round(percent),
+        'pctfree': round(100.0 - percent),
+        'used': b2h(used),
+        'free': b2h(free)
     }
     return [keytext, {}]
 
@@ -368,6 +380,8 @@ def main():
         {label} {pctused} {pctfree} {used} {free}
     """)
     subparser.add_argument('path', type=str, help='Disk mount path')
+    subparser.add_argument('--sub-dir', action='store_true', help='Recursively calculate subdirectory size instead of the whole disk.')
+    subparser.add_argument('--quota', metavar='BYTES', type=int, help='Manually set disk limit in bytes.')
     subparser.add_argument('--label', type=str, nargs='?', help='Nickname for this disk')
     subparser.add_argument('--format', type=str, default=DISK_FORMAT, help='Format string to print. Default: \'%(default)s\'')
     subparser.add_argument('--short-format', metavar='FORMAT', type=str, default=DISK_SHORT_FORMAT, help='Shorter format string to print when horizontal space is limited. Default: \'%(default)s\'')
