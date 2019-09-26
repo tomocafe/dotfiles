@@ -70,12 +70,8 @@ alias sls="search-list-cache"
 
 # Set default editor
 EDITOR="vim"
-if _matchProcessTree "vscode-insiders"; then
-    EDITOR="code-insiders -r"
-elif _matchProcessTree "code-oss"; then
-    EDITOR="code-oss -r"
-elif _matchProcessTree "vscode"; then
-    EDITOR="code -r"
+if _matchProcessTree "(vs)?(code(-oss)?(-insiders)?)"; then
+    EDITOR="${BASH_REMATCH[2]} -r"
 fi
 export EDITOR
 
