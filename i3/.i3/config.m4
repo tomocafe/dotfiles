@@ -8,7 +8,7 @@ dnl
 exec_always --no-startup-id xrdb -merge ${I3_HOME:-~/.i3}/Xresources
 exec_always --no-startup-id ${I3_HOME:-~/.i3}/bin/reload-ssh-xresources ${I3_HOME:-~/.i3}/Xresources
 exec_always --no-startup-id killall -9 dunst; exec dunst -conf ${I3_HOME:-~/.i3}/dunstrc
-exec_always --no-startup-id dmenu_path
+exec_always --no-startup-id dmenu_path &>/dev/null
 ifdef(`M4_TERMINAL_DAEMON',dnl
 exec --no-startup-id M4_TERMINAL_DAEMON
 )dnl
