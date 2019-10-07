@@ -15,6 +15,7 @@ while read -r line; do
     fi
 done < <(xwininfo -tree -root)
 [[ $i -gt 10 ]] && i=10
+[[ ${#windows[@]} -gt 0 ]] || exit 0
 window=$(printf '%s\n' "${windows[@]}" | dmenu -l $i ${1+"$@"}) || exit 1
 i=${window%%>*}
 id=${ids[$i]}
