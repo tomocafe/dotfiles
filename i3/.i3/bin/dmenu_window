@@ -1,0 +1,22 @@
+#!/bin/bash
+re='^\s*(0x[0-9a-f]+) "(.*)": \("(.*)" "(.*)"\)'
+declare -A ids
+i=0
+windows=()
+while read -r line; do
+    if [[ $line =~ $re ]]; then
+        id=${BASH_REMATCH[1]}
+        title="${BASH_REMATCH[2]}"
+        class="${BASH_REMATCH[3]}"
+        [[ $class == 'i3bar' ]] && continue
+        let i++
+        ids[$i]=$(printf %d $id) # hex2dec
+        windows+=("$i> $title")
+    fi
+done < <(xwininfo -tree -root)
+[[ $i -gt 10 ]] && i=10
+window=$(printf '%s\n' "${windows[@]}" | dmenu -l $i ${1+"$@"}) || exit 1
+i=${window%%>*}
+id=${ids[$i]}
+xdotool windowactivate $id
+

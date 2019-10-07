@@ -31,7 +31,7 @@ stow bash
 For i3wm:
 * `i3`
 * `i3blocks`
-* `xrdb`, `xprop`, `xset`, `xsetroot`
+* `xrdb`, `xprop`, `xset`, `xsetroot`, `xdotool`
 * Optional: `i3lock`, `dunst`
 
 You use your terminal of choice, but these dotfiles set `rxvt-unicode` (`urxvt`) by default and also provides configuration files for `alacritty`.
@@ -142,6 +142,7 @@ If `i3lock` is installed, this environment attempts to style the lock screen usi
 * <kbd>Mod</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd> brings up a `dmenu` to select and apply a theme (includes `vim` theming)
 * <kbd>Mod</kbd>+<kbd>X</kbd> brings up a `dmenu` to launch a terminal and connect via `ssh` to a selected server (from the known hosts on the system)
 * <kbd>Mod</kbd>+<kbd>Shift</kbd>+<kbd>Q</kbd> checks if the window being killed has a connection daemon as a root process (e.g. `sshd`) and enters `confirm-close` mode to confirm killing the window by pressing <kbd>Y</kbd> to avoid accidentally closing a session
+* <kbd>Mod</kbd>+<kbd>Tab</kbd> brings up a `dmenu` to select and switch to a window by name
 * <kbd>Mod</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> brings up a `dmenu` to select from exit options: logout, lock (if `i3lock` is available), shutdown, restart, hibernate, and suspend (if `systemctl` is available)
 * XF86 keys configured to control peripherals (e.g. volume, brightness, media control) and display relevant notifications using `dunst`
 
