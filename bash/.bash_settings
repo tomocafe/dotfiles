@@ -17,8 +17,8 @@ alias compress="_compress"
 alias extract="_extract"
 alias mcd="_makeChangeDirectory"
 alias history="_history"
-function dc () { [[ $# -gt 0 ]] && local _d=${@: -1}; cd ${_d:-..}; }
-complete -F _dcBackwardsPathCompletion dc
+function dc () { cd ${1:-..}; }
+complete -o nospace -F _dcBackwardsPathCompletion dc
 
 # shell settings
 set -o ignoreeof
@@ -27,6 +27,7 @@ set -o ignoreeof
 if [[ $- == *i* ]]; then
     bind -x '"\C-f":_fork'
     bind -x '"\C-h":_history'
+    bind '"\e[Z": menu-complete'
 fi
 
 # Set prompt

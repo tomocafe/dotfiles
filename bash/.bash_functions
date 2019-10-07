@@ -503,12 +503,17 @@ function _fork () {
 ###############################################################################
 
 function _dcBackwardsPathCompletion () {
+    # Note: must be used with complete -o nospace
     # $1=cmd $2=cur $3=pre
-    local cwd=$3
-    [[ "@@$cwd@@" == "@@$1@@" ]] && cwd=$PWD # initialize to pwd
-    [[ "$cwd" == "/" ]] && return # hit the bottom
-    local upd=${cwd%/*}
-    COMPREPLY=(${upd:-/})
+    local cwd="${2:-$PWD}"
+    local upd="${cwd%/*}"
+    if [[ $cwd == '/' ]]; then
+        return
+    elif [[ $upd == '' ]]; then
+        COMPREPLY=('/')
+    else
+        COMPREPLY=("$upd")
+    fi
 }
 
 ###############################################################################
