@@ -370,7 +370,7 @@ function _genPromptGitStatus () {
     # Determine the current branch
     branch=$(git symbolic-ref -q HEAD)
     branch=${branch#refs/heads/}
-    echo "$repoName $branch ${uncleanFileStats:+(${uncleanFileStats[@]})}"
+    echo "$repoName $branch${uncleanFileStats:+ (${uncleanFileStats[@]})}"
 }
 
 function _genPromptJobCt () {

@@ -9,6 +9,8 @@ while read -r line; do
         title="${BASH_REMATCH[2]}"
         class="${BASH_REMATCH[3]}"
         [[ $class == 'i3bar' ]] && continue
+        [[ $class == 'i3-frame' ]] && continue
+        [[ $class == 'Dunst' ]] && continue
         let i++
         ids[$i]=$(printf %d $id) # hex2dec
         windows+=("$i> $title")
