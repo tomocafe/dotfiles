@@ -368,9 +368,8 @@ function _genPromptGitStatus () {
     esac
     repoName=${repoName%.git}
     # Determine the current branch
-    branch=$(git symbolic-ref -q HEAD)
-    branch=${branch#refs/heads/}
-    echo "$repoName $branch${uncleanFileStats:+ (${uncleanFileStats[@]})}"
+    branch=$(git rev-parse --abbrev-ref HEAD)
+    echo "$repoName${branch:+ $branch}${uncleanFileStats:+ (${uncleanFileStats[@]})}"
 }
 
 function _genPromptJobCt () {
