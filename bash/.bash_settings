@@ -17,6 +17,7 @@ alias compress="_compress"
 alias extract="_extract"
 alias mcd="_makeChangeDirectory"
 alias history="_history"
+alias h="history"
 function dc () { cd ${1:-..}; }
 complete -o nospace -F _dcBackwardsPathCompletion dc
 
@@ -26,7 +27,6 @@ set -o ignoreeof
 # Key bindings
 if [[ $- == *i* ]]; then
     bind -x '"\C-f":_fork'
-    bind -x '"\C-h":_history'
     bind '"\e[Z": menu-complete'
 fi
 
