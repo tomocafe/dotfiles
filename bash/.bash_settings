@@ -27,6 +27,7 @@ set -o ignoreeof
 # Key bindings
 if [[ $- == *i* ]]; then
     bind -x '"\C-f":_fork'
+    bind -x '"\ez":fg'
     bind '"\e[Z": menu-complete'
 fi
 
