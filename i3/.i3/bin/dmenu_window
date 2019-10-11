@@ -7,10 +7,10 @@ while read -r line; do
     if [[ $line =~ $re ]]; then
         id=${BASH_REMATCH[1]}
         title="${BASH_REMATCH[2]}"
-        # Get WM hints
-        hints=$(xwininfo -wm -id $id)
+        info=$(xwininfo -stats -wm -id $id)
         # List only windows we can switch to
-        if [[ "$hints" =~ 'Client accepts input or input focus: Yes' || "$hints" =~ 'Displayed on desktop' ]]; then
+        [[ "$info" =~ 'Map State: IsUnMapped' ]] && continue
+        if [[ "$info" =~ 'Client accepts input or input focus: Yes' || "$info" =~ 'Displayed on desktop' ]]; then
             let i++
             ids[$i]=$(printf %d $id) # hex2dec
             windows+=("$i> $title")
