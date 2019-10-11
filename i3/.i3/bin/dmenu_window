@@ -9,11 +9,12 @@ while read -r line; do
         title="${BASH_REMATCH[2]}"
         # Get WM hints
         hints=$(xwininfo -wm -id $id)
-        # Don't list windows that can't be focused
-        [[ "$hints" =~ 'Client accepts input or input focus: Yes' ]] || continue
-        let i++
-        ids[$i]=$(printf %d $id) # hex2dec
-        windows+=("$i> $title")
+        # List only windows we can switch to
+        if [[ "$hints" =~ 'Client accepts input or input focus: Yes' || "$hints" =~ 'Displayed on desktop' ]]; then
+            let i++
+            ids[$i]=$(printf %d $id) # hex2dec
+            windows+=("$i> $title")
+        fi
     fi
 done < <(xwininfo -tree -root)
 [[ $i -gt 10 ]] && i=10
