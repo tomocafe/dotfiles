@@ -93,6 +93,8 @@ If the system has an old version of `i3` without `pango` support, set the enviro
 
 The `i3` configuration relies on scripts supplied under `$I3_HOME/bin`, where `$I3_HOME` is the directory containing the `i3` `config` file, usually `~/.i3`. Either the environment variable `$I3_HOME` must be set accordingly _before_ launching `i3`, or the configuration must be stored at the default location of `~/.i3` for the configuration to find these scripts.
 
+The file `defaults.m4` specifies default applications such as the terminal and browser. You can break the symbolic link created by `stow` and specify your own values as needed. The same applies for the file `font.m4` if you desire to override fonts.
+
 ### i3blocks
 
 You will need to create an `i3blocks` configuration file at `$I3_HOME/i3blocks.conf`. It is not checked in since it is commonly written differently for each system, based on differing needs. See the [`i3blocks` documentation](https://github.com/vivien/i3blocks) for instructions on how to write the configuration file.
@@ -145,6 +147,8 @@ If `i3lock` is installed, this environment attempts to style the lock screen usi
 * <kbd>Mod</kbd>+<kbd>Tab</kbd> brings up a `dmenu` to select and switch to a window by name
 * <kbd>Mod</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> brings up a `dmenu` to select from exit options: logout, lock (if `i3lock` is available), shutdown, restart, hibernate, and suspend (if `systemctl` is available)
 * XF86 keys configured to control peripherals (e.g. volume, brightness, media control) and display relevant notifications using `dunst`
+* <kbd>Mod</kbd>+<kbd>B</kbd> brings up a `dmenu` for you to enter a URL or search term, and opens your browser to navigate to the URL, or search for the term in your default search engine
+* <kbd>Mod</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> invokes the browser as above, but uses the `PRIMARY` clipboard content instead of `dmenu` for the URL or search term
 
 ### xsession
 

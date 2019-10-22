@@ -9,7 +9,7 @@ clean:
 
 .PHONY: all clean
 
-config: config.m4 font.m4 term.m4 themes/$(THEME)/i3.m4
+config: config.m4 font.m4 defaults.m4 themes/$(THEME)/i3.m4
 	m4 $(I3_M4_THEMEARGS) -I. -Ithemes/$(THEME) config.m4 > config
 
 Xresources: Xresources.m4 themes/$(THEME)/color.m4
