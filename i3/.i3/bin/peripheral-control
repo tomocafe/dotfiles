@@ -12,7 +12,7 @@ case "${1}" in
         esac
         # Notify
         curr=$(light -G)
-        dunstify --replace=7301 "Brightness $curr"
+        dunstify --replace=7301 "Brightness ${curr%.*}%"
         ;;
     media)
         playerctl "$2" # play-pause, pause, previous, next
