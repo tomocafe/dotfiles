@@ -6,7 +6,7 @@ shift 2
 if [[ $1 == "--clip" ]]; then
     target=$(xclip -o)    
 else
-    target=$(dmenu ${1+"$@"} </dev/null) || exit 1
+    target=$(cat ${BOOKMARKS:-~/.bookmarks} 2>/dev/null | dmenu ${1+"$@"}) || exit 1
 fi
 
 case "$target" in
