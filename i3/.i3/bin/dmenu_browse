@@ -10,7 +10,7 @@ else
 fi
 
 case "$target" in
-    http?(s)://*|file://*|www.*|*.@(com|org|net|edu|io))
+    http?(s)://*|file://*|www.*|*.@(com|org|net|edu|io|us))
         exec $browser "$target" ;;
     *)
         exec $searcher "$target" ;;
