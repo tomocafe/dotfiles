@@ -6,7 +6,7 @@ set softtabstop=4
 set expandtab
 set smarttab
 
-" Add site-specific indent settings in ~/.vim/plugins
+" Add site-specific indent settings in ~/.vim/plugin
 :au FileType make setlocal noexpandtab
 
 set laststatus=2
