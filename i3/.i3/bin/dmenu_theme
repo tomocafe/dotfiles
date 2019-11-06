@@ -9,8 +9,8 @@ done
 theme=$(printf '%s\n' "${themes[@]}" | dmenu ${1+"$@"}) || exit 1
 
 cd $I3_HOME || exit 1
-make clean
-make THEME=${theme} || exit 2
+make clean >/dev/null
+make THEME=${theme} >/dev/null || exit 2
 
 i3-msg -q restart
 
