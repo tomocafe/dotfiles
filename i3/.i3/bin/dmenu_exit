@@ -44,7 +44,7 @@ case $action in
         exit 0
         ;;
     logout)
-        i3-msg exit
+        i3-msg -q exit
         exit 0 # somehow i3-msg can return 1 even though it successfully logs out, added this to avoid nagbar flash before logout
         ;;
     lock)

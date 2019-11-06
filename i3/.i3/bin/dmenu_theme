@@ -12,5 +12,5 @@ cd $I3_HOME || exit 1
 make clean
 make THEME=${theme} || exit 2
 
-i3-msg restart
+i3-msg -q restart
 

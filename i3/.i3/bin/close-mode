@@ -12,11 +12,11 @@ fi
 while [[ $# -ge 2 ]]; do
     val=$(xprop -id $wid $1); val=${val#*= }
     if [[ $val =~ $2 ]]; then
-        i3-msg mode "$mode"
+        i3-msg -q mode "$mode"
         exit 0
     fi
     shift 2
 done
 
-i3-msg kill
+i3-msg -q kill
 
