@@ -15,7 +15,7 @@ config: config.m4 font.m4 defaults.m4 themes/$(THEME)/i3.m4
 Xresources: Xresources.m4 themes/$(THEME)/color.m4
 	m4 $(I3_M4_THEMEARGS) -I. -Ithemes/$(THEME) Xresources.m4 > Xresources
 
-dunstrc: dunstrc.m4 themes/$(THEME)/i3.m4
+dunstrc: dunstrc.m4 font.m4 themes/$(THEME)/i3.m4
 	m4 $(I3_M4_THEMEARGS) -I. -Ithemes/$(THEME) dunstrc.m4 > dunstrc
 
 alacritty.yml: alacritty.yml.m4 font.m4 themes/$(THEME)/color.m4

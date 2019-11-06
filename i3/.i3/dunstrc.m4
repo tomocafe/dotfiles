@@ -1,14 +1,11 @@
 include(i3.m4)dnl
+include(font.m4)dnl
 [global]
     background = "M4_I3_BG"
     foreground = "M4_COLOR_FG"
     frame_color = "M4_COLOR_FG" 
     separator_color = "M4_COLOR_BG" 
-ifdef(`M4_I3_COMPAT',dnl
-    font = M4_FONT_XLFD
-,dnl
     font = M4_FONT_NAME M4_FONT_SIZE
-)dnl
     monitor = 0
     follow = mouse
     geometry = "360x2-0-40"
