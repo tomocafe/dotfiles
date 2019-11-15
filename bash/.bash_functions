@@ -306,6 +306,10 @@ function _setTerminalLabel () {
 function _genPromptP4Status () {
     [[ -n $P4CLIENT ]] || return
     local status="$P4CLIENT"
+    if ! _checkCommand p4 || _checkSet P4_NOT_CONNECTED; then
+        echo "$status"
+        return
+    fi
     declare -A openFileCtPerChangelist
     local line
     while read -r line; do
@@ -422,7 +426,11 @@ function _setPrompt () {
         blockText+=("$sep")
         blockColor+=(${COLOR_RESET})
         blockText+=("$block")
-        blockColor+=(${COLORS[5]}) # magenta
+        if ! _checkCommand p4 || _checkSet P4_NOT_CONNECTED; then
+            blockColor+=(${COLORS[1]}) # red
+        else
+            blockColor+=(${COLORS[5]}) # magenta
+        fi
     fi
     local lastTitleBlockIndex=${#blockText[@]} # for setting title/tab, stop printing here
     # Background job count
