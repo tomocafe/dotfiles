@@ -377,6 +377,11 @@ function _genPromptGitStatus () {
     echo "$repoName${branch:+ $branch}${uncleanFileStats:+ (${uncleanFileStats[@]})}"
 }
 
+function _genPromptVirtualEnvStatus () {
+    _checkSet VIRTUAL_ENV || return
+    echo "${VIRTUAL_ENV##*/}"
+}
+
 function _genPromptJobCt () {
     local ct=0
     local line
@@ -421,16 +426,31 @@ function _setPrompt () {
     # P4/git status
     # Precedence: if cwd is part of a git repository, use git status; else use P4 status based on environment variables
     block=$(_genPromptGitStatus)
-    [[ -n $block ]] || block=$(_genPromptP4Status)
     if [[ -n $block ]]; then
         blockText+=("$sep")
         blockColor+=(${COLOR_RESET})
         blockText+=("$block")
-        if ! _checkCommand p4 || _checkSet P4_NOT_CONNECTED; then
-            blockColor+=(${COLORS[1]}) # red
-        else
-            blockColor+=(${COLORS[5]}) # magenta
+        blockColor+=(${COLORS[5]}) # magenta
+    else
+        block=$(_genPromptP4Status)
+        if [[ -n $block ]]; then
+            blockText+=("$sep")
+            blockColor+=(${COLOR_RESET})
+            blockText+=("$block")
+            if ! _checkCommand p4 || _checkSet P4_NOT_CONNECTED; then
+                blockColor+=(${COLORS[1]}) # red
+            else
+                blockColor+=(${COLORS[5]}) # magenta
+            fi
         fi
+    fi
+    # Python virtualenv status
+    block=$(_genPromptVirtualEnvStatus)
+    if [[ -n $block ]]; then
+        blockText+=("$sep")
+        blockColor+=(${COLOR_RESET})
+        blockText+=("$block")
+        blockColor+=(${COLORS[6]}) # cyan
     fi
     local lastTitleBlockIndex=${#blockText[@]} # for setting title/tab, stop printing here
     # Background job count
