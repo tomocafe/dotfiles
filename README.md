@@ -59,7 +59,7 @@ The file `.bash_settings` includes common aliases, settings, and functions and s
 
 ### Features
 
-* Full-line prompt with git/Perforce status, background job count, last command status, and right-justified current working directory (with truncation)
+* Full-line prompt with git/Perforce status, Python virtual environment status, background job count, last command status, and right-justified current working directory (with truncation)
     * Hostname colored differently if root process is a connection daemon, warning that closing the shell may close a connection
 * (Optional) fast, basic prompt
 * Sets `$LS_COLORS`
