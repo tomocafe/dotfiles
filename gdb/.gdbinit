@@ -24,8 +24,11 @@ gdb.execute('set unwindonsignal on')
 gdb.execute('set verbose off')
 
 # C++ pretty printers
-from libstdcxx.v6.printers import register_libstdcxx_printers
-register_libstdcxx_printers (None)
+try:
+    from libstdcxx.v6.printers import register_libstdcxx_printers
+    register_libstdcxx_printers (None)
+except:
+    pass
 
 try:
     import psutil
