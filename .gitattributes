@@ -1,3 +1,2 @@
-vim/.vim/colors/solarized.vim linguist-vendored
-vim/.vim/colors/gruvbox.vim linguist-vendored
+vim/.vim/colors/* linguist-vendored
 
