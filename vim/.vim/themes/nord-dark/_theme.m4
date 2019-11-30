@@ -1,6 +1,7 @@
 changecom()dnl
 include(color.m4)dnl
 set background=dark
+let g:nord_cursor_line_number_background=1
 colorscheme nord
 " For statusline:
 hi User1 ctermfg=NONE ctermbg=0 guifg=NONE guibg=M4_COLOR_0
