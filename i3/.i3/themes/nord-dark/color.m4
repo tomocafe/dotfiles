@@ -6,7 +6,7 @@ define(M4_COLOR_0,`#3b4252')
 define(M4_COLOR_8,`#4c566a')
 
 define(M4_COLOR_1,`#bf616a')
-define(M4_COLOR_9,`#bf616a')
+define(M4_COLOR_9,`#d08770')
 
 define(M4_COLOR_2,`#a3be8c')
 define(M4_COLOR_10,`#a3be8c')
