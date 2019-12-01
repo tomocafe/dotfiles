@@ -53,7 +53,7 @@ You use your terminal of choice, but these dotfiles set `rxvt-unicode` (`urxvt`)
 #### `nord-dark`
 ![#2e3440](https://placehold.it/15/2e3440/000000?text=+)![#d8dee9](https://placehold.it/15/d8dee9/000000?text=+)
 ![#3b4252](https://placehold.it/15/3b4252/000000?text=+)![#bf616a](https://placehold.it/15/bf616a/000000?text=+)![#a3be8c](https://placehold.it/15/a3be8c/000000?text=+)![#ebcb8b](https://placehold.it/15/ebcb8b/000000?text=+)![#81a1c1](https://placehold.it/15/81a1c1/000000?text=+)![#b48ead](https://placehold.it/15/b48ead/000000?text=+)![#88c0d0](https://placehold.it/15/88c0d0/000000?text=+)![#e5e9f0](https://placehold.it/15/e5e9f0/000000?text=+)
-![#4c566a](https://placehold.it/15/4c566a/000000?text=+)![#bf616a](https://placehold.it/15/bf616a/000000?text=+)![#a3be8c](https://placehold.it/15/a3be8c/000000?text=+)![#ebcb8b](https://placehold.it/15/ebcb8b/000000?text=+)![#81a1c1](https://placehold.it/15/81a1c1/000000?text=+)![#b48ead](https://placehold.it/15/b48ead/000000?text=+)![#88c0d0](https://placehold.it/15/88c0d0/000000?text=+)![#eceff4](https://placehold.it/15/eceff4/000000?text=+)
+![#4c566a](https://placehold.it/15/4c566a/000000?text=+)![#d08770](https://placehold.it/15/d08770/000000?text=+)![#a3be8c](https://placehold.it/15/a3be8c/000000?text=+)![#ebcb8b](https://placehold.it/15/ebcb8b/000000?text=+)![#81a1c1](https://placehold.it/15/81a1c1/000000?text=+)![#b48ead](https://placehold.it/15/b48ead/000000?text=+)![#88c0d0](https://placehold.it/15/88c0d0/000000?text=+)![#eceff4](https://placehold.it/15/eceff4/000000?text=+)
 
 
 ---
