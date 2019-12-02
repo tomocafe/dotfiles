@@ -38,7 +38,7 @@ You use your terminal of choice, but these dotfiles set `rxvt-unicode` (`urxvt`)
 
 ## Themes
 
-These are adaptations of popular color schemes designed to be unified from the 16-color terminal palette. For dark themes, `0` is a dim background, `8` is a dim foreground, `7` is a bright foreground, and `15` is a brighter foreground (in order of intensity from dim to bright). For light themes, those 4 numbers are reversed.
+These are adaptations of popular color schemes designed to be unified from the 16-color terminal palette. For dark themes, `0` is a dim background, `8` is a dim foreground, `7` is a bright foreground, and `15` is a brighter foreground (in order of intensity from dim to bright). For light themes, the interpretation of these color indices are reversed (e.g. `15` is a dim background, `0` is a brighter foreground).
 
 #### `gruvbox-dark`
 ![#282828](https://placehold.it/15/282828/000000?text=+)![#a89984](https://placehold.it/15/a89984/000000?text=+)
