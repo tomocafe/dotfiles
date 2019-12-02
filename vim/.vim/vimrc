@@ -58,26 +58,22 @@ function! LargeFileMode()
     autocmd VimEnter * echo "Large file mode activated"
 endfunction
 
-" Source theme (invokes colorscheme)
-try
-    source ~/.vim/theme
-catch
-endtry
+" Unified color scheme
+colorscheme unified
 
 " Status line
-" User1-9, {Def,Ro,Mod}Header defined in _theme.m4
 function! StatusLineHeader()
     return '  '.bufnr('%').' '
 endfunction
 set statusline=
-set statusline+=%#DefHeader#%{&mod?'':&readonly?'':StatusLineHeader()} "default header
-set statusline+=%#RoHeader#%{&mod?'':&readonly?StatusLineHeader():''} "readonly header
-set statusline+=%#ModHeader#%{&mod?StatusLineHeader():''} "modified header
-set statusline+=%1*\ %t "basename
-set statusline+=%3*\ %y "filetype
-set statusline+=%4*\ %{''.(&fenc!=''?&fenc:&enc).''}/%{&ff} "encoding/fileformat
-set statusline+=%1*%= "right justify
-set statusline+=%5*x%B "character code under cursor
-set statusline+=%2*\ %c,%l/%L "col/row/total
-set statusline+=%6*\ %p%% "line%
+set statusline+=%#UDefHeader#%{&mod?'':&readonly?'':StatusLineHeader()} "default header
+set statusline+=%#URoHeader#%{&mod?'':&readonly?StatusLineHeader():''} "readonly header
+set statusline+=%#UModHeader#%{&mod?StatusLineHeader():''} "modified header
+set statusline+=%#UHiBW3#\ %t "basename
+set statusline+=%#UHiYellow#\ %y "filetype
+set statusline+=%#UHiBlue#\ %{''.(&fenc!=''?&fenc:&enc).''}/%{&ff} "encoding/fileformat
+set statusline+=%#UHiBW3#%= "right justify
+set statusline+=%#UHiMagenta#x%B "character code under cursor
+set statusline+=%#UHiGreen#\ %c,%l/%L "col/row/total
+set statusline+=%#UHiCyan#\ %p%% "line%
 
