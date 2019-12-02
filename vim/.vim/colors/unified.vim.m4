@@ -67,7 +67,6 @@ call s:hg('Error', '15', '1', 'M4_COLOR_15', 'M4_COLOR_1', 'NONE')
 call s:hg('MatchParen', '3', s:ctermbw[0], 'M4_COLOR_3', s:guibw[0], 'NONE')
 
 hi! link Todo URed
-hi! link Special UOrange
 hi! link Statement UOrange
 hi! link Conditional UOrange
 hi! link Repeat UOrange
@@ -86,6 +85,7 @@ hi! link Constant UMagenta
 hi! link Boolean ULtMagenta
 hi! link Character ULtMagenta
 hi! link String UGreen
+hi! link Special ULtMagenta
 hi! link Type UBlue
 hi! link StorageClass UBlue
 hi! link Structure UBlue
