@@ -1,6 +1,6 @@
 THEME ?= gruvbox-dark
 
-FILES = config Xresources dunstrc alacritty.yml $(HOME)/.vim/theme $(HOME)/.cgdb/cgdbrc
+FILES = config Xresources dunstrc alacritty.yml $(HOME)/.vim/colors/unified.vim $(HOME)/.cgdb/cgdbrc
 
 all: $(FILES)
 
