@@ -3,7 +3,7 @@ define(M4_COLOR_FG,`#d8dee9')
 define(M4_COLOR_BG,`#2e3440')
 
 define(M4_COLOR_0,`#3b4252')
-define(M4_COLOR_8,`#4c566a')
+define(M4_COLOR_8,`#636f88')
 
 define(M4_COLOR_1,`#bf616a')
 define(M4_COLOR_9,`#d08770')

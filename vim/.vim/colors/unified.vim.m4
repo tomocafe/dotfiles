@@ -49,9 +49,9 @@ call s:hg('UHiLtCyan', '14', s:ctermbw[0], 'M4_COLOR_14', s:guibw[0], 'NONE')
 call s:hg('UHiBW1', s:ctermbw[1], s:ctermbw[0], s:guibw[1], s:guibw[0], 'NONE')
 call s:hg('UHiBW2', s:ctermbw[2], s:ctermbw[0], s:guibw[2], s:guibw[0], 'NONE')
 call s:hg('UHiBW3', s:ctermbw[3], s:ctermbw[0], s:guibw[3], s:guibw[0], 'NONE')
-call s:hg('UDefHeader', s:ctermbw[3], '4', s:guibw[3], 'M4_COLOR_4', 'NONE')
-call s:hg('UModHeader', s:ctermbw[3], '2', s:guibw[3], 'M4_COLOR_2', 'NONE')
-call s:hg('URoHeader', s:ctermbw[3], '9', s:guibw[3], 'M4_COLOR_9', 'NONE')
+call s:hg('UDefHeader', '15', '4', 'M4_COLOR_15', 'M4_COLOR_4', 'NONE')
+call s:hg('UModHeader', '15', '2', 'M4_COLOR_15', 'M4_COLOR_2', 'NONE')
+call s:hg('URoHeader', '15', '9', 'M4_COLOR_15', 'M4_COLOR_9', 'NONE')
 
 call s:hg('Normal', 'NONE', 'NONE', 'NONE', 'NONE', 'NONE')
 hi! link Comment UBW1
@@ -63,7 +63,7 @@ hi! link CursorColumn CursorLine
 
 call s:hg('Search', '3', 'NONE', 'M4_COLOR_3', 'NONE', 'inverse')
 call s:hg('IncSearch', '11', 'NONE', 'M4_COLOR_11', 'NONE', 'inverse')
-call s:hg('Error', '1', 'NONE', 'M4_COLOR_1', 'NONE', 'inverse')
+call s:hg('Error', '15', '1', 'M4_COLOR_15', 'M4_COLOR_1', 'NONE')
 call s:hg('MatchParen', '3', s:ctermbw[0], 'M4_COLOR_3', s:guibw[0], 'NONE')
 
 hi! link Todo URed

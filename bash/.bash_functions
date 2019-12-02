@@ -263,6 +263,7 @@ function _exportColorCodes () {
 }
 
 function _showColors () {
+    local max=${1:-256}
     local id=0
     local offset
     local fg=7
@@ -278,8 +279,8 @@ function _showColors () {
         let id++
     done
     id=16
-    local max=$(tput colors) 
-    while [[ $id -lt $max ]]; do
+    local tmax=$(tput colors)
+    while [[ $id -lt $max ]] && [[ $id -lt $tmax ]]; do
         printf "$(tput setaf $id)%3s$(tput sgr0) " $id
         let id++
         [[ $((id % 8)) -eq 0 ]] && echo
