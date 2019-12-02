@@ -1,6 +1,6 @@
 changecom()dnl
 include(color.m4)dnl
-ifdef(M4_VIM_BG,dnl
+ifdef(`M4_VIM_BG',dnl
 set background=M4_VIM_BG
 ,dnl
 set background=dark
