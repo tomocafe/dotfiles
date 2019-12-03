@@ -10,7 +10,7 @@ hi DisabledBreakpoint cterm=normal ctermfg=4
 
 set arrowstyle=highlight
 
-ifelse(`M4_CGDB_BG','dark',dnl
+ifelse(M4_CGDB_BG,dark,dnl
 hi Comment cterm=normal ctermfg=8
 hi StatusLine cterm=normal ctermbg=0
 hi Arrow cterm=normal ctermfg=5 ctermbg=0
