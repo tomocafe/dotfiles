@@ -53,7 +53,7 @@ call s:hg('UDefHeader', '15', '4', 'M4_COLOR_15', 'M4_COLOR_4', 'NONE')
 call s:hg('UModHeader', '15', '2', 'M4_COLOR_15', 'M4_COLOR_2', 'NONE')
 call s:hg('URoHeader', '15', '9', 'M4_COLOR_15', 'M4_COLOR_9', 'NONE')
 
-call s:hg('Normal', 'NONE', 'NONE', 'NONE', 'NONE', 'NONE')
+call s:hg('Normal', 'NONE', 'NONE', 'M4_COLOR_FG', 'M4_COLOR_BG', 'NONE')
 hi! link Comment UBW1
 hi! link LineNr Comment
 
