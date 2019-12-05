@@ -66,9 +66,9 @@ function! StatusLineHeader()
     return '  '.bufnr('%').' '
 endfunction
 set statusline=
-set statusline+=%#UDefHeader#%{&mod?'':&readonly?'':StatusLineHeader()} "default header
-set statusline+=%#URoHeader#%{&mod?'':&readonly?StatusLineHeader():''} "readonly header
-set statusline+=%#UModHeader#%{&mod?StatusLineHeader():''} "modified header
+set statusline+=%#UWhiteOnBlue#%{&mod?'':&readonly?'':StatusLineHeader()} "default header
+set statusline+=%#UWhiteOnOrange#%{&mod?'':&readonly?StatusLineHeader():''} "readonly header
+set statusline+=%#UWhiteOnGreen#%{&mod?StatusLineHeader():''} "modified header
 set statusline+=%#UHiBW3#\ %t "basename
 set statusline+=%#UHiYellow#\ %y "filetype
 set statusline+=%#UHiBlue#\ %{''.(&fenc!=''?&fenc:&enc).''}/%{&ff} "encoding/fileformat

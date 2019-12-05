@@ -49,17 +49,43 @@ call s:hg('UHiLtCyan', '14', s:ctermbw[0], 'M4_COLOR_14', s:guibw[0], 'NONE')
 call s:hg('UHiBW1', s:ctermbw[1], s:ctermbw[0], s:guibw[1], s:guibw[0], 'NONE')
 call s:hg('UHiBW2', s:ctermbw[2], s:ctermbw[0], s:guibw[2], s:guibw[0], 'NONE')
 call s:hg('UHiBW3', s:ctermbw[3], s:ctermbw[0], s:guibw[3], s:guibw[0], 'NONE')
-call s:hg('UDefHeader', '15', '4', 'M4_COLOR_15', 'M4_COLOR_4', 'NONE')
-call s:hg('UModHeader', '15', '2', 'M4_COLOR_15', 'M4_COLOR_2', 'NONE')
-call s:hg('URoHeader', '15', '9', 'M4_COLOR_15', 'M4_COLOR_9', 'NONE')
+call s:hg('UWhiteOnRed', '15', '1', 'M4_COLOR_15', 'M4_COLOR_1', 'NONE')
+call s:hg('UWhiteOnOrange', '15', '9', 'M4_COLOR_15', 'M4_COLOR_9', 'NONE')
+call s:hg('UWhiteOnGreen', '15', '2', 'M4_COLOR_15', 'M4_COLOR_2', 'NONE')
+call s:hg('UWhiteOnBlue', '15', '4', 'M4_COLOR_15', 'M4_COLOR_4', 'NONE')
+call s:hg('UInvert', 'NONE', 'NONE', 'NONE', 'NONE', 'inverse')
 
 call s:hg('Normal', 'NONE', 'NONE', 'M4_COLOR_FG', 'M4_COLOR_BG', 'NONE')
-hi! link Comment UBW1
-hi! link LineNr Comment
 
-call s:hg('CursorLine', 'NONE', s:ctermbw[0], 'NONE', s:guibw[0], 'NONE')
+hi! link Comment UBW1
+hi! link NonText Comment
+hi! link SpecialKey NonText
+hi! link Conceal NonText
+
+hi! link ModeMsg UYellow
+hi! link MoreMsg UYellow
+hi! link WarningMsg UYellow
+hi! link ErrorMsg UWhiteOnRed
+hi! link Question UYellow
+
+if &diff
+    call s:hg('CursorLine', 'NONE', 'NONE', 'NONE', 'NONE', 'NONE')
+else
+    call s:hg('CursorLine', 'NONE', s:ctermbw[0], 'NONE', s:guibw[0], 'NONE')
+endif
 call s:hg('CursorLineNr', '3', s:ctermbw[0], 'M4_COLOR_3', s:guibw[0], 'NONE')
+hi! link LineNr NonText
+hi! link FoldColumn NonText
+hi! link SignColumn NonText
 hi! link CursorColumn CursorLine
+hi! link Folded UHiBW1
+hi! link VertSplit Folded
+hi! link Visual UInvert
+
+call s:hg('DiffText', '11', '4', 'M4_COLOR_11', 'M4_COLOR_4', 'undercurl')
+hi! link DiffAdd UWhiteOnGreen
+hi! link DiffDelete UWhiteOnRed
+hi! link DiffChange UWhiteOnBlue
 
 call s:hg('Search', '3', 'NONE', 'M4_COLOR_3', 'NONE', 'inverse')
 call s:hg('IncSearch', '11', 'NONE', 'M4_COLOR_11', 'NONE', 'inverse')
@@ -91,10 +117,3 @@ hi! link StorageClass UBlue
 hi! link Structure UBlue
 hi! link Typedef UBlue
 
-" TODO
-" Tab*
-" Pmenu*
-" Diff*
-" Spell*
-" Visual*
-" CtrlP*
