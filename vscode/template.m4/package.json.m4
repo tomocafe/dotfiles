@@ -1,8 +1,9 @@
 {
-    "name": "M4_CODE_THEME",
-    "version": "0.1",
+    "name": "theme-M4_CODE_THEME",
+    "description": "Unified M4_CODE_THEME color scheme",
+    "version": "M4_VERSION",
     "engines": {
-        "vscode": "^1.40"
+        "vscode": "^1.40.1"
     },
     "publisher": "tomocafe",
     "categories": [
