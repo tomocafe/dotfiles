@@ -1,16 +1,9 @@
 changecom()dnl
 include(color.m4)dnl
-ifelse(M4_CODE_BG,dark,dnl
-define(`M4_COLOR_DIMBG',M4_COLOR_0)dnl
-define(`M4_COLOR_DIMFG',M4_COLOR_8)dnl
-define(`M4_COLOR_BRIFG',M4_COLOR_7)dnl
-define(`M4_COLOR_BRI2FG',M4_COLOR_15)dnl
-,dnl
-define(`M4_COLOR_DIMBG',M4_COLOR_15)dnl
-define(`M4_COLOR_DIMFG',M4_COLOR_7)dnl
-define(`M4_COLOR_BRIFG',M4_COLOR_8)dnl
-define(`M4_COLOR_BRI2FG',M4_COLOR_0)dnl
-)dnl
+define(`M4_COLOR_DIMBG',ifelse(M4_CODE_BG,dark,M4_COLOR_0,M4_COLOR_15))dnl
+define(`M4_COLOR_DIMFG',ifelse(M4_CODE_BG,dark,M4_COLOR_8,M4_COLOR_7))dnl
+define(`M4_COLOR_BRIFG',ifelse(M4_CODE_BG,dark,M4_COLOR_7,M4_COLOR_8))dnl
+define(`M4_COLOR_BRI2FG',ifelse(M4_CODE_BG,dark,M4_COLOR_15,M4_COLOR_0))dnl
 dnl https://code.visualstudio.com/docs/getstarted/themes#_customizing-a-color-theme
 {
     "telemetry.enableTelemetry": false,
@@ -78,18 +71,24 @@ dnl https://code.visualstudio.com/docs/getstarted/themes#_customizing-a-color-th
         ]
     },
     "workbench.colorCustomizations": {
+        "foreground": "M4_COLOR_FG",
+        "focusBorder": "M4_COLOR_DIMFG",
+        "widget.shadow": "M4_COLOR_DIMBG",
+        "descriptionForeground": "M4_COLOR_FG",
+        "errorForeground": "M4_COLOR_1",
+        "icon.foreground": "M4_COLOR_BRIFG",
         "editor.background": "M4_COLOR_BG",
         "editor.foreground": "M4_COLOR_FG",
         "editorLineNumber.foreground": "M4_COLOR_DIMFG", 
         "editor.inactiveSelectionBackground": "M4_COLOR_DIMBG",
         "editorIndentGuide.background": "M4_COLOR_DIMBG",
-        "editorIndentGuide.activeBackground": "M4_COLOR_FG",
+        "editorIndentGuide.activeBackground": "M4_COLOR_3`'66",
         "editor.selectionBackground": "M4_COLOR_3`'44",
         "editor.selectionHighlightBackground": "M4_COLOR_3`'11",
         "editor.wordHighlightBackground": "M4_COLOR_DIMBG",
         "editor.wordHighlightStrongBackground": "M4_COLOR_DIMFG`'22",
         "editorBracketMatch.background": "M4_COLOR_DIMBG",
-        "editorBracketMatch.foreground": "M4_COLOR_3",
+        "editorBracketMatch.border": "M4_COLOR_3`'aa",
         "editorError.foreground": "M4_COLOR_1",
         "editorWarning.foreground": "M4_COLOR_3",
         "list.dropBackground": "M4_COLOR_DIMFG",
@@ -99,6 +98,9 @@ dnl https://code.visualstudio.com/docs/getstarted/themes#_customizing-a-color-th
         "settings.numberInputBackground": "M4_COLOR_BG",
         "menu.background": "M4_COLOR_DIMBG",
         "menu.foreground": "M4_COLOR_FG",
+        "sideBar.background": "M4_COLOR_BG",
+        "sideBarTitle.foreground": "M4_COLOR_BRIFG",
+        "statusBar.background": "M4_COLOR_DIMFG",
         "statusBarItem.remoteForeground": "M4_COLOR_BRI2FG",
         "statusBarItem.remoteBackground": "M4_COLOR_4",
         "terminal.ansiBlack": "M4_COLOR_0",
