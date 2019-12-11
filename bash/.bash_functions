@@ -395,6 +395,10 @@ function _genPromptJobCt () {
 function _setPrompt () {
     # Save the return code from the previous command first!
     local rc=$?
+    # Calculate number of bg jobs here (before spawning anything)
+    jobct="$(_genPromptJobCt)"
+    # Update X window property
+    ( _writeShellRootProcXProp $$ & ) # move to background subshell for speed
     # Make sure colors are exported (caching saves time compared to many tput calls)
     [[ ${#COLORS[@]} -gt 0 ]] || _exportColorCodes
     # Storage
@@ -455,7 +459,7 @@ function _setPrompt () {
     fi
     local lastTitleBlockIndex=${#blockText[@]} # for setting title/tab, stop printing here
     # Background job count
-    block=$(_genPromptJobCt)
+    block="$jobct"
     if [[ -n $block ]]; then
         blockText+=("$sep")
         blockColor+=(${COLOR_RESET})
@@ -507,8 +511,6 @@ function _setPrompt () {
     # Set the terminal title/tab
     _setTerminalTitle "$titleText"
     #_setTerminalTab "$titleText"
-    # Update X window property
-    ( _writeShellRootProcXProp $$ & ) # move to background subshell for speed
 }
 
 function _setFastPrompt () {
