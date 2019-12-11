@@ -206,7 +206,7 @@ function _writeShellRootProcXProp () {
     if [[ $- == *i* ]] && _checkCommand xprop && _checkSet DISPLAY; then
         # Get the current active window ID
         wid=$(xprop -root _NET_ACTIVE_WINDOW); wid=${wid##* }
-        xprop -id $wid -f SHELL_ROOT_PROC 8s -set SHELL_ROOT_PROC $(_getRootProcess) &>/dev/null
+        xprop -id $wid -f SHELL_ROOT_PROC 8s -set SHELL_ROOT_PROC $(_getRootProcess $1) &>/dev/null
     fi
 }
 
@@ -508,7 +508,7 @@ function _setPrompt () {
     _setTerminalTitle "$titleText"
     #_setTerminalTab "$titleText"
     # Update X window property
-    _writeShellRootProcXProp
+    ( _writeShellRootProcXProp $$ & ) # move to background subshell for speed
 }
 
 function _setFastPrompt () {
