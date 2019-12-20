@@ -7,6 +7,11 @@ fi
 
 source ~/.bash_functions
 
+# Source site-specific bash settings under ~/.bash_settings.d
+for f in $(shopt -s nullglob; echo ~/.bash_settings.d/*); do
+    source $f
+done
+
 # Aliases
 alias ls="command ls --color=auto -F"
 alias which="type"
