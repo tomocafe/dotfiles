@@ -14,6 +14,9 @@ exec_always --no-startup-id dmenu_path &>/dev/null
 ifdef(`M4_TERMINAL_DAEMON',dnl
 exec --no-startup-id M4_TERMINAL_DAEMON
 )dnl
+ifdef(`M4_I3_HEADLESS',,dnl
+exec --no-startup-id pulseaudio --start
+)dnl
 
 # Set X root background color
 exec_always --no-startup-id xsetroot -solid "M4_I3_BG"
