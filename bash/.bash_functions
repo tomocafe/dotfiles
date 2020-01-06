@@ -240,26 +240,26 @@ function _exportColorCodes () {
                 done
                 if [[ $ct -ge 2 ]]; then
                     # Background mostly light => black fg, white bg
-                    export COLOR_FG_ID=0
-                    export COLOR_FG_BOLD_ID=8
-                    export COLOR_BG_ID=15
-                    export COLOR_BG_BOLD_ID=7
+                    COLOR_BG_DIM=15
+                    COLOR_FG_DIM=7
+                    COLOR_FG_BRIGHT=8
+                    COLOR_FG_BRIGHTER=0
                 else
                     # Background mostly dark => white fg, black bg
-                    export COLOR_FG_ID=7
-                    export COLOR_FG_BOLD_ID=15
-                    export COLOR_BG_ID=8
-                    export COLOR_BG_BOLD_ID=0
+                    COLOR_BG_DIM=0
+                    COLOR_FG_DIM=8
+                    COLOR_FG_BRIGHT=7
+                    COLOR_FG_BRIGHTER=15
                 fi
                 break
             fi
         done < <(xrdb -query 2>/dev/null)
     fi
     # Set sensible defaults for dark background
-    export COLOR_FG_ID=${COLOR_FG_ID:-7}
-    export COLOR_FG_BOLD_ID=${COLOR_FG_BOLD_ID:-15}
-    export COLOR_BG_ID=${COLOR_BG_ID:-8}
-    export COLOR_BG_BOLD_ID=${COLOR_BG_BOLD_ID:-0}
+    export COLOR_BG_DIM=${COLOR_BG_DIM:-15}
+    export COLOR_FG_DIM=${COLOR_FG_DIM:-7}
+    export COLOR_FG_BRIGHT=${COLOR_FG_BRIGHT:-8}
+    export COLOR_FG_BRIGHTER=${COLOR_FG_BRIGHTER:-0}
 }
 
 function _showColors () {
@@ -464,7 +464,7 @@ function _setPrompt () {
         blockText+=("$sep")
         blockColor+=(${COLOR_RESET})
         blockText+=("$block")
-        blockColor+=(${COLORS[$COLOR_BG_BOLD_ID]}) # bold bg color 
+        blockColor+=(${COLORS[$COLOR_BG_DIM]})
     fi
     # Set up right justification
     local lhsCharCt=0
@@ -492,7 +492,7 @@ function _setPrompt () {
         blockColor+=(${COLOR_RESET})
     fi
     blockText+=("$dirname")
-    blockColor+=(${COLORS[$COLOR_FG_BOLD_ID]}) # bold fg color
+    blockColor+=(${COLORS[$COLOR_FG_BRIGHTER]})
     blockText+=(')')
     blockColor+=(${COLOR_RESET})
     # Set status line
@@ -517,7 +517,7 @@ function _setFastPrompt () {
     unset PROMPT_COMMAND
     shopt -u checkwinsize
     export PROMPT_DIRTRIM=4
-    export PS1="\r\[${COLORS[$COLOR_BG_ID]}\]┌─ \[${COLORS[3]}\]\h\[${COLOR_RESET}\]:\[${COLORS[4]}\]\l\[${COLOR_RESET}\] (\w)\n\[${COLORS[$COLOR_BG_ID]}\]$\[${COLOR_RESET}\] "
+    export PS1="\r\[${COLORS[$COLOR_FG_DIM]}\]┌─ \[${COLORS[3]}\]\h\[${COLOR_RESET}\]:\[${COLORS[4]}\]\l\[${COLOR_RESET}\] (\w)\n\[${COLORS[$COLOR_FG_DIM]}\]$\[${COLOR_RESET}\] "
 }
 
 ###############################################################################
