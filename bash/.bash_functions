@@ -256,10 +256,10 @@ function _exportColorCodes () {
         done < <(xrdb -query 2>/dev/null)
     fi
     # Set sensible defaults for dark background
-    export COLOR_BG_DIM=${COLOR_BG_DIM:-15}
-    export COLOR_FG_DIM=${COLOR_FG_DIM:-7}
-    export COLOR_FG_BRIGHT=${COLOR_FG_BRIGHT:-8}
-    export COLOR_FG_BRIGHTER=${COLOR_FG_BRIGHTER:-0}
+    export COLOR_BG_DIM=${COLOR_BG_DIM:-0}
+    export COLOR_FG_DIM=${COLOR_FG_DIM:-8}
+    export COLOR_FG_BRIGHT=${COLOR_FG_BRIGHT:-7}
+    export COLOR_FG_BRIGHTER=${COLOR_FG_BRIGHTER:-15}
 }
 
 function _showColors () {
