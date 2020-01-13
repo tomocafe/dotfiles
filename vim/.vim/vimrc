@@ -77,3 +77,6 @@ set statusline+=%#UHiMagenta#x%B "character code under cursor
 set statusline+=%#UHiGreen#\ %c,%l/%L "col/row/total
 set statusline+=%#UHiCyan#\ %p%% "line%
 
+" Set vertical split separator
+set fillchars+=vert:│
+
