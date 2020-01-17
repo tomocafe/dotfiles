@@ -20,6 +20,18 @@ dnl https://code.visualstudio.com/docs/getstarted/themes#_customizing-a-color-th
     "workbench.editor.enablePreview": false,
     "window.zoomLevel": 0,
 
+ifelse(M4_THEME,gruvbox-dark,dnl
+    `"workbench.colorTheme": "Gruvbox Dark Medium",'
+)dnl
+ifelse(M4_THEME,nord-dark,dnl
+    `"workbench.colorTheme": "Nord",'
+)dnl
+ifelse(M4_THEME,solarized-dark,dnl
+    `"workbench.colorTheme": "Solarized Dark",'
+)dnl
+ifelse(M4_THEME,solarized-light,dnl
+    `"workbench.colorTheme": "Solarized Light",'
+)dnl
     "editor.tokenColorCustomizations": {
         "keywords": "M4_COLOR_9",
         "comments": "M4_COLOR_DIMFG",

@@ -16,5 +16,5 @@ clean:
 .PHONY: all clean
 
 settings.json: settings.json.m4
-	m4 -I. -I$(I3_HOME)/themes/$(THEME) -DM4_CODE_BG=$(M4_CODE_BG) settings.json.m4 > settings.json
+	m4 -I. -I$(I3_HOME)/themes/$(THEME) -DM4_THEME=$(THEME) -DM4_CODE_BG=$(M4_CODE_BG) settings.json.m4 > settings.json
 
