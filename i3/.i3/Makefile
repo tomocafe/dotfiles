@@ -1,6 +1,6 @@
 THEME ?= gruvbox-dark
 
-FILES = config Xresources dunstrc alacritty.yml $(HOME)/.vim/colors/unified.vim $(HOME)/.cgdb/cgdbrc
+FILES = config Xresources dunstrc alacritty.yml $(HOME)/.vim/colors/unified.vim $(HOME)/.config/Code/User/settings.json $(HOME)/.cgdb/cgdbrc
 
 all: $(FILES)
 
@@ -24,6 +24,9 @@ alacritty.yml: alacritty.yml.m4 font.m4 themes/$(THEME)/color.m4
 # The following targets are optional
 $(HOME)/.vim/colors/unified.vim: themes/$(THEME)/color.m4
 	test -r $(HOME)/.vim/colors/unified.vim.m4 && cd $(HOME)/.vim && make clean && make THEME=$(THEME) || true
+
+$(HOME)/.config/Code/User/settings.json: themes/$(THEME)/color.m4
+	test -r $(HOME)/.config/Code/User/settings.json.m4 && cd $(HOME)/.config/Code/User && make clean && make THEME=$(THEME) || true
 
 $(HOME)/.cgdb/cgdbrc:
 	test -r $(HOME)/.cgdb/cgdbrc.m4 && cd $(HOME)/.cgdb && make clean && make THEME=$(THEME) || true
