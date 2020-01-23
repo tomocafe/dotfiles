@@ -81,7 +81,7 @@ The file `.bash_settings` includes common aliases, settings, and functions and s
 * Helper functions:
     * `_join` joins the arguments with a given delimiter
     * Pretty status messages: `_putError`, `_putWarning`, `_putInfo`
-    * Path manipulation: `_{in,prepend,prependUnique,append,appendUnique,removeFrom,swapIn}{Path,LdLibraryPath,LdPreloadPath,CdPath}`
+    * Path manipulation: `_{in,prepend,prependUnique,append,appendUnique,removeFrom,swapIn,print}{Path,LdLibraryPath,LdPreloadPath,CdPath}`
     * Check lists of files/commands/variables: `_check{Set,Command,Readable,Writeable,Executable,Exists,Directory,Link}`
     * `_showColors` shows 16-color palette in detail and also show all supported terminal colors
 

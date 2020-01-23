@@ -114,11 +114,15 @@ function _swapInPathBase () {
     return 0
 }
 
+function _printPathBase () {
+    eval printf \"\${$1//:/$'\n'}$'\n'\"
+}
+
 # Instantiate functions for common colon-delimited lists, e.g. PATH
 for _p in PATH LD_LIBRARY_PATH LD_PRELOAD_PATH CDPATH MANPATH; do
     _f=$(echo ${_p,,} | sed -r 's/(^|_)([a-z])/\U\2/g') # snake to pascal case
     _f=${_f//path/Path} # always capitalize path
-    for _a in _in _prepend _prependUnique _append _appendUnique _removeFrom _swapIn; do
+    for _a in _in _prepend _prependUnique _append _appendUnique _removeFrom _swapIn _print; do
         eval "function ${_a}${_f} { ${_a}PathBase $_p \$@; }"
     done
 done
