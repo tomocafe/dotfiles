@@ -4,7 +4,7 @@ map <F4> :set<Space>as=highlight<CR>
 hi Constant cterm=normal ctermfg=5
 hi Statement cterm=normal ctermfg=9
 hi PreProc cterm=normal ctermfg=6
-hi Type cterm=normal ctermfg=2
+hi Type cterm=normal ctermfg=4
 hi Breakpoint cterm=normal ctermfg=1
 hi DisabledBreakpoint cterm=normal ctermfg=4
 
