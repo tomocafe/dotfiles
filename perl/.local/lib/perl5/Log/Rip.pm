@@ -62,6 +62,10 @@ sub new {
     return bless \%args, $self;
 }
 
+sub DESTROY {
+    @patterns = ();
+}
+
 sub _error {
     print STDERR "Log::Rip Error: $_[0]\n";
 }
