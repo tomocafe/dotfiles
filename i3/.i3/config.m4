@@ -55,6 +55,7 @@ bindsym $mod+Shift+q exec --no-startup-id ${I3_HOME:-~/.i3}/bin/close-mode "conf
 # start dmenu (a program launcher)
 ifdef(`M4_I3_COMPAT',`define(`M4_I3_DMENU_FONT',`M4_FONT_XLFD')',`define(`M4_I3_DMENU_FONT',`M4_FONT_NAME-M4_FONT_SIZE')')dnl
 bindsym $mod+d exec --no-startup-id dmenu_run -i -p run -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_3" -sf "M4_I3_ACTIVE_FG"
+bindsym $mod+Shift+d exec --no-startup-id i3-dmenu-desktop --dmenu='dmenu -i -p run -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_3" -sf "M4_I3_ACTIVE_FG"'
 bindsym $mod+x exec --no-startup-id ${I3_HOME:-~/.i3}/bin/dmenu_ssh "M4_TERMINAL -e ssh -X" -i -p ssh -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_4" -sf "M4_I3_ACTIVE_FG"
 bindsym $mod+Shift+t exec --no-startup-id ${I3_HOME:-~/.i3}/bin/dmenu_theme -i -p theme -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_5" -sf "M4_I3_ACTIVE_FG"
 bindsym $mod+Tab exec --no-startup-id ${I3_HOME:-~/.i3}/bin/dmenu_window -i -p window -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_I3_BG" -sf "M4_I3_ACTIVE_FG"
