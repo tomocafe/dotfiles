@@ -110,6 +110,10 @@ bindsym $mod+Shift+space floating toggle
 # change focus between tiling / floating windows
 bindsym $mod+space focus mode_toggle
 
+# floating size presets
+bindsym $mod+Shift+F8 floating enable; resize set 50 ppt 50 ppt; move position center
+bindsym $mod+Shift+F9 floating enable; resize set 75 ppt 75 ppt; move position center
+
 # focus the parent container
 bindsym $mod+bracketleft focus parent
 
