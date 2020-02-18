@@ -111,10 +111,12 @@ bindsym $mod+Shift+space floating toggle
 # change focus between tiling / floating windows
 bindsym $mod+space focus mode_toggle
 
+ifdef(`M4_I3_COMPAT',,dnl
 # floating size presets
 bindsym $mod+Shift+F8 floating enable; resize set 50 ppt 50 ppt; move position center
 bindsym $mod+Shift+F9 floating enable; resize set 75 ppt 75 ppt; move position center
 
+)dnl
 # focus the parent container
 bindsym $mod+bracketleft focus parent
 
@@ -140,8 +142,8 @@ bindsym XF86AudioNext exec --no-startup-id ${I3_HOME:-~/.i3}/bin/peripheral-cont
 bindsym XF86AudioRaiseVolume exec --no-startup-id ${I3_HOME:-~/.i3}/bin/peripheral-control volume up
 bindsym XF86AudioLowerVolume exec --no-startup-id ${I3_HOME:-~/.i3}/bin/peripheral-control volume down
 bindsym XF86AudioMute exec --no-startup-id ${I3_HOME:-~/.i3}/bin/peripheral-control volume mute
-)dnl
 
+)dnl
 # Define workspaces
 ifdef(`M4_I3_W1',,`define(M4_I3_W1,`1')')dnl
 ifdef(`M4_I3_W2',,`define(M4_I3_W2,`2')')dnl
