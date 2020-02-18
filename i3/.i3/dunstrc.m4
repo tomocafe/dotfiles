@@ -8,14 +8,18 @@ include(font.m4)dnl
     font = M4_FONT_NAME M4_FONT_SIZE
     monitor = 0
     follow = mouse
-    geometry = "360x2-0-40"
+ifdef(`I3_M4_HIDPI',dnl
+    geometry = "720x2-20-40"
+,dnl
+    geometry = "360x2-20-40"
+)dnl
     indicate_hidden = yes
-    shrink = yes
+    shrink = no 
     transparency = 0
     notification_height = 0
     separator_height = 2
-    padding = 8
-    horizontal_padding = 12
+    padding = 24
+    horizontal_padding = 36
     frame_width = 0
     sort = yes
     idle_threshold = 120

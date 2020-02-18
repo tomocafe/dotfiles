@@ -31,7 +31,7 @@ stow bash
 For i3wm:
 * `i3`
 * `i3blocks`
-* `xrdb`, `xprop`, `xset`, `xsetroot`, `xdotool`
+* `xrdb`, `xprop`, `xset`, `xsetroot`, `xdotool`, `xdpyinfo`
 * Optional: `i3lock`, `dunst`
 
 You use your terminal of choice, but these dotfiles set `rxvt-unicode` (`urxvt`) by default and also provides configuration files for `alacritty`.

@@ -23,7 +23,7 @@ for cmd in m4 stow; do
 done
 
 # Warn on missing commands
-for cmd in ack perl python3 stow xprop xrdb xset xsetroot; do
+for cmd in ack perl python3 stow xrdb xprop xset xsetroot xdotool xdpyinfo; do
     if ! command -v $cmd &>/dev/null; then
         echo "Warning: command unavailable: $cmd" 1>&2
     fi

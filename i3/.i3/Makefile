@@ -2,6 +2,8 @@ THEME ?= gruvbox-dark
 
 FILES = config Xresources dunstrc alacritty.yml $(HOME)/.vim/colors/unified.vim $(HOME)/.config/Code/User/settings.json $(HOME)/.cgdb/cgdbrc
 
+I3_M4_SCREENWIDTH := $(shell xwininfo -root | grep Width | grep -o "[0-9]\+" 2>/dev/null)
+
 all: $(FILES)
 
 clean:
@@ -16,7 +18,9 @@ Xresources: Xresources.m4 themes/$(THEME)/color.m4
 	m4 $(I3_M4_THEMEARGS) -I. -Ithemes/$(THEME) Xresources.m4 > Xresources
 
 dunstrc: dunstrc.m4 font.m4 themes/$(THEME)/i3.m4
-	m4 $(I3_M4_THEMEARGS) -I. -Ithemes/$(THEME) dunstrc.m4 > dunstrc
+	test $(I3_M4_SCREENWIDTH) -gt 2000 \
+	&& m4 $(I3_M4_THEMEARGS) -I. -Ithemes/$(THEME) -DI3_M4_HIDPI dunstrc.m4 > dunstrc \
+	|| m4 $(I3_M4_THEMEARGS) -I. -Ithemes/$(THEME) dunstrc.m4 > dunstrc
 
 alacritty.yml: alacritty.yml.m4 font.m4 themes/$(THEME)/color.m4
 	m4 -I. -Ithemes/$(THEME) alacritty.yml.m4 > alacritty.yml
