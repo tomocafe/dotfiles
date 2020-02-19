@@ -10,7 +10,6 @@ dnl
 exec_always --no-startup-id xrdb -merge ${I3_HOME:-~/.i3}/Xresources
 exec_always --no-startup-id ${I3_HOME:-~/.i3}/bin/reload-ssh-xresources ${I3_HOME:-~/.i3}/Xresources
 exec_always --no-startup-id killall -9 dunst &>/dev/null; exec dunst -conf ${I3_HOME:-~/.i3}/dunstrc
-exec_always --no-startup-id dmenu_path &>/dev/null
 ifdef(`M4_TERMINAL_DAEMON',dnl
 exec --no-startup-id M4_TERMINAL_DAEMON
 )dnl
@@ -56,7 +55,7 @@ bindsym $mod+Shift+q exec --no-startup-id ${I3_HOME:-~/.i3}/bin/close-mode "conf
 ifdef(`M4_I3_COMPAT',`define(`M4_I3_DMENU_FONT',`M4_FONT_XLFD')',`define(`M4_I3_DMENU_FONT',`M4_FONT_NAME-M4_FONT_SIZE')')dnl
 bindsym $mod+d exec --no-startup-id dmenu_run -i -p run -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_3" -sf "M4_I3_ACTIVE_FG"
 bindsym $mod+Shift+d exec --no-startup-id i3-dmenu-desktop --dmenu='dmenu -i -p run -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_3" -sf "M4_I3_ACTIVE_FG"'
-bindsym $mod+x exec --no-startup-id ${I3_HOME:-~/.i3}/bin/dmenu_ssh "M4_TERMINAL -e ssh -X" -i -p ssh -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_4" -sf "M4_I3_ACTIVE_FG"
+bindsym $mod+x exec --no-startup-id ${I3_HOME:-~/.i3}/bin/dmenu_ssh "M4_TERMINAL -e M4_SSH_CMD" -i -p ssh -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_4" -sf "M4_I3_ACTIVE_FG"
 bindsym $mod+Shift+t exec --no-startup-id ${I3_HOME:-~/.i3}/bin/dmenu_theme -i -p theme -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_5" -sf "M4_I3_ACTIVE_FG"
 bindsym $mod+Tab exec --no-startup-id ${I3_HOME:-~/.i3}/bin/dmenu_window -i -p window -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_I3_BG" -sf "M4_I3_ACTIVE_FG"
 bindsym $mod+Shift+e exec --no-startup-id ${I3_HOME:-~/.i3}/bin/dmenu_exit --start-i3lock-args --clock --force-clock --time-align=1 --date-align=1 --timestr="%-I:%M %p" --datestr="%A %-d %B" --timepos="x+40:h-70" --datepos="x+40:h-45" --radius=40 --ring-width=4 --veriftext="" --wrongtext="" --noinputtext="" --color="M4_COLOR_BG" --insidecolor="M4_COLOR_BG`ff'" --ringcolor="M4_I3_BG`ff'" --line-uses-inside --keyhlcolor="M4_COLOR_FG`ff'" --bshlcolor="M4_COLOR_9`ff'" --separatorcolor="M4_I3_BG`ff'" --insidevercolor="M4_COLOR_BG`ff'" --insidewrongcolor="M4_COLOR_BG`ff'" --verifcolor="M4_COLOR_4`ff'" --wrongcolor="M4_COLOR_1`ff'" --timecolor="M4_COLOR_FG`ff'" --datecolor="M4_COLOR_FG`ff'" --time-font="M4_FONT_NAME" --date-font="M4_FONT_NAME" --end-i3lock-args --start-i3lock-fallback-args --color="M4_COLOR_BG" --end-i3lock-fallback-args -i -p exit -fn "M4_I3_DMENU_FONT" -nb "M4_I3_BG" -nf "M4_COLOR_FG" -sb "M4_COLOR_1" -sf "M4_I3_ACTIVE_FG"
