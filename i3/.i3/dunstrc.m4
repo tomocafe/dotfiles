@@ -3,29 +3,28 @@ include(font.m4)dnl
 [global]
     background = "M4_I3_BG"
     foreground = "M4_COLOR_FG"
-    frame_color = "M4_COLOR_FG" 
+    frame_color = "M4_COLOR_BG" 
     separator_color = "M4_COLOR_BG" 
     font = M4_FONT_NAME M4_FONT_SIZE
     monitor = 0
     follow = mouse
-ifdef(`I3_M4_HIDPI',dnl
-    geometry = "720x2-40-80"
-,dnl
-    geometry = "360x2-20-40"
-)dnl
     indicate_hidden = yes
     shrink = no 
     transparency = 0
     notification_height = 0
-    separator_height = 2
 ifdef(`I3_M4_HIDPI',dnl
+    geometry = "720x2-40-80"
     padding = 48
     horizontal_padding = 72
+    frame_width = 8
+    separator_height = 8
 ,dnl
+    geometry = "360x2-20-40"
     padding = 24
     horizontal_padding = 36
+    frame_width = 4
+    separator_height = 4
 )dnl
-    frame_width = 0
     sort = yes
     idle_threshold = 120
     line_height = 0
