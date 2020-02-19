@@ -9,7 +9,7 @@ include(font.m4)dnl
     monitor = 0
     follow = mouse
 ifdef(`I3_M4_HIDPI',dnl
-    geometry = "720x2-20-40"
+    geometry = "720x2-40-80"
 ,dnl
     geometry = "360x2-20-40"
 )dnl
@@ -18,8 +18,13 @@ ifdef(`I3_M4_HIDPI',dnl
     transparency = 0
     notification_height = 0
     separator_height = 2
+ifdef(`I3_M4_HIDPI',dnl
+    padding = 48
+    horizontal_padding = 72
+,dnl
     padding = 24
     horizontal_padding = 36
+)dnl
     frame_width = 0
     sort = yes
     idle_threshold = 120
