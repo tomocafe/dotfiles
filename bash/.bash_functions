@@ -26,6 +26,35 @@ function _makeChangeDirectory () {
     command mkdir $@ && command cd ${@: -1}
 }
 
+function _ext () {
+    local op="$1"
+    shift
+    local re='[a-zA-Z0-9_-]'
+    case "$op" in
+        push)
+            [[ $# -ge 2 ]] || return 1
+            local f="${2%/}"
+            _checkWriteable "$f" || return 2
+            [[ $1 =~ $re ]] || return 3
+            local dst="$f.$1"
+            _checkExists "$dst" && return 4
+            mv "$f" "$f.$1"
+            ;;
+        pop)
+            [[ $# -ge 1 ]] || return 1
+            local f="${1%/}"
+            _checkWriteable "$f" || return 2
+            local dst="${f%.*}"
+            [[ "$dst" == "$f" ]] && return 0
+            _checkExists "$dst" && return 4
+            mv "$f" "$dst"
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
 ###############################################################################
 # Messaging
 ###############################################################################

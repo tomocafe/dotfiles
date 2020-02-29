@@ -23,6 +23,7 @@ alias extract="_extract"
 alias mcd="_makeChangeDirectory"
 alias history="_history"
 alias h="history"
+alias ext="_ext"
 alias pidof="pgrep -x -u $USER"
 function dc () { cd ${1:-..}; }
 complete -o nospace -F _dcBackwardsPathCompletion dc
