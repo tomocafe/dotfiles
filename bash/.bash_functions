@@ -30,29 +30,31 @@ function _ext () {
     local op="$1"
     shift
     local re='[a-zA-Z0-9_-]'
+    local dst
     case "$op" in
-        push)
+        push|add|change|mv)
             [[ $# -ge 2 ]] || return 1
             local f="${2%/}"
             _checkWriteable "$f" || return 2
             [[ $1 =~ $re ]] || return 3
-            local dst="$f.$1"
-            _checkExists "$dst" && return 4
-            mv "$f" "$f.$1"
+            case "$op" in
+                push|add)  dst="$f.$1" ;;
+                change|mv) dst="${f%.*}.$1" ;;
+            esac
             ;;
-        pop)
+        pop|rm)
             [[ $# -ge 1 ]] || return 1
             local f="${1%/}"
             _checkWriteable "$f" || return 2
-            local dst="${f%.*}"
-            [[ "$dst" == "$f" ]] && return 0
-            _checkExists "$dst" && return 4
-            mv "$f" "$dst"
+            dst="${f%.*}"
             ;;
         *)
             return 1
             ;;
     esac
+    [[ "$dst" == "$f" ]] && return 0
+    _checkExists "$dst" && return 4
+    mv "$f" "$dst"
 }
 
 ###############################################################################
