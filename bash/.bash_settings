@@ -90,7 +90,8 @@ unset command_not_found_handle
 unset SSH_ASKPASS
 
 # Add local perl5 modules
-_appendUniquePathBase PERL5LIB ~/.local/lib/perl5
+_checkDirectory ~/.local/lib/perl5 && \
+    _appendUniquePathBase PERL5LIB ~/.local/lib/perl5
 
 # If this is a forked terminal, go the parent shell's directory
 # Otherwise, go to $HOME
