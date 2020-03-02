@@ -29,32 +29,30 @@ function _makeChangeDirectory () {
 function _ext () {
     local op="$1"
     shift
-    local re='[a-zA-Z0-9_-]'
-    local dst
+    local re='^[a-zA-Z0-9_-]$'
     case "$op" in
         push|add|change|mv)
-            [[ $# -ge 2 ]] || return 1
-            local f="${2%/}"
-            _checkWriteable "$f" || return 2
-            [[ $1 =~ $re ]] || return 3
-            case "$op" in
-                push|add)  dst="$f.$1" ;;
-                change|mv) dst="${f%.*}.$1" ;;
-            esac
-            ;;
-        pop|rm)
             [[ $# -ge 1 ]] || return 1
-            local f="${1%/}"
-            _checkWriteable "$f" || return 2
-            dst="${f%.*}"
-            ;;
-        *)
-            return 1
+            local x="$1"
+            shift
+            [[ "$x" =~ $re ]] || return 1
             ;;
     esac
-    [[ "$dst" == "$f" ]] && return 0
-    _checkExists "$dst" && return 4
-    mv "$f" "$dst"
+    local rv=0
+    local f dst
+    for f in "$@"; do
+        f="${f%/}"
+        _checkWriteable "$f" || { let rv++; continue; }
+        case "$op" in
+            push|add)  dst="$f.$x" ;;
+            change|mv) dst="${f%.*}.$x" ;;
+            pop|rm)    dst="${f%.*}" ;;
+        esac
+        [[ "$dst" == "$f" ]] && continue
+        _checkExists "$dst" && { let rv++; continue; }
+        mv "$f" "$dst"
+    done
+    return $rv
 }
 
 ###############################################################################
