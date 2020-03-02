@@ -48,23 +48,26 @@ if command -v perl &>/dev/null; then
 fi
 
 # i3
-mkdir -p ${I3_HOME:-~/.i3}/bin &>/dev/null
-${STOW:-stow} i3
-(cd ${I3_HOME:-~/.i3} && make) &>/dev/null
-touch ${I3_HOME:-~/.i3}/i3blocks.conf
+if command -v i3 &>/dev/null; then
+    mkdir -p ${I3_HOME:-~/.i3}/bin &>/dev/null
+    ${STOW:-stow} i3
+    (cd ${I3_HOME:-~/.i3} && make) &>/dev/null
+    touch ${I3_HOME:-~/.i3}/i3blocks.conf
+fi
 
 # bash
-${STOW:-stow} bash
+if grep "bash" /proc/$PPID/comm &>/dev/null; then
+    ${STOW:-stow} bash
+fi
 
 # bin
 mkdir -p ~/bin &>/dev/null
 ${STOW:-stow} bin
 
 # vim
-mkdir -p ~/.vim/colors &>/dev/null
-${STOW:-stow} vim
+if command -v vim &>/dev/null; then
+    mkdir -p ~/.vim/colors &>/dev/null
+    ${STOW:-stow} vim
+fi
 
-# gdb 
-mkdir -p ~/.cgdb &>/dev/null
-${STOW:-stow} gdb
 
