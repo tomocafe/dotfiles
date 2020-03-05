@@ -550,7 +550,7 @@ function _setFastPrompt () {
     unset PROMPT_COMMAND
     shopt -u checkwinsize
     export PROMPT_DIRTRIM=4
-    export PS1="\r\[${COLORS[$COLOR_FG_DIM]}\]┌─ \[${COLORS[3]}\]\h\[${COLOR_RESET}\]:\[${COLORS[4]}\]\l\[${COLOR_RESET}\] (\w)\n\[${COLORS[$COLOR_FG_DIM]}\]$\[${COLOR_RESET}\] "
+    export PS1="\r\[${COLORS[$COLOR_FG_DIM]}\]┌─ \[${COLORS[3]}\]\h\[${COLOR_RESET}\]:\[${COLORS[4]}\]\l\[${COLOR_RESET}\] (\w)\n\[${COLORS[$COLOR_FG_DIM]}\]\$\[${COLOR_RESET}\] "
 }
 
 ###############################################################################
