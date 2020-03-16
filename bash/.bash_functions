@@ -29,7 +29,7 @@ function _makeChangeDirectory () {
 function _ext () {
     local op="$1"
     shift
-    local re='^[a-zA-Z0-9_-]$'
+    local re='^[a-zA-Z0-9_-]+$'
     case "$op" in
         push|add|change|mv)
             [[ $# -ge 1 ]] || return 1
