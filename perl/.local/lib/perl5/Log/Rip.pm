@@ -14,7 +14,7 @@ my $ripper = Log::Rip->new(file => 'test.log');
 
 $ripper->match(qr/critical/i, sub { my $line = shift @_; push @critical_messages, $line; });
 
-$ripper->match(qr/(\w+o)\b, sub { print "Word $_ ends with o\n" foreach @_; }, 'g');
+$ripper->match(qr/\w+o\b/, sub { print "Word $_ ends with o\n" foreach @_; }, 'g');
 
 $ripper->match(qr/^MSG-([0-9]+): (.*)$/, sub { my ($id, $msg) = @_; $messages{$id} = $msg; });
 
@@ -43,6 +43,8 @@ invoked, with the results of all capture groups provided as arguments to the
 callback. If no capture groups are specified, the entire line is provided to 
 the callback function. See SYNOPSIS for examples. The string 'g' may be 
 given as the third, optional $modifiers argument to use global regex matching.
+If your global regex pattern contains captures groups, use the 'gc' as the 
+$modifiers argument.
 
 =head2 run()
 
@@ -72,7 +74,7 @@ sub _error {
 
 sub match {
     my ($self, $regex, $callback, $modifiers) = @_;
-    if ($modifiers and $modifiers !~ m/^[g]+$/) { 
+    if ($modifiers and $modifiers !~ m/^[gc]+$/) { 
         _error "unsupported modifiers: $modifiers";
         return 0;
     }
@@ -92,15 +94,16 @@ sub run {
             my ($re, $cb, $mod) = @{$p};
             my @captures = ();
             if ($mod and $mod =~ /g/) {
-                @captures = ($line =~ m/$re/g);
+                @captures = ($line =~ m/($re)/g);
+                # If user specified a capture group, remove the full matches
+                @captures = @captures[grep $_ % 2, 0..$#captures] if @captures and $mod =~ /c/;
             }
             else {
-                @captures = ($line =~ m/$re/);
+                @captures = ($line =~ m/($re)/);
+                # If user specified a capture group, remove the full match
+                shift @captures if @captures and @captures > 1;
             }
-            if (@captures) {
-                @captures = ($line) if $captures[0] eq '1';
-                $cb->(@captures) if $cb;
-            }
+            $cb->(@captures) if $cb and @captures;
             if ($self->{debug}) {
                 print STDERR "  Pattern: $re\n";
                 if (@captures) {
