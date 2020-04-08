@@ -33,4 +33,4 @@ colors:
         magenta: '#bd93f9'
         cyan: '#8be9fd'
         white: '#f8f8f2' # hsl(60, 30%, 96%)
-
+draw_bold_text_with_bright_colors: true
