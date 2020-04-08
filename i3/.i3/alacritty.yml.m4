@@ -31,4 +31,4 @@ colors:
         magenta: 'M4_COLOR_13'
         cyan: 'M4_COLOR_14'
         white: 'M4_COLOR_15'
-
+draw_bold_text_with_bright_colors: true
