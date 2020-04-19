@@ -27,6 +27,7 @@ alias ext="_ext"
 alias pidof="pgrep -x -u $USER"
 function dc () { cd ${1:-..}; }
 complete -o nospace -F _dcBackwardsPathCompletion dc
+function pushd() { command pushd ${1:-.}; }
 
 # shell settings
 set -o ignoreeof
