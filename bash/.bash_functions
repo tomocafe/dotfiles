@@ -200,8 +200,10 @@ function _getRootProcessBase () {
     local _output=$1; shift
     local _pid=${1:-$$}
     while true; do
-        local _stat=($(</proc/$_pid/stat))
-        local _ppid=${_stat[3]}
+        local _statfile=$(</proc/$_pid/stat)
+        _statfile=${_statfile/(*)/x} # sanitize proc names with spaces, e.g. (tmux: server)
+        local _stats=($_statfile)
+        local _ppid=${_stats[3]}
         # Check if we found the root process
         if [[ $_ppid -eq 1 ]]; then
             echo $(ps -p $_pid -o $_output=)
@@ -224,10 +226,12 @@ function _matchProcessTree () {
     local _pattern=$1; shift
     local _pid=${1:-$$}
     while true; do
-        local _stat=($(</proc/$_pid/stat))
-        local _ppid=${_stat[3]}
         # Check if processes up the tree match pattern
         [[ $(ps -p $_pid -o args=) =~ $_pattern ]] && return 0
+        local _statfile=$(</proc/$_pid/stat)
+        _statfile=${_statfile/(*)/x} # sanitize proc names with spaces, e.g. (tmux: server)
+        local _stats=($_statfile)
+        local _ppid=${_stats[3]}
         [[ $_ppid -eq 1 ]] && break
         # Advance to parent
         _pid=$_ppid
