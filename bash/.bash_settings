@@ -39,6 +39,9 @@ if [[ $- == *i* ]]; then
     bind '"\e[Z": menu-complete'
 fi
 
+# History settings
+export HISTIGNORE="&:?:??:clear:pwd:exit:pushd:popd"
+
 # Set prompt
 if [[ $- == *i* ]]; then
     shopt -s checkwinsize
