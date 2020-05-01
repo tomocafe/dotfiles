@@ -87,28 +87,28 @@ function _inPathBase () {
 }
 
 function _prependPathBase () {
-    local _paths=(${@:2})
+    local _paths=("${@:2}")
     local IFS=':'
     eval export $1=\${_paths[*]}\${$1:+\${_paths:+:}}\${$1}
 }
 
 function _appendPathBase () {
-    local _paths=(${@:2})
+    local _paths=("${@:2}")
     local IFS=':'
     eval export $1=\${$1}\${$1:+\${_paths:+:}}\${_paths[*]}
 }
 
 function _prependUniquePathBase () {
     local _path
-    for _path in ${@:2}; do
-        _inPathBase $1 $_path || _prependPathBase $1 $_path
+    for _path in "${@:2}"; do
+        _inPathBase "$1" "$_path" || _prependPathBase "$1" "$_path"
     done
 }
 
 function _appendUniquePathBase () {
     local _path
-    for _path in ${@:2}; do
-        _inPathBase $1 $_path || _appendPathBase $1 $_path
+    for _path in "${@:2}"; do
+        _inPathBase "$1" "$_path" || _appendPathBase "$1" "$_path"
     done
 }
 
@@ -116,12 +116,12 @@ function _removeFromPathBase () {
     local _path
     local _newpath
     local _found=1
-    for _path in ${@:2}; do
-        _inPathBase $1 $_path || continue
+    for _path in "${@:2}"; do
+        _inPathBase "$1" "$_path" || continue
         eval _newpath=":\${$1}:"
-        _newpath=${_newpath//:$_path:/:}
-        _newpath=${_newpath#:}
-        _newpath=${_newpath%:}
+        _newpath="${_newpath//:$_path:/:}"
+        _newpath="${_newpath#:}"
+        _newpath="${_newpath%:}"
         eval export $1="$_newpath"
         _found=0
     done
@@ -130,15 +130,15 @@ function _removeFromPathBase () {
 
 function _swapInPathBase () {
     [[ $# -eq 3 ]] || return 2
-    _inPathBase $1 $2 || return 1
-    _inPathBase $1 $3 || return 1
-    _inPathBase $1 "@SWAPPING@" && return # sentinel value
+    _inPathBase "$1" "$2" || return 1
+    _inPathBase "$1" "$3" || return 1
+    _inPathBase "$1" "@SWAPPING@" && return # sentinel value
     eval local _newpath=":\$$1:"
-    _newpath=${_newpath//:$2:/:@SWAPPING@:}
-    _newpath=${_newpath//:$3:/:$2:}
-    _newpath=${_newpath//:@SWAPPING@:/:$3:}
-    _newpath=${_newpath#:}
-    _newpath=${_newpath%:}
+    _newpath="${_newpath//:$2:/:@SWAPPING@:}"
+    _newpath="${_newpath//:$3:/:$2:}"
+    _newpath="${_newpath//:@SWAPPING@:/:$3:}"
+    _newpath="${_newpath#:}"
+    _newpath="${_newpath%:}"
     eval export $1="$_newpath"
     return 0
 }
