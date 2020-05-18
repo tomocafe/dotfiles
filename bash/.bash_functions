@@ -641,3 +641,15 @@ function _extract () {
     _archiveHandlerBase false $@
 }
 
+function _sms () {
+    _checkCommand sendmail || return
+    if ! _checkSet SMS_GATEWAY; then
+        _putError "\$SMS_GATEWAY undefined: <number>@<carrier gateway domain>"
+        return
+    fi
+    sendmail "$SMS_GATEWAY" <<EOF
+subject: $HOSTNAME
+$*
+EOF
+}
+
