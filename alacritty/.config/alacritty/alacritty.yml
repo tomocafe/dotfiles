@@ -13,24 +13,24 @@ font:
 colors:
     # adapted from Dracula
     primary:
-        background: '#282a36'
-        foreground: '#efefe1'
+        background: '#000000'
+        foreground: '#c0c9cb'
     normal:
-        black: '#44475a' # hsl(232, 14%, 31%)
-        red: '#ff5555'
-        green: '#50fa7b'
-        yellow: '#f1fa8c'
-        blue: '#6272a4'
-        magenta: '#ff79c6'
-        cyan: '#8be9fd'
-        white: '#efefe1' # hsl(60, 30%, 91%)
+        black: '#202428'
+        red: '#c62828'
+        green: '#60a96a'
+        yellow: '#d5e450'
+        blue: '#039be5'
+        magenta: '#606bb0'
+        cyan: '#00bcd4'
+        white: '#c0c9cb'
     bright:
-        black: '#656986' # hsl(232, 14%, 46%)
-        red: '#ffb86c'
-        green: '#50fa7b'
-        yellow: '#f1fa8c'
-        blue: '#6272a4'
-        magenta: '#bd93f9'
-        cyan: '#8be9fd'
-        white: '#f8f8f2' # hsl(60, 30%, 96%)
+        black: '#60666c'
+        red: '#ff7043'
+        green: '#7ea969'
+        yellow: '#fff176'
+        blue: '#4fc3f7'
+        magenta: '#7986cb'
+        cyan: '#4dd0e1'
+        white: '#f9fcff'
 draw_bold_text_with_bright_colors: true
