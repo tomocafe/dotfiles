@@ -11,26 +11,28 @@ font:
         style: Italic
     size: 11.0
 colors:
-    # adapted from Dracula
     primary:
         background: '#000000'
         foreground: '#c0c9cb'
     normal:
         black: '#202428'
         red: '#c62828'
-        green: '#60a96a'
-        yellow: '#d5e450'
-        blue: '#039be5'
-        magenta: '#606bb0'
-        cyan: '#00bcd4'
+        green: '#7ea969'
+        yellow: '#b0d440'
+        blue: '#379dbc'
+        magenta: '#7b6bc0'
+        cyan: '#31bada'
         white: '#c0c9cb'
     bright:
         black: '#60666c'
         red: '#ff7043'
         green: '#7ea969'
-        yellow: '#fff176'
-        blue: '#4fc3f7'
-        magenta: '#7986cb'
-        cyan: '#4dd0e1'
+        yellow: '#d5e450'
+        blue: '#4cb0dc'
+        magenta: '#8996db'
+        cyan: '#5ec4e1'
         white: '#f9fcff'
 draw_bold_text_with_bright_colors: true
+env:
+  'WINIT_HIDPI_FACTOR': '1.0'
+
