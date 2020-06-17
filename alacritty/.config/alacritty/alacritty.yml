@@ -12,27 +12,26 @@ font:
     size: 11.0
 colors:
     primary:
-        background: '#000000'
-        foreground: '#c0c9cb'
+        background: '#16161e'
+        foreground: '#787c99'
     normal:
-        black: '#202428'
-        red: '#c62828'
-        green: '#7ea969'
-        yellow: '#b0d440'
-        blue: '#379dbc'
-        magenta: '#7b6bc0'
-        cyan: '#31bada'
-        white: '#c0c9cb'
+        black: '#1f2335'
+        red: '#f7768e'
+        green: '#41a6b5'
+        yellow: '#e0af68'
+        blue: '#7aa2f7'
+        magenta: '#bb9af7'
+        cyan: '#7dcfff'
+        white: '#787c99'
     bright:
-        black: '#60666c'
-        red: '#ff7043'
-        green: '#7ea969'
-        yellow: '#d5e450'
-        blue: '#4cb0dc'
-        magenta: '#8996db'
-        cyan: '#5ec4e1'
-        white: '#f9fcff'
+        black: '#3b4261'
+        red: '#f7768e'
+        green: '#73daca'
+        yellow: '#e0af68'
+        blue: '#7aa2f7'
+        magenta: '#bb9af7'
+        cyan: '#7dcfff'
+        white: '#acb0d0'
 draw_bold_text_with_bright_colors: true
 env:
   'WINIT_HIDPI_FACTOR': '1.0'
-

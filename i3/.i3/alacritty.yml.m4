@@ -32,3 +32,5 @@ colors:
         cyan: 'M4_COLOR_14'
         white: 'M4_COLOR_15'
 draw_bold_text_with_bright_colors: true
+env:
+  'WINIT_HIDPI_FACTOR': '1.0'
