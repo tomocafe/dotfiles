@@ -32,6 +32,9 @@ ifelse(M4_THEME,solarized-dark,dnl
 ifelse(M4_THEME,solarized-light,dnl
     `"workbench.colorTheme": "Solarized Light",'
 )dnl
+ifelse(M4_THEME,tokyo-dark,dnl
+    `"workbench.colorTheme": "Tokyo Night",'
+)dnl
     "editor.tokenColorCustomizations": {
         "keywords": "M4_COLOR_9",
         "comments": "M4_COLOR_DIMFG",
