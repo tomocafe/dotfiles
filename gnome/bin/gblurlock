@@ -36,6 +36,9 @@ case "$uri" in
         [[ -d $walldir ]] || mkdir -p $walldir
         mv $wallpath $walldir && wallpath="$walldir/${wallpath##*/}"
         ;;
+    *)
+        _error "unknown URI type: $uri"
+        ;;
 esac
 
 fullname="${wallpath##*/}"
