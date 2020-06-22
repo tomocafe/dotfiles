@@ -1,0 +1,53 @@
+#!/bin/bash
+
+_error () {
+    echo "error: $*" 1>&2
+    exit 1
+}
+
+command -v gsettings &>/dev/null || _error "no gsettings command found. Is GNOME installed?"
+command -v convert &>/dev/null || _error "no convert command found"
+
+uri="$(gsettings get org.gnome.desktop.background picture-uri)"
+if [[ $? -ne 0 || -z $uri ]]; then
+    _error "failed to query desktop background path"
+fi
+
+uri="${uri#\'}"
+uri="${uri%\'}"
+
+case "$uri" in
+    file://*)
+        wallpath="${uri#file://}"
+        walldir="$(dirname "$wallpath")"
+        ;;
+    http*|ftp*)
+        wallpath="${TMP:-/tmp}/${uri##*/}"
+        if command -v wget &>/dev/null; then
+            wget $uri -O "$wallpath" || _error "failed to download $uri"
+        elif command -v curl &>/dev/null; then
+            curl $uri -o "$wallpath" || _error "failed to download $uri"
+        else
+            _error "no wget or curl command found. Cannot download $uri."
+        fi
+        walldir="$HOME/Pictures/Wallpapers"
+        [[ -d $walldir ]] || walldir="$HOME/Pictures"
+        [[ -d $walldir ]] || walldir="$HOME/.gblurlock"
+        [[ -d $walldir ]] || mkdir -p $walldir
+        mv $wallpath $walldir && wallpath="$walldir/${wallpath##*/}"
+        ;;
+esac
+
+fullname="${wallpath##*/}"
+name="${fullname%.*}"
+ext="${fullname##*.}"
+
+blurpath="$walldir/$name.blur.$ext"
+
+convert "$wallpath" -blur 0x8 "$blurpath" || _error "failed to apply blur to $wallpath"
+echo "Saved blurred image to $blurpath"
+
+gsettings set org.gnome.desktop.screensaver picture-uri "file://$blurpath" \
+    && echo "Applied blurred image to lock screen" \
+    || _error "failed to apply image to lock screen"
+
