@@ -13,13 +13,15 @@ if [[ $? -ne 0 || -z $uri ]]; then
     _error "failed to query desktop background path"
 fi
 
+walldir="${WALLDIR:-$HOME/.gblurlock}"
+[[ -d $walldir ]] || mkdir -p $walldir
+
 uri="${uri#\'}"
 uri="${uri%\'}"
 
 case "$uri" in
     file://*)
         wallpath="${uri#file://}"
-        walldir="$(dirname "$wallpath")"
         ;;
     http*|ftp*)
         wallpath="${TMP:-/tmp}/${uri##*/}"
@@ -30,10 +32,6 @@ case "$uri" in
         else
             _error "no wget or curl command found. Cannot download $uri."
         fi
-        walldir="$HOME/Pictures/Wallpapers"
-        [[ -d $walldir ]] || walldir="$HOME/Pictures"
-        [[ -d $walldir ]] || walldir="$HOME/.gblurlock"
-        [[ -d $walldir ]] || mkdir -p $walldir
         mv $wallpath $walldir && wallpath="$walldir/${wallpath##*/}"
         ;;
     *)
