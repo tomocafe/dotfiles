@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+
+import urllib.request
+import xml.etree.ElementTree as ET
+import subprocess
+import argparse
+import sys
+
+def error(msg, rv=1):
+    print('error:', msg, file=sys.stderr)
+    sys.exit(rv)
+
+def update(pspec):
+    return #TODO
+
+def main():
+    # Parse arguments
+    parser = argparse.ArgumentParser(description='Updates Google Chrome on Solus')
+    parser.add_argument('-t', '--target', type=str, choices=['stable', 'unstable', 'dev'], default='stable')
+    parser.add_argument('--timeout', type=int, default=5)
+    args = parser.parse_args()
+    target = 'google-chrome-' + args.target
+    # Get current version
+    res = subprocess.run([target, '--version'], stdout=subprocess.PIPE)
+    installed_version = res.stdout.split()[-1]
+    # Get latest version from pspec
+    url = 'https://raw.githubusercontent.com/getsolus/3rd-party/master/network/web/browser/' + target + '/pspec.xml'
+    try:
+        with urllib.request.urlopen(url, timeout=args.timeout) as fd:
+            text = fd.read().decode('utf-8')
+            root = ET.ElementTree(ET.fromstring(text)).getroot()
+            for v in root.findall('./History/Update/Version'):
+                latest_version = v.text.encode('utf-8')
+                break
+    except:
+        error('Unable to fetch version information from the Solus repository')
+    # Compare versions
+    if latest_version == '':
+        error('Unable to decode version information from the Solus repository')
+    if installed_version != latest_version:
+        print('Updating to version', latest_version)
+        update(url)
+    else:
+        print('You are up to date!')
+
+if __name__ == '__main__':
+    main()
