@@ -4,6 +4,7 @@ import urllib.request
 import xml.etree.ElementTree as ET
 import subprocess
 import argparse
+import glob
 import sys
 import os
 
@@ -12,16 +13,16 @@ def error(msg, rv=1):
     sys.exit(rv)
 
 def get_installed_version(target):
-    return subprocess.check_output([target, '--version']).split()[-1]
+    return subprocess.check_output([target, '--version']).decode('utf-8').split()[-1]
 
 def update(pspec, target):
     if os.geteuid() != 0:
         error('requires root (run with sudo)', rv=2)
-    rv = subprocess.call(['eopkg', 'bi', '--ignore-safety', '-O', '/tmp', pspec])
+    rv = subprocess.call(['eopkg', 'bi', '--ignore-safety', '-O', '/tmp', pspec], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     if rv != 0:
         error('failed to build the package')
-    eopkg = '/tmp/' + target + '.eopkg'
-    rv = subprocess.call(['eopkg', 'it', eopkg])
+    eopkg = glob.glob('/tmp/' + target + '*.eopkg')[-1]
+    rv = subprocess.call(['eopkg', 'it', eopkg], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     os.remove(eopkg)
     if rv != 0:
         error('failed to install the package')
@@ -43,7 +44,7 @@ def main():
             text = fd.read().decode('utf-8')
             root = ET.ElementTree(ET.fromstring(text)).getroot()
             for v in root.findall('./History/Update/Version'):
-                latest_version = v.text.encode('utf-8')
+                latest_version = v.text
                 break
     except:
         error('unable to fetch version information from the Solus repository')
