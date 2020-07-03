@@ -5,13 +5,27 @@ import xml.etree.ElementTree as ET
 import subprocess
 import argparse
 import sys
+import os
 
 def error(msg, rv=1):
     print('error:', msg, file=sys.stderr)
     sys.exit(rv)
 
-def update(pspec):
-    return #TODO
+def get_installed_version(target):
+    return subprocess.check_output([target, '--version']).split()[-1]
+
+def update(pspec, target):
+    if os.geteuid() != 0:
+        error('requires root (run with sudo)', rv=2)
+    rv = subprocess.call(['eopkg', 'bi', '--ignore-safety', '-O', '/tmp', pspec])
+    if rv != 0:
+        error('failed to build the package')
+    eopkg = '/tmp/' + target + '.eopkg'
+    rv = subprocess.call(['eopkg', 'it', eopkg])
+    os.remove(eopkg)
+    if rv != 0:
+        error('failed to install the package')
+    print('Now installed:', get_installed_version(target))
 
 def main():
     # Parse arguments
@@ -21,8 +35,7 @@ def main():
     args = parser.parse_args()
     target = 'google-chrome-' + args.target
     # Get current version
-    res = subprocess.run([target, '--version'], stdout=subprocess.PIPE)
-    installed_version = res.stdout.split()[-1]
+    installed_version = get_installed_version(target)
     # Get latest version from pspec
     url = 'https://raw.githubusercontent.com/getsolus/3rd-party/master/network/web/browser/' + target + '/pspec.xml'
     try:
@@ -33,13 +46,13 @@ def main():
                 latest_version = v.text.encode('utf-8')
                 break
     except:
-        error('Unable to fetch version information from the Solus repository')
+        error('unable to fetch version information from the Solus repository')
     # Compare versions
     if latest_version == '':
-        error('Unable to decode version information from the Solus repository')
+        error('unable to decode version information from the Solus repository')
     if installed_version != latest_version:
         print('Updating to version', latest_version)
-        update(url)
+        update(url, target)
     else:
         print('You are up to date!')
 
