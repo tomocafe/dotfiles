@@ -8,6 +8,10 @@ import glob
 import sys
 import os
 
+import gi
+gi.require_version('Notify', '0.7')
+from gi.repository import Notify
+
 def error(msg, rv=1):
     print('error:', msg, file=sys.stderr)
     sys.exit(rv)
@@ -28,12 +32,35 @@ def update(pspec, target):
         error('failed to install the package')
     print('Now installed:', get_installed_version(target))
 
+def notify_action(notif, action, target):
+    """ Notify.ActionCallback """
+    try:
+        subprocess.Popen(['pkexec', 'google-chrome-updater', '--target', target])
+    except:
+        pass
+    notif.close()
+
+def notify(target):
+    Notify.init('Google Chrome Updater')
+    notif = Notify.Notification.new(
+        'Google Chrome update available',
+        'An update is now available.',
+        'google-chrome'
+    )
+    notif.add_action(
+        'google-chrome-updater',
+        'Install',
+        notify_action,
+        target
+    )
+    notif.show()
+
 def main():
     # Parse arguments
     parser = argparse.ArgumentParser(description='Updates Google Chrome on Solus')
     parser.add_argument('-t', '--target', type=str, choices=['stable', 'unstable', 'dev'], default='stable')
+    parser.add_argument('--check', action='store_true', help='Check for update and send a Raven notification to prompt for installation')
     parser.add_argument('--timeout', type=int, default=5)
-    parser.add_argument('--check-only', action='store_true')
     args = parser.parse_args()
     target = 'google-chrome-' + args.target
     # Get current version
@@ -53,10 +80,11 @@ def main():
     if latest_version == '':
         error('unable to decode version information from the Solus repository')
     if installed_version != latest_version:
-        if args.check_only:
-            sys.exit(5)
-        print('Updating to version', latest_version)
-        update(url, target)
+        print('New version available:', latest_version)
+        if args.check:
+            notify(args.target)
+        else:
+            update(url, target)
     else:
         print('You are up to date!')
 
