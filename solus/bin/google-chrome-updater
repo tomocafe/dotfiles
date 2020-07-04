@@ -33,6 +33,7 @@ def main():
     parser = argparse.ArgumentParser(description='Updates Google Chrome on Solus')
     parser.add_argument('-t', '--target', type=str, choices=['stable', 'unstable', 'dev'], default='stable')
     parser.add_argument('--timeout', type=int, default=5)
+    parser.add_argument('--check-only', action='store_true')
     args = parser.parse_args()
     target = 'google-chrome-' + args.target
     # Get current version
@@ -52,6 +53,8 @@ def main():
     if latest_version == '':
         error('unable to decode version information from the Solus repository')
     if installed_version != latest_version:
+        if args.check_only:
+            sys.exit(5)
         print('Updating to version', latest_version)
         update(url, target)
     else:
