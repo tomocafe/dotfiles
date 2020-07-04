@@ -1,7 +1,7 @@
 #!/bin/bash
 
 check_update () {
-    if google-chrome-updater --check-only; then
+    if ! google-chrome-updater --check-only; then
         if zenity --question --text="An update is available. Would you like to install it?"; then
             pkexec google-chrome-updater --target $TARGET
         fi
