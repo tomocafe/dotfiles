@@ -9,8 +9,9 @@ import sys
 import os
 
 import gi
+gi.require_version('Gtk', '3.0')
 gi.require_version('Notify', '0.7')
-from gi.repository import Notify
+from gi.repository import Gtk, Notify
 
 def error(msg, rv=1):
     print('error:', msg, file=sys.stderr)
@@ -22,20 +23,20 @@ def get_installed_version(target):
 def update(pspec, target):
     if os.geteuid() != 0:
         error('requires root (run with sudo)', rv=2)
-    rv = subprocess.call(['eopkg', 'bi', '--ignore-safety', '-O', '/tmp', pspec], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    if rv != 0:
+    ret = subprocess.run(['eopkg', 'bi', '--ignore-safety', '-O', '/tmp', pspec], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if ret.returncode != 0:
         error('failed to build the package')
     eopkg = glob.glob('/tmp/' + target + '*.eopkg')[-1]
-    rv = subprocess.call(['eopkg', 'it', eopkg], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    ret = subprocess.run(['eopkg', 'it', eopkg], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     os.remove(eopkg)
-    if rv != 0:
+    if ret.returncode != 0:
         error('failed to install the package')
     print('Now installed:', get_installed_version(target))
 
 def notify_action(notif, action, target):
     """ Notify.ActionCallback """
     try:
-        subprocess.Popen(['pkexec', 'google-chrome-updater', '--target', target])
+        subprocess.run(['pkexec', 'google-chrome-updater', '--target', target], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except:
         pass
     notif.close()
@@ -53,7 +54,9 @@ def notify(target):
         notify_action,
         target
     )
+    notif.connect('closed', Gtk.main_quit)
     notif.show()
+    Gtk.main()
 
 def main():
     # Parse arguments
