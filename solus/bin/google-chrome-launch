@@ -1,10 +1,10 @@
 #!/bin/bash
 
 case $0 in
-    unstable)
+    *-unstable-*)
         TARGET="unstable"
         ;;
-    dev)
+    *-dev-*)
         TARGET="dev"
         ;;
     *)
@@ -13,4 +13,6 @@ case $0 in
 esac
 
 google-chrome-updater --check --target $TARGET &
+disown
+
 exec google-chrome-$TARGET "$@"
