@@ -85,8 +85,9 @@ def notify(target):
 def main():
     # Parse arguments
     parser = argparse.ArgumentParser(description='Updates Google Chrome on Solus')
-    parser.add_argument('-t', '--target', type=str, choices=['stable', 'unstable', 'dev'], default='stable')
+    parser.add_argument('-t', '--target', type=str, choices=['stable', 'unstable', 'beta'], default='stable')
     parser.add_argument('--check', action='store_true', help='Check for update and send a Raven notification to prompt for installation')
+    parser.add_argument('--force', action='store_true', help='Force re-installation even if already up to date')
     parser.add_argument('--timeout', type=int, default=5)
     args = parser.parse_args()
     target = 'google-chrome-' + args.target
@@ -96,7 +97,7 @@ def main():
     url = 'https://raw.githubusercontent.com/getsolus/3rd-party/master/network/web/browser/' + target + '/pspec.xml'
     latest_version = get_latest_version(url, args.timeout)
     # Compare versions
-    if installed_version != latest_version:
+    if installed_version != latest_version or args.force:
         print('New version available:', latest_version)
         if args.check:
             notify(args.target)

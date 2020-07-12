@@ -4,8 +4,8 @@ case $0 in
     *-unstable-*)
         TARGET="unstable"
         ;;
-    *-dev-*)
-        TARGET="dev"
+    *-beta-*)
+        TARGET="beta"
         ;;
     *)
         TARGET="stable"
