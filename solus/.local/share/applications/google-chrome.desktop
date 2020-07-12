@@ -2,7 +2,7 @@
 Version=1.0
 Name=Google Chrome
 Comment=Access the Internet
-Exec=/home/evan/bin/google-chrome-launch %U
+Exec=google-chrome-launch %U
 StartupNotify=true
 Terminal=false
 Icon=google-chrome
@@ -13,8 +13,8 @@ Actions=new-window;new-private-window;
 
 [Desktop Action new-window]
 Name=New Window
-Exec=/home/evan/bin/google-chrome-launch
+Exec=google-chrome-launch
 
 [Desktop Action new-private-window]
 Name=New Incognito Window
-Exec=/home/evan/bin/google-chrome-launch --incognito
+Exec=google-chrome-launch --incognito
