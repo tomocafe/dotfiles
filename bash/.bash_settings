@@ -98,10 +98,15 @@ unset SSH_ASKPASS
 _checkDirectory ~/.local/lib/perl5 && \
     _appendUniquePathBase PERL5LIB ~/.local/lib/perl5
 
-# If this is a forked terminal, go the parent shell's directory
-# Otherwise, go to $HOME
+# Set starting path
 if [[ $- == *i* ]]; then
-    cd ${FORK_DIR:-$HOME}
-    unset FORK_DIR
+    if _checkSet FORK_DIR && _checkDirectory FORK_DIR; then
+        # If this is a forked terminal, go the parent shell's directory
+        cd $FORK_DIR
+        unset FORK_DIR
+    elif [[ "$PWD" == "$(readlink -f $HOME)" ]]; then
+        # Fix home directory mismatch between real and symbolic path
+        cd "$HOME"
+    fi
 fi
 
