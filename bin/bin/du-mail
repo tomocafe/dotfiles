@@ -1,5 +1,12 @@
 #!/bin/bash
 
+threshold="20G"
+threads=1
+depth=1
+mail=true
+mail_threshold="10%"
+no_reply=false
+
 unset disk
 opt_error=false
 while [[ $# -gt 0 ]]; do
@@ -15,6 +22,10 @@ while [[ $# -gt 0 ]]; do
         -d|--depth)
             shift
             depth=$1
+            ;;
+        -a|--append)
+            shift
+            append_file=$1
             ;;
         --no-mail)
             mail=false
@@ -35,13 +46,6 @@ while [[ $# -gt 0 ]]; do
     esac
     shift
 done
-
-threshold=${threshold:-20G}
-threads=${threads:-1}
-depth=${depth:-1}
-mail=${mail:-true}
-mail_threshold=${mail_threshold:-10%}
-no_reply=${no_reply:-false}
 
 unit=${threshold: -1}
 mail_threshold_unit=${mail_threshold: -1}
@@ -67,6 +71,10 @@ if [[ $cmp -gt ${threshold%?} ]]; then
 fi
 
 # Disk utilization is above threshold, perform analysis and messaging
+
+if [[ -r "${append_file}" ]]; then
+    append_text="$(<"${append_file}")"
+fi
 
 # Convert mail threshold to KB
 if [[ $mail_threshold_unit == '%' ]]; then
@@ -109,7 +117,7 @@ from:$sender@$domain
 
 Hi ${owner_name[0]},
 
-The disk mounted at $disk has only ${sz_avail}${sz_unit} (${pc_avail}%) of space remaining. You are receiving this automated message because your files account for more than ${mail_threshold} of the used space on this disk. Please help to clean up some files at your earliest convenience.
+The disk mounted at $disk has only ${sz_avail}${sz_unit} (${pc_avail}%) of space remaining. You are receiving this automated message because your files account for more than ${mail_threshold} of the used space on this disk. Please help to clean up some files at your earliest convenience.${append_text:+\n\n}${append_text}
 EOF
 
     mailed+=($owner)
