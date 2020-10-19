@@ -117,7 +117,7 @@ from:$sender@$domain
 
 Hi ${owner_name[0]},
 
-The disk mounted at $disk has only ${sz_avail}${sz_unit} (${pc_avail}%) of space remaining. You are receiving this automated message because your files account for more than ${mail_threshold} of the used space on this disk. Please help to clean up some files at your earliest convenience.${append_text:+\n\n}${append_text}
+The disk mounted at $disk has only ${sz_avail}${sz_unit} (${pc_avail}%) of space remaining. You are receiving this automated message because your files account for more than ${mail_threshold} of the used space on this disk. Please help to clean up some files at your earliest convenience.${append_text:+$'\n'$'\n'}${append_text}
 EOF
 
     mailed+=($owner)
