@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Typora
+Exec=typora
+Icon=typora
+Terminal=false
+Categories=Application;TextEditor
+MimeType=text/markdown;text/x-markdown;
+
