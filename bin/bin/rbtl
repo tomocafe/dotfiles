@@ -1,0 +1,53 @@
+#!/usr/bin/env perl
+
+=head1 NAME
+
+rbtl - read between the lines (to show whitespace characters)
+
+=cut
+
+=head1 SYNOPSIS
+
+$ rbtl < file.txt
+
+$ command | rbtl
+
+=cut
+
+=head1 DESCRIPTION
+
+Re-prints stdin replacing whitespace characters with visible glyphs
+
+=cut
+
+use warnings;
+use strict;
+
+use Term::ANSIColor;
+
+my $ts = 4;
+
+# Potential glyphs: ─ → » ⭲
+
+foreach my $line (<STDIN>) {
+    foreach my $code (unpack "C*", $line) {
+        if    ($code == 32) { # space
+            printf "%s%s%s", color('bold cyan'), '·', color('reset');
+        }
+        elsif ($code == 9) { # tab
+            printf "%s%s%s%s", color('bold yellow'), '─' x ($ts - 1), '»', color('reset');
+        }
+        elsif ($code == 13) { # CR
+            printf "%s%s%s", color('bold magenta'), '¶', color('reset');
+        }
+        elsif ($code == 10) { # newline (LF)
+            printf "%s%s%s", color('bold red'), "↵\n", color('reset');
+        }
+        elsif (chr($code) =~ /\s/) { # some other whitespace
+            printf "%s%s%s", color('bold green'), '␣', color('reset');
+        }
+        else {
+            printf "%s", chr($code);
+        }
+    }
+}
