@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Moves the active window to center stage, with a relative size as a percentage of the screen
+# or incrementally increase/decrease size with +/-
+
+usage () {
+    local this="${BASH_SOURCE[0]##/}"
+    echo "$this [+/-]" 1>&2
+    echo "$this <size>" 1>&2
+}
+
+MIN_SIZE=20
+MAX_SIZE=100
+INC=5
+
+get_curr_size () {
+    # Sets SIZE to maximum of window to screen ratio using height or width
+    # maxdepth=0 restricts search to the root window, which yields screen geometry
+    eval $(xdotool search --maxdepth 0 --class "" getwindowgeometry --shell)
+    local screen_width=$WIDTH
+    local screen_height=$HEIGHT
+    eval $(xdotool getactivewindow getwindowgeometry --shell)
+    local w_perc=$(( 100 * WIDTH / screen_width ))
+    local h_perc=$(( 100 * HEIGHT / screen_height ))
+    SIZE=$(( w_perc > h_perc ? w_perc : h_perc ))
+}
+
+case "$1" in
+    +)
+        get_curr_size
+        SIZE=$(( SIZE > MAX_SIZE - INC ? MAX_SIZE : SIZE + INC ))
+        ;;
+    -)
+        get_curr_size
+        SIZE=$(( SIZE > MIN_SIZE + INC ? SIZE - INC : MIN_SIZE ))
+        ;;
+    [0-9]*)
+        SIZE=$1
+        ;;
+    *)
+        usage
+        exit 1
+        ;;
+esac
+
+gutter=$(( (100 - SIZE) / 2 ))
+xdotool getactivewindow windowsize ${SIZE}% ${SIZE}% windowmove ${gutter}% ${gutter}%
+
