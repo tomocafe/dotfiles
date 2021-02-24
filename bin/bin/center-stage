@@ -4,9 +4,10 @@
 # or incrementally increase/decrease size with +/-
 
 usage () {
-    local this="${BASH_SOURCE[0]##/}"
+    local this="${BASH_SOURCE[0]##*/}"
     echo "$this [+/-]" 1>&2
     echo "$this <size>" 1>&2
+    echo "$this" 1>&2
 }
 
 MIN_SIZE=20
@@ -20,11 +21,20 @@ get_curr_size () {
     local screen_width=$WIDTH
     local screen_height=$HEIGHT
     eval $(xdotool getactivewindow getwindowgeometry --shell)
-    local w_perc=$(( 100 * WIDTH / screen_width ))
-    local h_perc=$(( 100 * HEIGHT / screen_height ))
-    SIZE=$(( w_perc > h_perc ? w_perc : h_perc ))
+    WSIZE=$(( 100 * WIDTH / screen_width ))
+    HSIZE=$(( 100 * HEIGHT / screen_height ))
+    SIZE=$(( WSIZE > HSIZE ? WSIZE : HSIZE ))
 }
 
+# Center window only -- do not resize
+if [[ $# -eq 0 ]]; then
+    get_curr_size
+    w_gutter=$(( (100 - WSIZE) / 2 ))
+    h_gutter=$(( (100 - HSIZE) / 2 ))
+    exec xdotool getactivewindow windowmove ${w_gutter}% ${h_gutter}%
+fi
+
+# Resize and center
 case "$1" in
     +)
         get_curr_size
