@@ -18,18 +18,6 @@ def get_gdb_version():
     match = re.search('([0-9]+)\.([0-9]+)', version_string)
     return (match.group(1), match.group(2))
 
-# Common settings
-gdb.execute('set auto-load safe-path /')
-gdb.execute('set unwindonsignal on')
-gdb.execute('set verbose off')
-
-# C++ pretty printers
-try:
-    from libstdcxx.v6.printers import register_libstdcxx_printers
-    register_libstdcxx_printers(None)
-except:
-    pass
-
 # Site-specific initialization
 import glob
 for script in glob.glob(os.path.expanduser('~/.gdbinit.d/*')):
