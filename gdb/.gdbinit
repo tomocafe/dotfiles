@@ -26,9 +26,14 @@ gdb.execute('set verbose off')
 # C++ pretty printers
 try:
     from libstdcxx.v6.printers import register_libstdcxx_printers
-    register_libstdcxx_printers (None)
+    register_libstdcxx_printers(None)
 except:
     pass
+
+# Site-specific initialization
+import glob
+for script in glob.glob(os.path.expanduser('~/.gdbinit.d/*')):
+    gdb.execute('source ' + script)
 
 try:
     import psutil
