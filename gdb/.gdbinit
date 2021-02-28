@@ -4,6 +4,7 @@ python
 import sys
 import os
 import re
+import glob
 
 def is_standalone():
     procs = [p.name() for p in [psutil.Process()] + psutil.Process().parents()]
@@ -16,15 +17,18 @@ def is_standalone():
 def get_gdb_version():
     version_string = gdb.execute('show version', False, True).splitlines()[0]
     match = re.search('([0-9]+)\.([0-9]+)', version_string)
-    return (match.group(1), match.group(2))
+    return (int(match.group(1)), int(match.group(2)))
 
 # Site-specific initialization
-import glob
 for script in glob.glob(os.path.expanduser('~/.gdbinit.d/*')):
     gdb.execute('source ' + script)
 
 try:
     import psutil
+except:
+    print('Missing psutil package in Python interpreter {interp}'.format(interp=sys.executable))
+
+try:
     standalone, caller = is_standalone()
     if standalone:
         gdb_version_info = get_gdb_version()
@@ -43,6 +47,5 @@ try:
         gdb.execute('set pagination off')
         gdb.execute('set prompt ({name}) '.format(name=caller))
 except:
-    print('Missing psutil package in Python interpreter {interp}'.format(interp=sys.executable))
     print('Unable to detect if this is standalone gdb')
 
