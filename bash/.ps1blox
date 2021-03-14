@@ -1,0 +1,101 @@
+# ps1blox - sets PS1 based on user-defined function blocks
+
+# Caches ANSI color codes from tput to global array
+ps1blox_color16_init () {
+    [[ -n ${PS1BLOX_COLORS+1} ]] && return
+    PS1BLOX_COLORS=()
+    PS1BLOX_RESET="$(tput sgr0)"
+    local i
+    for i in {0..15}; do
+        PS1BLOX_COLORS+=("$(tput setaf "$i")")
+    done
+}
+
+# Prints ANSI color code to stderr
+ps1blox_color16 () {
+    ps1blox_color16_init
+    printf "%s" "${PS1BLOX_COLORS[$1]}" 1>&2
+}
+
+# Sets PS1
+# Caller should set PROMPT_COMMAND=ps1blox_setprompt
+ps1blox_setprompt () {
+    # These are variables that can be used from user blocks
+    # Last command return value
+    PS1BLOX_RC=$? # keep this line first!
+    # Characters remaining on line
+    PS1BLOX_REM=${COLUMNS?set checkwinsize}
+    # end
+    
+    local _us=$'\x22' # ASCII unit separator
+    local _block
+    local _color
+    local _text
+
+    local _lhs
+    _lhs=""
+    for _block in "${PS1BLOX_LEFT[@]}"; do
+        local _packed
+        _packed=$(
+            { text=$($_block); } 2>&1
+            printf "%s%s" "${_us}" "${text}"
+)
+        _color="${_packed%%${_us}*}"
+        _text="${_packed#*${_us}}"
+        _lhs+="${_color}${_text}${PS1BLOX_RESET}"
+        (( PS1BLOX_REM -= ${#_text} ))
+    done
+
+    # Left-only: stop here, no new line
+    PS1="${_lhs}"
+    if [[ -z ${PS1BLOX_RIGHT+1} ]]; then
+        return
+    fi
+
+    # Left and right side: full line prompt
+
+    local _rhs
+    _rhs=""
+    for _block in "${PS1BLOX_RIGHT[@]}"; do
+        local _packed
+        _packed=$(
+            { text=$($_block); } 2>&1
+            printf "%s%s" "${_us}" "${text}"
+    )
+        _color="${_packed%%${_us}*}"
+        _text="${_packed#*${_us}}"
+        _rhs+="${_color}${_text}${PS1BLOX_RESET}"
+        (( PS1BLOX_REM -= ${#_text} ))
+    done
+
+    local _ctr
+    _ctr="$(printf "%${PS1BLOX_REM}s" "")"
+
+    PS1+="${_ctr}${_rhs}\n"
+    if [[ -z ${PS1BLOX_NEXT+1} ]]; then
+        return
+    fi
+
+    # Next line prompt
+    PS1BLOX_REM=$COLUMNS
+    local _next
+    _next=""
+    for _block in "${PS1BLOX_NEXT[@]}"; do
+        local _packed
+        _packed=$(
+            { text=$($_block); } 2>&1
+            printf "%s%s" "${_us}" "${text}"
+    )
+        _color="${_packed%%${_us}*}"
+        _text="${_packed#*${_us}}"
+        _next+="${_color}${_text}${PS1BLOX_RESET}"
+        (( PS1BLOX_REM -= ${#_text} ))
+    done
+    
+    PS1+="${_next}"
+}
+
+# Set up colors on source of this file
+ps1blox_color16_init
+
+# vim:ft=sh
