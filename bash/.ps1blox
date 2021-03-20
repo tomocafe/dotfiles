@@ -13,6 +13,15 @@
 #
 # For a single-line, left-justified prompt, only populate PS1BLOX_LEFT.
 # For a two-line prompt, set PS1BLOX_LEFT, PS1BLOX_RIGHT, and PS1BLOX_NEXTLINE.
+# 
+#    PS1BLOX_LEFT=(
+#      block1
+#      block2
+#    )
+#
+# To activate the blocks, set PROMPT_COMMAND to ps1blox_setprompt.
+#
+#    PROMPT_COMMAND=ps1blox_setprompt
 #
 # Writing a block function:
 # 
@@ -22,6 +31,11 @@
 # A block can be assigned *one* color using the ps1blox_color16 function.
 # Simply call this function anywhere inside your block, giving a color ID from
 # 0 to 15 as the sole argument, and it will apply to all the block text.
+#
+#    function block1 () {
+#      echo -e "some_text"
+#      ps1blox_color16 2 # blue
+#    }
 #
 # Do not write anything else to stderr. Take care to redirect stderr to
 # /dev/null for any command you may call from within the block function.
