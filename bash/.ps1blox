@@ -32,7 +32,7 @@ ps1blox_settabtitle () {
 ps1blox_setprompt () {
     # These are variables that can be used from user blocks
     # Last command return value
-    PS1BLOX_RC=$? # keep this line first!
+    PS1BLOX_RC=${PS1BLOX_RC:-$?} # keep this line first!
     # Characters remaining on line
     PS1BLOX_REM=${COLUMNS?set checkwinsize}
     # end

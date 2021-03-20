@@ -489,6 +489,7 @@ function _promptWintitle () {
 }
 
 function _promptCmd () {
+    PS1BLOX_RC=$?
     SHELL_ROOT_PROC="$(_getRootProcess)"
     TTY="$(command tty)"
     TTY="${TTY##*/}"
