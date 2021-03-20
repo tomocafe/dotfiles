@@ -5,6 +5,7 @@ if [[ ${BASH_VERSINFO:-0} -lt 4 ]]; then
     return 1
 fi
 
+source ~/.ps1blox
 source ~/.bash_functions
 
 # Source site-specific bash settings under ~/.bash_settings.d
@@ -47,7 +48,29 @@ export HISTIGNORE="&:?:??:clear:pwd:exit:pushd:popd"
 if [[ $- == *i* ]]; then
     shopt -s checkwinsize
     _exportColorCodes
-    export PROMPT_COMMAND=_setPrompt
+    PS1BLOX_LEFT=(
+        _promptHeader
+        _promptHost
+        _promptColonSep
+        _promptTty
+        _promptGit
+        _promptP4
+        _promptVenv
+        _promptJobs
+    )
+    PS1BLOX_RIGHT=(
+        _promptHist
+        _promptSpaceSep
+        _promptDirpath
+        _promptDirname
+    )
+    PS1BLOX_NEXTLINE=(
+        _promptChar
+    )
+    PS1BLOX_WINTITLE=_promptWintitle
+    _checkSet PS1BLOX_ENABLED \
+        && PROMPT_COMMAND=_promptCmd \
+        || _setFastPrompt
 fi
 
 # Directory colors
@@ -109,4 +132,3 @@ if [[ $- == *i* ]]; then
         cd "$HOME"
     fi
 fi
-

@@ -17,6 +17,16 @@ ps1blox_color16 () {
     printf "%s" "${PS1BLOX_COLORS[$1]}" 1>&2
 }
 
+# Sets terminal window title
+ps1blox_setwintitle () {
+    echo -ne "\033]0;${1}\007"
+}
+
+# Sets terminal tab title
+ps1blox_settabtitle () {
+    echo -ne "\033]30;${1}\007"
+}
+
 # Sets PS1
 # Caller should set PROMPT_COMMAND=ps1blox_setprompt
 ps1blox_setprompt () {
@@ -42,17 +52,18 @@ ps1blox_setprompt () {
 )
         _color="${_packed%%${_us}*}"
         _text="${_packed#*${_us}}"
-        _lhs+="${_color}${_text}${PS1BLOX_RESET}"
+        _lhs+="${_color:+\[${_color}\]}${_text}${_color:+\[$PS1BLOX_RESET\]}"
         (( PS1BLOX_REM -= ${#_text} ))
     done
 
     # Left-only: stop here, no new line
     PS1="${_lhs}"
-    if [[ -z ${PS1BLOX_RIGHT+1} ]]; then
+    if [[ -z "${PS1BLOX_RIGHT+1}" ]]; then
         return
     fi
 
     # Left and right side: full line prompt
+    PS1="\r${PS1}"
 
     local _rhs
     _rhs=""
@@ -64,7 +75,7 @@ ps1blox_setprompt () {
     )
         _color="${_packed%%${_us}*}"
         _text="${_packed#*${_us}}"
-        _rhs+="${_color}${_text}${PS1BLOX_RESET}"
+        _rhs+="${_color:+\[${_color}\]}${_text}${_color:+\[$PS1BLOX_RESET\]}"
         (( PS1BLOX_REM -= ${#_text} ))
     done
 
@@ -72,7 +83,7 @@ ps1blox_setprompt () {
     _ctr="$(printf "%${PS1BLOX_REM}s" "")"
 
     PS1+="${_ctr}${_rhs}\n"
-    if [[ -z ${PS1BLOX_NEXT+1} ]]; then
+    if [[ -z ${PS1BLOX_NEXTLINE+1} ]]; then
         return
     fi
 
@@ -80,7 +91,7 @@ ps1blox_setprompt () {
     PS1BLOX_REM=$COLUMNS
     local _next
     _next=""
-    for _block in "${PS1BLOX_NEXT[@]}"; do
+    for _block in "${PS1BLOX_NEXTLINE[@]}"; do
         local _packed
         _packed=$(
             { text=$($_block); } 2>&1
@@ -88,14 +99,19 @@ ps1blox_setprompt () {
     )
         _color="${_packed%%${_us}*}"
         _text="${_packed#*${_us}}"
-        _next+="${_color}${_text}${PS1BLOX_RESET}"
+        _next+="${_color:+\[${_color}\]}${_text}${_color:+\[$PS1BLOX_RESET\]}"
         (( PS1BLOX_REM -= ${#_text} ))
     done
     
+    [[ -n "${PS1BLOX_WINTITLE}" ]] && ps1blox_setwintitle "$($PS1BLOX_WINTITLE)"
+    [[ -n "${PS1BLOX_TABTITLE}" ]] && ps1blox_settabtitle "$($PS1BLOX_TABTITLE)"
+
     PS1+="${_next}"
 }
 
 # Set up colors on source of this file
 ps1blox_color16_init
+
+export PS1BLOX_ENABLED=1
 
 # vim:ft=sh

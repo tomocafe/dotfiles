@@ -335,49 +335,34 @@ function _showColors () {
 # Prompts and titles
 ###############################################################################
 
-function _setTerminalTitle () {
-    echo -ne "\033]0;${TERMINAL_LABEL}$@\007"
+function _promptColonSep () { printf ':'; }
+function _promptSpaceSep () { printf ' '; }
+
+function _promptHeader () {
+    [[ $PS1BLOX_RC -eq 0 ]] && ps1blox_color16 10 || ps1blox_color16 1
+    printf '┌─ '
 }
 
-function _setTerminalTab () {
-    echo -ne "\033]30;${TERMINAL_LABEL}$@\007"
+function _promptHost () {
+    case "$SHELL_ROOT_PROC" in
+        # Color hostname differently if root process is a connection daemon (e.g. sshd)
+        # This is a warning that closing the terminal will close a connection 
+        sshd|sge_execd)
+            ps1blox_color16 9 # orange (bright red)
+            ;;
+        *)
+            ps1blox_color16 3 # yellow
+            ;;
+    esac
+    echo -e "${HOSTNAME%%.*}" # strip domain if present
 }
 
-function _setTerminalLabel () {
-    export TERMINAL_LABEL="$@"
+function _promptTty () {
+    ps1blox_color16 4 # blue
+    echo -e "$TTY"
 }
 
-function _genPromptP4Status () {
-    [[ -n $P4CLIENT ]] || return
-    local status="$P4CLIENT"
-    if ! _checkCommand p4 || _checkSet P4_NOT_CONNECTED; then
-        echo "$status"
-        return
-    fi
-    declare -A openFileCtPerChangelist
-    local line
-    while read -r line; do
-        ((openFileCtPerChangelist[$line]++))
-    done < <(p4 -ztag -F %change% opened -C $P4CLIENT)
-    local clientOpts=$(p4 -ztag -F %Options% client -o $P4CLIENT)
-    clientOpts=":${clientOpts// /:}:"
-    if [[ $clientOpts =~ :locked: ]]; then
-        status+="*"
-    fi
-    # Show open file count in default changelist first
-    if [[ ${openFileCtPerChangelist[default]+x} ]]; then
-        status+=" (${openFileCtPerChangelist[default]})"
-    fi
-    # Then show any non-default changelists
-    local cl
-    for cl in ${!openFileCtPerChangelist[@]}; do
-        [[ $cl == 'default' ]] && continue
-        status+=" (@$cl ${openFileCtPerChangelist[$cl]})"
-    done
-    echo "$status"
-}
-
-function _genPromptGitStatus () {
+function _promptGit () {
     if ! git status -s &>/dev/null; then
         # We are not in a git repository
         return
@@ -416,144 +401,98 @@ function _genPromptGitStatus () {
     esac
     repoName=${repoName%.git}
     # Determine the current branch
-    branch=$(git symbolic-ref -q HEAD)
+    local branch=$(git symbolic-ref -q HEAD)
     branch=${branch#refs/heads/}
-    echo "$repoName${branch:+ $branch}${uncleanFileStats:+ (${uncleanFileStats[@]})}"
+    ps1blox_color16 5 # magenta
+    echo -e " $repoName${branch:+ $branch}${uncleanFileStats:+ (${uncleanFileStats[@]})}"
 }
 
-function _genPromptVirtualEnvStatus () {
-    _checkSet VIRTUAL_ENV || return
-    echo "${VIRTUAL_ENV##*/}"
-}
-
-function _genPromptJobCt () {
-    local ct=0
+function _promptP4 () {
+    [[ -n $P4CLIENT ]] || return
+    local status="$P4CLIENT"
+    if ! _checkCommand p4 || _checkSet P4_NOT_CONNECTED; then
+        echo "$status"
+        return
+    fi
+    declare -A openFileCtPerChangelist
     local line
     while read -r line; do
-        let ct++
-    done < <(jobs)
-    [[ $ct -gt 0 ]] && echo "{$ct}"
+        ((openFileCtPerChangelist[$line]++))
+    done < <(p4 -ztag -F %change% opened -C $P4CLIENT)
+    local clientOpts=$(p4 -ztag -F %Options% client -o $P4CLIENT)
+    clientOpts=":${clientOpts// /:}:"
+    if [[ $clientOpts =~ :locked: ]]; then
+        status+="*"
+    fi
+    # Show open file count in default changelist first
+    if [[ ${openFileCtPerChangelist[default]+x} ]]; then
+        status+=" (${openFileCtPerChangelist[default]})"
+    fi
+    # Then show any non-default changelists
+    local cl
+    for cl in ${!openFileCtPerChangelist[@]}; do
+        [[ $cl == 'default' ]] && continue
+        status+=" (@$cl ${openFileCtPerChangelist[$cl]})"
+    done
+    unset openFileCtPerChangelist
+    ps1blox_color16 5 # magenta
+    echo -e " $status"
 }
 
-function _setPrompt () {
-    # Save the return code from the previous command first!
-    local rc=$?
-    # Calculate number of bg jobs here (before spawning anything)
-    jobct="$(_genPromptJobCt)"
-    # Update X window property
-    ( _writeShellRootProcXProp $$ & ) # move to background subshell for speed
-    # Make sure colors are exported (caching saves time compared to many tput calls)
-    [[ ${#COLORS[@]} -gt 0 ]] || _exportColorCodes
-    # Storage
-    local sep=' '
-    local blockText=()
-    local blockColor=()
-    local block
-    # Header
-    blockText+=('┌─ ')
-    [[ $rc -eq 0 ]] && blockColor+=(${COLORS[10]}) || blockColor+=(${COLORS[1]}) # bright green if last command successful, red otherwise
-    # Hostname
-    blockText+=("${HOSTNAME%%.*}") # strip domain if present
-    local rootProc=$(_getRootProcess)
-    case $rootProc in
-        # Color hostname differently if root process is a connection daemon (e.g. sshd)
-        # This is a warning that closing the terminal will close a connection 
-        sshd|sge_execd)
-            blockColor+=(${COLORS[9]}) # orange (bright red)
-            ;;
-        *)
-            blockColor+=(${COLORS[3]}) # yellow
-            ;;
-    esac
-    # TTY
-    local tty=$(tty)
-    blockText+=(':')
-    blockColor+=(${COLOR_RESET})
-    blockText+=("${tty##*/}")
-    blockColor+=(${COLORS[4]}) # blue
-    # P4/git status
-    # Precedence: if cwd is part of a git repository, use git status; else use P4 status based on environment variables
-    block=$(_genPromptGitStatus)
-    if [[ -n $block ]]; then
-        blockText+=("$sep")
-        blockColor+=(${COLOR_RESET})
-        blockText+=("$block")
-        blockColor+=(${COLORS[5]}) # magenta
-    else
-        block=$(_genPromptP4Status)
-        if [[ -n $block ]]; then
-            blockText+=("$sep")
-            blockColor+=(${COLOR_RESET})
-            blockText+=("$block")
-            if ! _checkCommand p4 || _checkSet P4_NOT_CONNECTED; then
-                blockColor+=(${COLORS[1]}) # red
-            else
-                blockColor+=(${COLORS[5]}) # magenta
-            fi
-        fi
-    fi
-    # Python virtualenv status
-    block=$(_genPromptVirtualEnvStatus)
-    if [[ -n $block ]]; then
-        blockText+=("$sep")
-        blockColor+=(${COLOR_RESET})
-        blockText+=("$block")
-        blockColor+=(${COLORS[6]}) # cyan
-    fi
-    local lastTitleBlockIndex=${#blockText[@]} # for setting title/tab, stop printing here
-    # Background job count
-    block="$jobct"
-    if [[ -n $block ]]; then
-        blockText+=("$sep")
-        blockColor+=(${COLOR_RESET})
-        blockText+=("$block")
-        blockColor+=(${COLORS[$COLOR_BG_DIM]})
-    fi
-    # Set up right justification
-    local lhsCharCt=0
-    for block in "${blockText[@]}"; do
-        let lhsCharCt+=${#block}
-    done
-    # Current working directory (right justified)
-    local _pwd=${PWD/#$HOME/\~}
+function _promptVenv () {
+    _checkSet VIRTUAL_ENV || return
+    ps1blox_color16 6 # cyan
+    echo -e " ${VIRTUAL_ENV##*/}"
+}
+
+function _promptJobs () {
+    local jobct
+    local line
+    jobct=0
+    while read -r line; do
+        let jobct++
+    done < <(jobs)
+    [[ $jobct -gt 0 ]] || return
+    ps1blox_color16 $COLOR_BG_DIM
+    echo -e " {$jobct}"
+}
+
+function _promptHist () {
+    ps1blox_color16 $COLOR_BG_DIM
+    echo -e "[$HISTCMD]"
+}
+
+function _promptDirpath () {
+    local _pwd="${PWD/#$HOME/\~}"
     local dirpath="${_pwd%/*}/"
     local dirname="${_pwd##*/}"
-    [[ $dirname == '~' ]] && dirpath=''
-    if [[ $((lhsCharCt + ${#dirpath} + ${#dirname} + 2)) -ge $COLUMNS ]]; then # offset +2 for parentheses
-        # If the full path is too long, use only the directory name
-        dirpath=''
-    fi
-    local cenCharCt=$((COLUMNS - lhsCharCt - ${#dirpath} - ${#dirname} - 2)) # offset -2 for parentheses
-    [[ $cenCharCt -lt 1 ]] && cenCharCt=1
-    local cenText=$(printf "%${cenCharCt}s" "")
-    blockText+=("$cenText")
-    blockColor+=(${COLOR_RESET})
-    blockText+=('(')
-    blockColor+=(${COLOR_RESET})
-    if [[ -n "$dirpath" ]]; then
-        blockText+=("$dirpath")
-        blockColor+=(${COLOR_RESET})
-    fi
-    blockText+=("$dirname")
-    blockColor+=(${COLORS[$COLOR_FG_BRIGHTER]})
-    blockText+=(')')
-    blockColor+=(${COLOR_RESET})
-    # Set status line
-    local i=0
-    PS1="\r"
-    local titleText=""
-    while [[ $i -lt ${#blockText[@]} ]]; do
-        PS1+="\[${blockColor[$i]}\]${blockText[$i]}"
-        [[ $i -gt 0 && $i -lt $lastTitleBlockIndex ]] && titleText+="${blockText[$i]}" # skip header
-        let i++
-    done
-    titleText+=" ($rootProc)"
-    # Set prompt
-    PS1+="\n\[${blockColor[0]}\]\$\[${COLOR_RESET}\] "
-    export PS1
-    # Set the terminal title/tab
-    _setTerminalTitle "$titleText"
-    #_setTerminalTab "$titleText"
+    [[ $dirname == '~' ]] && return
+    local width=$(( ${#dirpath} + ${#dirname} ))
+    [[ $width -ge $PS1BLOX_REM ]] && return
+    echo -e "$dirpath"
+}
+
+function _promptDirname () {
+    local _pwd="${PWD/#$HOME/\~}"
+    local dirname="${_pwd##*/}"
+    ps1blox_color16 $COLOR_FG_BRIGHTER
+    echo -e "$dirname"
+}
+
+function _promptChar () {
+    [[ $PS1BLOX_RC -eq 0 ]] && ps1blox_color16 10 || ps1blox_color16 1
+    [[ $EUID -eq 0 ]] && printf '# ' || printf '$ '
+}
+
+function _promptWintitle () {
+    echo -e "${HOSTNAME}:${TTY}${SHELL_ROOT_PROC:+ ($SHELL_ROOT_PROC)}"
+}
+
+function _promptCmd () {
+    SHELL_ROOT_PROC="$(_getRootProcess)"
+    TTY="$(command tty)"
+    TTY="${TTY##*/}"
+    ps1blox_setprompt
 }
 
 function _setFastPrompt () {
