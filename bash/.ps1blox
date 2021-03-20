@@ -1,4 +1,49 @@
+# ------------------------------------------------------------------------------
 # ps1blox - sets PS1 based on user-defined function blocks
+#
+# A "block" is a string of text printed by a function, which can be displayed 
+# in any of the following regions of the prompt:
+#
+# - PS1BLOX_LEFT     : the left-justified region of the prompt
+# - PS1BLOX_RIGHT    : the right-justified region of the prompt
+# - PS1BLOX_NEXTLINE : the left-justified second line of the prompt
+#
+# Each region listed above is an array of blocks. Set these arrays with
+# your own block functions in the order you want them displayed.
+#
+# For a single-line, left-justified prompt, only populate PS1BLOX_LEFT.
+# For a two-line prompt, set PS1BLOX_LEFT, PS1BLOX_RIGHT, and PS1BLOX_NEXTLINE.
+#
+# Writing a block function:
+# 
+# Each block should output a string of text without a trailing newline,
+# e.g. using `echo -e` or `printf`. This text should be written to stdout.
+#
+# A block can be assigned *one* color using the ps1blox_color16 function.
+# Simply call this function anywhere inside your block, giving a color ID from
+# 0 to 15 as the sole argument, and it will apply to all the block text.
+#
+# Do not write anything else to stderr. Take care to redirect stderr to
+# /dev/null for any command you may call from within the block function.
+# 
+# The following variables are available to be used in blocks:
+#
+# - PS1BLOX_RC  : the return code of the last command run by the shell
+# - PS1BLOX_REM : the number of remaining columns in the line, useful for
+#                 truncating a block if it won't fit in a line
+#
+# If this script was successfully sourced, it will export the variable
+# PS1BLOX_ENABLED, which can be used as a hook for the sourcing script
+# to decide whether to use ps1blox for setting the prompt, or some fallback
+# method.
+#
+# If you want to update the window title (or tab title, if supported), on each
+# redraw of the prompt, set these variables to a function which prints the 
+# desired text to stdout:
+#
+# - PS1BLOX_WINTITLE : sets window title
+# - PS1BLOX_TABTITLE : sets tab title
+# ------------------------------------------------------------------------------
 
 # Caches ANSI color codes from tput to global array
 ps1blox_color16_init () {
