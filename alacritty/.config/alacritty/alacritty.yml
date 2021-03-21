@@ -10,6 +10,8 @@ font:
     italic:
         style: Italic
     size: 11.0
+selection:
+    save_to_clipboard: true
 colors:
     primary:
         background: '#16161e'

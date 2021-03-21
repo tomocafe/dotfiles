@@ -9,6 +9,8 @@ font:
     italic:
         style: Italic
     size: M4_FONT_SIZE
+selection:
+    save_to_clipboard: true
 colors:
     primary:
         background: 'M4_COLOR_BG'
