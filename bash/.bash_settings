@@ -39,6 +39,10 @@ if [[ $- == *i* ]]; then
     bind -x '"\C-f":_fork'
     bind -x '"\ez":fg'
     bind '"\e[Z": menu-complete'
+    if [[ ${BASH_VERSINFO:-0} -ge 5 ]]; then
+        # readline 8.1 (bash 5.1) turned this on by default
+        bind 'set enable-bracketed-paste off'
+    fi
 fi
 
 # History settings
