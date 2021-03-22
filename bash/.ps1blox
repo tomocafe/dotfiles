@@ -139,7 +139,11 @@ ps1blox_setprompt () {
     done
 
     local _ctr
-    _ctr="$(printf "%${PS1BLOX_REM}s" "")"
+    if [[ $PS1BLOX_REM -gt 0 ]]; then
+        _ctr="$(printf "%${PS1BLOX_REM}s" "")"
+    else
+        _ctr=' '
+    fi
 
     PS1+="${_ctr}${_rhs}\n"
     if [[ -z ${PS1BLOX_NEXTLINE+1} ]]; then
@@ -166,6 +170,10 @@ ps1blox_setprompt () {
     [[ -n "${PS1BLOX_TABTITLE}" ]] && ps1blox_settabtitle "$($PS1BLOX_TABTITLE)"
 
     PS1+="${_next}"
+    
+    # Clean up
+    unset PS1BLOX_RC # important!
+    unset PS1BLOX_REM
 }
 
 # Set up colors on source of this file

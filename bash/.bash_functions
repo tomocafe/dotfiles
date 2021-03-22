@@ -359,7 +359,7 @@ function _promptHost () {
 
 function _promptTty () {
     ps1blox_color16 4 # blue
-    echo -e "$TTY"
+    echo -e "$TTY_NUM"
 }
 
 function _promptGit () {
@@ -463,7 +463,7 @@ function _promptHist () {
 }
 
 function _promptDirpath () {
-    local _pwd="${PWD/#$HOME/\~}"
+    local _pwd="${PWD/#$HOME/~}"
     local dirpath="${_pwd%/*}/"
     local dirname="${_pwd##*/}"
     [[ $dirname == '~' ]] && return
@@ -473,10 +473,10 @@ function _promptDirpath () {
 }
 
 function _promptDirname () {
-    local _pwd="${PWD/#$HOME/\~}"
+    local _pwd="${PWD/#$HOME/~}"
     local dirname="${_pwd##*/}"
     ps1blox_color16 $COLOR_FG_BRIGHTER
-    echo -e "$dirname"
+    echo -e "${dirname}"
 }
 
 function _promptChar () {
@@ -485,15 +485,7 @@ function _promptChar () {
 }
 
 function _promptWintitle () {
-    echo -e "${HOSTNAME}:${TTY}${SHELL_ROOT_PROC:+ ($SHELL_ROOT_PROC)}"
-}
-
-function _promptCmd () {
-    PS1BLOX_RC=$?
-    SHELL_ROOT_PROC="$(_getRootProcess)"
-    TTY="$(command tty)"
-    TTY="${TTY##*/}"
-    ps1blox_setprompt
+    echo -e "${HOSTNAME}:${TTY_NUM}${SHELL_ROOT_PROC:+ ($SHELL_ROOT_PROC)}"
 }
 
 function _setFastPrompt () {

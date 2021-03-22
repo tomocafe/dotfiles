@@ -34,6 +34,9 @@ function pushd() { command pushd ${1:-.}; }
 # shell settings
 set -o ignoreeof
 
+# History settings
+export HISTIGNORE="&:?:??:clear:pwd:exit:pushd:popd"
+
 # Key bindings
 if [[ $- == *i* ]]; then
     bind -x '"\C-f":_fork'
@@ -45,13 +48,15 @@ if [[ $- == *i* ]]; then
     fi
 fi
 
-# History settings
-export HISTIGNORE="&:?:??:clear:pwd:exit:pushd:popd"
+# Record shell root process
+export SHELL_ROOT_PROC="$(_getRootProcess)"
 
 # Set prompt
 if [[ $- == *i* ]]; then
     shopt -s checkwinsize
     _exportColorCodes
+    TTY_NUM="$(command tty)"
+    TTY_NUM="${TTY_NUM##*/}"
     PS1BLOX_LEFT=(
         _promptHeader
         _promptHost
@@ -62,9 +67,15 @@ if [[ $- == *i* ]]; then
         _promptVenv
         _promptJobs
     )
-    PS1BLOX_RIGHT=(
-        _promptHist
-        _promptSpaceSep
+    PS1BLOX_RIGHT=()
+    if [[ ${BASH_VERSINFO:-0} -ge 5 ]]; then
+        # history doesn't work in PROMPT_COMMAND prior to bash 5.1
+        PS1BLOX_RIGHT+=(
+            _promptHist
+            _promptSpaceSep
+        )
+    fi
+    PS1BLOX_RIGHT+=(
         _promptDirpath
         _promptDirname
     )
@@ -73,7 +84,7 @@ if [[ $- == *i* ]]; then
     )
     PS1BLOX_WINTITLE=_promptWintitle
     _checkSet PS1BLOX_ENABLED \
-        && PROMPT_COMMAND=_promptCmd \
+        && PROMPT_COMMAND=ps1blox_setprompt \
         || _setFastPrompt
 fi
 
