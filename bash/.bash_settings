@@ -37,6 +37,19 @@ set -o ignoreeof
 # History settings
 export HISTIGNORE="&:?:??:clear:pwd:exit:pushd:popd"
 
+# Record shell root process
+if [[ $- == *i* ]]; then
+    export SHELL_ROOT_PROC="$(_getRootProcess)"
+    # Save it to the active window properties (in the background, allows rest of script resume in parallel)
+    # Keep this near the top for better parallelization
+    if _checkCommand xprop && _checkSet DISPLAY; then
+        {
+            wid=$(xprop -root _NET_ACTIVE_WINDOW); wid=${wid##* }
+            xprop -id $wid -f SHELL_ROOT_PROC 8s -set SHELL_ROOT_PROC "$SHELL_ROOT_PROC" &>/dev/null
+        } &
+    fi
+fi
+
 # Key bindings
 if [[ $- == *i* ]]; then
     bind -x '"\C-f":_fork'
@@ -45,16 +58,6 @@ if [[ $- == *i* ]]; then
     if [[ ${BASH_VERSINFO:-0} -ge 5 ]]; then
         # readline 8.1 (bash 5.1) turned this on by default
         bind 'set enable-bracketed-paste off'
-    fi
-fi
-
-# Record shell root process
-if [[ $- == *i* ]]; then
-    export SHELL_ROOT_PROC="$(_getRootProcess)"
-    # Save it to the active window properties
-    if _checkCommand xprop && _checkSet DISPLAY; then
-        wid=$(xprop -root _NET_ACTIVE_WINDOW); wid=${wid##* }
-        xprop -id $wid -f SHELL_ROOT_PROC 8s -set SHELL_ROOT_PROC "$SHELL_ROOT_PROC" &>/dev/null
     fi
 fi
 
