@@ -49,7 +49,14 @@ if [[ $- == *i* ]]; then
 fi
 
 # Record shell root process
-export SHELL_ROOT_PROC="$(_getRootProcess)"
+if [[ $- == *i* ]]; then
+    export SHELL_ROOT_PROC="$(_getRootProcess)"
+    # Save it to the active window properties
+    if _checkCommand xprop && _checkSet DISPLAY; then
+        wid=$(xprop -root _NET_ACTIVE_WINDOW); wid=${wid##* }
+        xprop -id $wid -f SHELL_ROOT_PROC 8s -set SHELL_ROOT_PROC "$SHELL_ROOT_PROC" &>/dev/null
+    fi
+fi
 
 # Set prompt
 if [[ $- == *i* ]]; then

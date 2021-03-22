@@ -245,14 +245,6 @@ function _matchProcessTree () {
     return 1
 }
 
-function _writeShellRootProcXProp () {
-    if [[ $- == *i* ]] && _checkCommand xprop && _checkSet DISPLAY; then
-        # Get the current active window ID
-        wid=$(xprop -root _NET_ACTIVE_WINDOW); wid=${wid##* }
-        xprop -id $wid -f SHELL_ROOT_PROC 8s -set SHELL_ROOT_PROC $(_getRootProcess $1) &>/dev/null
-    fi
-}
-
 ###############################################################################
 # Colors
 ###############################################################################
