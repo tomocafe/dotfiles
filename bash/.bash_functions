@@ -455,7 +455,7 @@ function _promptHist () {
 }
 
 function _promptDirpath () {
-    local _pwd="${PWD/#$HOME/~}"
+    local _pwd="${PWD/#$HOME/$'~'}"
     local dirpath="${_pwd%/*}/"
     local dirname="${_pwd##*/}"
     [[ $dirname == '~' ]] && return
@@ -465,7 +465,7 @@ function _promptDirpath () {
 }
 
 function _promptDirname () {
-    local _pwd="${PWD/#$HOME/~}"
+    local _pwd="${PWD/#$HOME/$'~'}"
     local dirname="${_pwd##*/}"
     ps1blox_color16 $COLOR_FG_BRIGHTER
     echo -e "${dirname}"
