@@ -5,7 +5,6 @@ if [[ ${BASH_VERSINFO:-0} -lt 4 ]]; then
     return 1
 fi
 
-source ~/.ps1blox
 source ~/.bash_functions
 
 # Source site-specific bash settings under ~/.bash_settings.d
@@ -64,6 +63,7 @@ fi
 
 # Set prompt
 if [[ $- == *i* ]]; then
+    source ~/.ps1blox
     shopt -s checkwinsize
     _exportColorCodes
     TTY_NUM="$(command tty)"
