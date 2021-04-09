@@ -583,3 +583,11 @@ $*
 EOF
 }
 
+function _urlEncode () {
+    python3 -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], sys.argv[2], sys.argv[3]))' "$1" "$2" "${3:-utf-8}"
+}
+
+function _urlDecode () {
+    python3 -c 'import urllib.parse, sys; print(urllib.parse.unquote(sys.argv[1], sys.argv[2]))' "$1" "${2:-utf-8}"
+}
+
