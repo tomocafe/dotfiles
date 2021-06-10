@@ -10,6 +10,15 @@ function _join () {
     echo "$*"
 }
 
+function _sum () {
+    local sum=0
+    local n
+    for n in "$@"; do
+        (( sum += n ))
+    done
+    echo "$sum"
+}
+
 function _hardCopy () {
     local f
     for f in $@; do
