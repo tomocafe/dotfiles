@@ -70,6 +70,31 @@ function _isDirectoryEmpty ()
     [[ "${inodes%%$'\t'*}" -le 1 ]]
 }
 
+# Parse profile output with bashprof-read
+function _profileStart () {
+    PROFILE_LOG="${TMPDIR:-/tmp}/bashprof.$$.out"
+    BACKUP_PS4="$PS4"
+    [[ $- == *i* ]] && echo "Logging runtime profile to $PROFILE_LOG"
+    exec 5>"$PROFILE_LOG"
+    BASH_XTRACEFD="5"
+    if [[ ${BASH_VERSINFO-0} -ge 5 ]]; then
+        echo "$EPOCHREALTIME\011 start" 1>&5
+        PS4='+ $EPOCHREALTIME\011 '
+    else
+        echo "$(date +"%s.%N") start" 1>&5
+        PS4='+ $(date "+%s.%N")\011 '
+    fi
+    set -x
+}
+
+function _profileStop () {
+    set +x
+    unset BASH_XTRACEFD
+    unset PROFILE_LOG
+    PS4="$BACKUP_PS4"
+    unset BACKUP_PS4
+}
+
 ###############################################################################
 # Messaging
 ###############################################################################
