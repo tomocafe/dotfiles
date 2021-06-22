@@ -78,10 +78,10 @@ function _profileStart () {
     exec 5>"$PROFILE_LOG"
     BASH_XTRACEFD="5"
     if [[ ${BASH_VERSINFO-0} -ge 5 ]]; then
-        echo "$EPOCHREALTIME\011 start" 1>&5
+        echo -e "$EPOCHREALTIME\011 start" 1>&5
         PS4='+ $EPOCHREALTIME\011 '
     else
-        echo "$(date +"%s.%N") start" 1>&5
+        echo -e "$(date +"%s.%N")\011 start" 1>&5
         PS4='+ $(date "+%s.%N")\011 '
     fi
     set -x
