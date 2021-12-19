@@ -15,6 +15,7 @@ done
 # Aliases
 alias ls="command ls --color=auto -F"
 alias which="type"
+alias vi="vim"
 alias ssh-tmp="command ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
 alias f="_fork"
 alias hc="_hardCopy"
