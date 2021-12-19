@@ -283,52 +283,47 @@ function _matchProcessTree () {
 # Colors
 ###############################################################################
 
-function _exportColorCodes () {
-    # 16 colors
-    COLORS=()
-    local id
-    for id in {0..15}; do
-        COLORS+=("$(tput setaf $id)")
-    done
-    # Special color codes
-    export COLOR_RESET="$(tput sgr0)"
-    export COLOR_TRESET="$(tput reset)"
-    # Map xrdb global background to closest b/w 16-bit color codes
-    if command -v xrdb &>/dev/null; then
-        local line
-        while read -r line; do
-            if [[ $line =~ \*background: ]]; then
-                local code=${line##*#}
-                local r="0x${code:0:2}"
-                local g="0x${code:2:2}"
-                local b="0x${code:4:2}"
-                local i
-                local ct=0
-                for i in $r $g $b; do
-                    [[ $i -ge 0x7f ]] && let ct++
-                done
-                if [[ $ct -ge 2 ]]; then
-                    # Background mostly light => black fg, white bg
-                    COLOR_BG_DIM=15
-                    COLOR_FG_DIM=7
-                    COLOR_FG_BRIGHT=8
-                    COLOR_FG_BRIGHTER=0
-                else
-                    # Background mostly dark => white fg, black bg
-                    COLOR_BG_DIM=0
-                    COLOR_FG_DIM=8
-                    COLOR_FG_BRIGHT=7
-                    COLOR_FG_BRIGHTER=15
-                fi
-                break
-            fi
-        done < <(xrdb -query 2>/dev/null)
-    fi
+function _analyzeColors () {
     # Set sensible defaults for dark background
-    export COLOR_BG_DIM=${COLOR_BG_DIM:-0}
-    export COLOR_FG_DIM=${COLOR_FG_DIM:-8}
-    export COLOR_FG_BRIGHT=${COLOR_FG_BRIGHT:-7}
-    export COLOR_FG_BRIGHTER=${COLOR_FG_BRIGHTER:-15}
+    export COLOR_BG_DIM_ID=0
+    export COLOR_FG_DIM_ID=8
+    export COLOR_FG_BRIGHT_ID=7
+    export COLOR_FG_BRIGHTER_ID=15
+    export COLOR_BG_DIM=black
+    export COLOR_FG_DIM=gray
+    export COLOR_FG_BRIGHT=white
+    export COLOR_FG_BRIGHTER=bright_white
+    bb_iscmd xrdb || return
+    # Map xrdb global background to closest b/w 16-bit color codes
+    local line
+    while read -r line; do
+        if [[ $line =~ \*background: ]]; then
+            local code=${line##*#}
+            local r="0x${code:0:2}"
+            local g="0x${code:2:2}"
+            local b="0x${code:4:2}"
+            local i
+            local ct=0
+            for i in $r $g $b; do
+                [[ $i -ge 0x7f ]] && let ct++
+            done
+            if [[ $ct -ge 2 ]]; then
+                # Background mostly light => black fg, white bg
+                export COLOR_BG_DIM_ID=15
+                export COLOR_FG_DIM_ID=8
+                export COLOR_FG_BRIGHT_ID=8
+                export COLOR_FG_BRIGHTER_ID=0
+                export COLOR_BG_DIM=bright_white
+                export COLOR_FG_DIM=white
+                export COLOR_FG_BRIGHT=gray
+                export COLOR_FG_BRIGHTER=black
+            else
+                # Background mostly dark => white fg, black bg
+                : # Keep defaults
+            fi
+            break
+        fi
+    done < <(xrdb -query 2>/dev/null)
 }
 
 function _showColors () {
@@ -361,31 +356,31 @@ function _showColors () {
 # Prompts and titles
 ###############################################################################
 
-function _promptColonSep () { printf ':'; }
 function _promptSpaceSep () { printf ' '; }
 
 function _promptHeader () {
-    [[ $PS1BLOX_RC -eq 0 ]] && ps1blox_color16 10 || ps1blox_color16 1
-    printf '┌─ '
+    local color
+    [[ $BB_PROMPT_LASTRC -eq 0 ]] && color="green" || color="bright_red"
+    bb_promptcolor "$color"  '┌─'
+    echo -n " "
 }
 
 function _promptHost () {
+    local color
     case "$SHELL_ROOT_PROC" in
         # Color hostname differently if root process is a connection daemon (e.g. sshd)
         # This is a warning that closing the terminal will close a connection 
         sshd|sge_execd)
-            ps1blox_color16 9 # orange (bright red)
+            color="bright_red"
             ;;
         *)
-            ps1blox_color16 3 # yellow
+            color="yellow"
             ;;
     esac
-    echo -e "${HOSTNAME%%.*}" # strip domain if present
-}
-
-function _promptTty () {
-    ps1blox_color16 4 # blue
-    echo -e "$TTY_NUM"
+    bb_promptcolor "$color" "${HOSTNAME%%.*}" # strip domain if present
+    bb_checkset TTY_NUM || return
+    echo -n ":"
+    bb_promptcolor "blue" "$TTY_NUM"
 }
 
 function _promptGit () {
@@ -429,8 +424,8 @@ function _promptGit () {
     # Determine the current branch
     local branch=$(git symbolic-ref -q HEAD)
     branch=${branch#refs/heads/}
-    ps1blox_color16 5 # magenta
-    echo -e " $repoName${branch:+ $branch}${uncleanFileStats:+ (${uncleanFileStats[@]})}"
+    echo -n " "
+    bb_promptcolor "magenta" "$repoName${branch:+ $branch}${uncleanFileStats:+ (${uncleanFileStats[@]})}"
 }
 
 function _promptP4 () {
@@ -462,14 +457,14 @@ function _promptP4 () {
         status+=" (@$cl ${openFileCtPerChangelist[$cl]})"
     done
     unset openFileCtPerChangelist
-    ps1blox_color16 5 # magenta
-    echo -e " $status"
+    echo -n " "
+    bb_promptcolor "magenta" "$status"
 }
 
 function _promptVenv () {
-    _checkSet VIRTUAL_ENV || return
-    ps1blox_color16 6 # cyan
-    echo -e " ${VIRTUAL_ENV##*/}"
+    bb_checkset VIRTUAL_ENV || return
+    echo -n " "
+    bb_promptcolor "cyan" "${VIRTUAL_ENV##*/}"
 }
 
 function _promptJobs () {
@@ -480,13 +475,12 @@ function _promptJobs () {
         let jobct++
     done < <(jobs)
     [[ $jobct -gt 0 ]] || return
-    ps1blox_color16 $COLOR_BG_DIM
-    echo -e " {$jobct}"
+    echo -n " "
+    bb_promptcolor "$COLOR_BG_DIM" "{$jobct}"
 }
 
 function _promptHist () {
-    ps1blox_color16 $COLOR_BG_DIM
-    echo -e "[$HISTCMD]"
+    bb_promptcolor "$COLOR_BG_DIM" "[$HISTCMD]"
 }
 
 function _promptDirpath () {
@@ -495,31 +489,27 @@ function _promptDirpath () {
     local dirname="${_pwd##*/}"
     [[ $dirname == '~' ]] && return
     local width=$(( ${#dirpath} + ${#dirname} ))
-    [[ $width -ge $PS1BLOX_REM ]] && return
+    [[ $width -ge $BB_PROMPT_REM ]] && return
     echo -e "$dirpath"
 }
 
 function _promptDirname () {
     local _pwd="${PWD/#$HOME/$'~'}"
     local dirname="${_pwd##*/}"
-    ps1blox_color16 $COLOR_FG_BRIGHTER
-    echo -e "${dirname}"
+    bb_promptcolor "$COLOR_FG_BRIGHTER" "$dirname"
 }
 
 function _promptChar () {
-    [[ $PS1BLOX_RC -eq 0 ]] && ps1blox_color16 10 || ps1blox_color16 1
-    [[ $EUID -eq 0 ]] && printf '# ' || printf '$ '
+    local color
+    [[ $BB_PROMPT_LASTRC -eq 0 ]] && color="green" || color="bright_red"
+    local prompt
+    [[ $EUID -eq 0 ]] && prompt='#' || prompt='$'
+    bb_promptcolor "$color" "$prompt"
+    echo -n " "
 }
 
 function _promptWintitle () {
     echo -e "${HOSTNAME}:${TTY_NUM}${SHELL_ROOT_PROC:+ ($SHELL_ROOT_PROC)}"
-}
-
-function _setFastPrompt () {
-    unset PROMPT_COMMAND
-    shopt -u checkwinsize
-    export PROMPT_DIRTRIM=4
-    export PS1="\r\[${COLORS[$COLOR_FG_DIM]}\]┌─ \[${COLORS[3]}\]\h\[${COLOR_RESET}\]:\[${COLORS[4]}\]\l\[${COLOR_RESET}\] (\w)\n\[${COLORS[$COLOR_FG_DIM]}\]\$\[${COLOR_RESET}\] "
 }
 
 ###############################################################################
