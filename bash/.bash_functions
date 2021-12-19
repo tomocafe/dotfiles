@@ -255,11 +255,11 @@ function _getRootProcessBase () {
 }
 
 function _getRootProcess () {
-    _getRootProcessBase 'comm' $@
+    _getRootProcessBase 'comm' "$@"
 }
 
 function _getRootProcessArgs () {
-    _getRootProcessBase 'args' $@
+    _getRootProcessBase 'args' "$@"
 }
 
 function _matchProcessTree () {
@@ -437,7 +437,8 @@ function _promptP4 () {
     [[ -n $P4CLIENT ]] || return
     local status="$P4CLIENT"
     if ! _checkCommand p4 || _checkSet P4_NOT_CONNECTED; then
-        echo "$status"
+        ps1blox_color16 1 # red 
+        echo -e " $status"
         return
     fi
     declare -A openFileCtPerChangelist
