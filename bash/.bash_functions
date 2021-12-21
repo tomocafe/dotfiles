@@ -431,10 +431,10 @@ function _promptGit () {
 
 function _promptP4 () {
     [[ -n $P4CLIENT ]] || return
-    local status="$P4CLIENT"
+    local statline="$P4CLIENT"
     if ! _checkCommand p4 || _checkSet P4_NOT_CONNECTED; then
-        ps1blox_color16 1 # red 
-        echo -e " $status"
+        echo -n " "
+        bb_promptcolor "red" "$statline"
         return
     fi
     declare -A openFileCtPerChangelist
@@ -445,21 +445,21 @@ function _promptP4 () {
     local clientOpts=$(p4 -ztag -F %Options% client -o $P4CLIENT)
     clientOpts=":${clientOpts// /:}:"
     if [[ $clientOpts =~ :locked: ]]; then
-        status+="*"
+        statline+="*"
     fi
     # Show open file count in default changelist first
     if [[ ${openFileCtPerChangelist[default]+x} ]]; then
-        status+=" (${openFileCtPerChangelist[default]})"
+        statline+=" (${openFileCtPerChangelist[default]})"
     fi
     # Then show any non-default changelists
     local cl
     for cl in ${!openFileCtPerChangelist[@]}; do
         [[ $cl == 'default' ]] && continue
-        status+=" (@$cl ${openFileCtPerChangelist[$cl]})"
+        statline+=" (@$cl ${openFileCtPerChangelist[$cl]})"
     done
     unset openFileCtPerChangelist
     echo -n " "
-    bb_promptcolor "magenta" "$status"
+    bb_promptcolor "magenta" "$statline"
 }
 
 function _promptVenv () {
