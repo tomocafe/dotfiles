@@ -34,7 +34,6 @@ alias extract="_extract"
 alias mcd="bb_mcd"
 alias history="_history"
 alias h="history"
-alias ext="_ext"
 alias sms="_sms"
 alias pidof="pgrep -x -u $USER"
 alias dc=bb_up

@@ -425,7 +425,8 @@ function _promptGit () {
     local branch=$(git symbolic-ref -q HEAD)
     branch=${branch#refs/heads/}
     echo -n " "
-    bb_promptcolor "magenta" "$repoName${branch:+ $branch}${uncleanFileStats:+ (${uncleanFileStats[@]})}"
+    local statline="$repoName${branch:+ $branch}${uncleanFileStats:+ (${uncleanFileStats[@]})}"
+    bb_promptcolor "magenta" "$statline"
 }
 
 function _promptP4 () {
