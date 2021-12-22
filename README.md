@@ -25,6 +25,7 @@ stow bash
 * `m4`
 * GNU `make`
 * `bash` (4.1+)
+* [`bash-boost`](https://github.com/tomocafe/bash-boost)
 * `python3`
 * `perl` (5.x)
 
@@ -41,21 +42,21 @@ You use your terminal of choice, but these dotfiles set `rxvt-unicode` (`urxvt`)
 These are adaptations of popular color schemes designed to be unified from the 16-color terminal palette. For dark themes, `0` is a dim background, `8` is a dim foreground, `7` is a bright foreground, and `15` is a brighter foreground (in order of intensity from dim to bright). For light themes, the interpretation of these color indices are reversed (e.g. `15` is a dim background, `0` is a brighter foreground). The normal foreground color should be between `7` and `8` and the terminal background color should be darker (brighter) than `0` (`15`).
 
 #### `gruvbox-dark`
-![#282828](https://placehold.it/15/282828/000000?text=+)![#a89984](https://placehold.it/15/a89984/000000?text=+)
-![#3c3836](https://placehold.it/15/3c3836/000000?text=+)![#cc241d](https://placehold.it/15/cc241d/000000?text=+)![#98971a](https://placehold.it/15/98971a/000000?text=+)![#d79921](https://placehold.it/15/d79921/000000?text=+)![#458588](https://placehold.it/15/458588/000000?text=+)![#b16286](https://placehold.it/15/b16286/000000?text=+)![#689d6a](https://placehold.it/15/689d6a/000000?text=+)![#a89984](https://placehold.it/15/a89984/000000?text=+)
-![#7c6f64](https://placehold.it/15/7c6f64/000000?text=+)![#fb4934](https://placehold.it/15/fb4934/000000?text=+)![#b8bb26](https://placehold.it/15/b8bb26/000000?text=+)![#fabd2f](https://placehold.it/15/fabd2f/000000?text=+)![#83a598](https://placehold.it/15/83a598/000000?text=+)![#d3869b](https://placehold.it/15/d3869b/000000?text=+)![#8ec07c](https://placehold.it/15/8ec07c/000000?text=+)![#ebdbb2](https://placehold.it/15/ebdbb2/000000?text=+)
+![#282828](https://via.placeholder.com/15/282828/000000?text=+)![#a89984](https://via.placeholder.com/15/a89984/000000?text=+)
+![#3c3836](https://via.placeholder.com/15/3c3836/000000?text=+)![#cc241d](https://via.placeholder.com/15/cc241d/000000?text=+)![#98971a](https://via.placeholder.com/15/98971a/000000?text=+)![#d79921](https://via.placeholder.com/15/d79921/000000?text=+)![#458588](https://via.placeholder.com/15/458588/000000?text=+)![#b16286](https://via.placeholder.com/15/b16286/000000?text=+)![#689d6a](https://via.placeholder.com/15/689d6a/000000?text=+)![#a89984](https://via.placeholder.com/15/a89984/000000?text=+)
+![#7c6f64](https://via.placeholder.com/15/7c6f64/000000?text=+)![#fb4934](https://via.placeholder.com/15/fb4934/000000?text=+)![#b8bb26](https://via.placeholder.com/15/b8bb26/000000?text=+)![#fabd2f](https://via.placeholder.com/15/fabd2f/000000?text=+)![#83a598](https://via.placeholder.com/15/83a598/000000?text=+)![#d3869b](https://via.placeholder.com/15/d3869b/000000?text=+)![#8ec07c](https://via.placeholder.com/15/8ec07c/000000?text=+)![#ebdbb2](https://via.placeholder.com/15/ebdbb2/000000?text=+)
 #### `solarized-dark`
-![#002b36](https://placehold.it/15/002b36/000000?text=+)![#839496](https://placehold.it/15/839496/000000?text=+)
-![#073642](https://placehold.it/15/073642/000000?text=+)![#dc322f](https://placehold.it/15/dc322f/000000?text=+)![#859900](https://placehold.it/15/859900/000000?text=+)![#b58900](https://placehold.it/15/b58900/000000?text=+)![#268bd2](https://placehold.it/15/268bd2/000000?text=+)![#d33682](https://placehold.it/15/d33682/000000?text=+)![#2aa198](https://placehold.it/15/2aa198/000000?text=+)![#eee8d5](https://placehold.it/15/eee8d5/000000?text=+)
-![#586e75](https://placehold.it/15/586e75/000000?text=+)![#cb4b16](https://placehold.it/15/cb4b16/000000?text=+)![#859900](https://placehold.it/15/859900/000000?text=+)![#b58900](https://placehold.it/15/b58900/000000?text=+)![#268bd2](https://placehold.it/15/268bd2/000000?text=+)![#6c71c4](https://placehold.it/15/6c71c4/000000?text=+)![#2aa198](https://placehold.it/15/2aa198/000000?text=+)![#fdf6e3](https://placehold.it/15/fdf6e3/000000?text=+)
+![#002b36](https://via.placeholder.com/15/002b36/000000?text=+)![#839496](https://via.placeholder.com/15/839496/000000?text=+)
+![#073642](https://via.placeholder.com/15/073642/000000?text=+)![#dc322f](https://via.placeholder.com/15/dc322f/000000?text=+)![#859900](https://via.placeholder.com/15/859900/000000?text=+)![#b58900](https://via.placeholder.com/15/b58900/000000?text=+)![#268bd2](https://via.placeholder.com/15/268bd2/000000?text=+)![#d33682](https://via.placeholder.com/15/d33682/000000?text=+)![#2aa198](https://via.placeholder.com/15/2aa198/000000?text=+)![#eee8d5](https://via.placeholder.com/15/eee8d5/000000?text=+)
+![#586e75](https://via.placeholder.com/15/586e75/000000?text=+)![#cb4b16](https://via.placeholder.com/15/cb4b16/000000?text=+)![#859900](https://via.placeholder.com/15/859900/000000?text=+)![#b58900](https://via.placeholder.com/15/b58900/000000?text=+)![#268bd2](https://via.placeholder.com/15/268bd2/000000?text=+)![#6c71c4](https://via.placeholder.com/15/6c71c4/000000?text=+)![#2aa198](https://via.placeholder.com/15/2aa198/000000?text=+)![#fdf6e3](https://via.placeholder.com/15/fdf6e3/000000?text=+)
 #### `solarized-light`
-![#fdf6e3](https://placehold.it/15/fdf6e3/000000?text=+)![#657b83](https://placehold.it/15/657b83/000000?text=+)
-![#002b36](https://placehold.it/15/002b36/000000?text=+)![#dc322f](https://placehold.it/15/dc322f/000000?text=+)![#859900](https://placehold.it/15/859900/000000?text=+)![#b58900](https://placehold.it/15/b58900/000000?text=+)![#268bd2](https://placehold.it/15/268bd2/000000?text=+)![#d33682](https://placehold.it/15/d33682/000000?text=+)![#2aa198](https://placehold.it/15/2aa198/000000?text=+)![#93a1a1](https://placehold.it/15/93a1a1/000000?text=+)
-![#073642](https://placehold.it/15/073642/000000?text=+)![#cb4b16](https://placehold.it/15/cb4b16/000000?text=+)![#859900](https://placehold.it/15/859900/000000?text=+)![#b58900](https://placehold.it/15/b58900/000000?text=+)![#268bd2](https://placehold.it/15/268bd2/000000?text=+)![#6c71c4](https://placehold.it/15/6c71c4/000000?text=+)![#2aa198](https://placehold.it/15/2aa198/000000?text=+)![#eee8d5](https://placehold.it/15/eee8d5/000000?text=+)
+![#fdf6e3](https://via.placeholder.com/15/fdf6e3/000000?text=+)![#657b83](https://via.placeholder.com/15/657b83/000000?text=+)
+![#002b36](https://via.placeholder.com/15/002b36/000000?text=+)![#dc322f](https://via.placeholder.com/15/dc322f/000000?text=+)![#859900](https://via.placeholder.com/15/859900/000000?text=+)![#b58900](https://via.placeholder.com/15/b58900/000000?text=+)![#268bd2](https://via.placeholder.com/15/268bd2/000000?text=+)![#d33682](https://via.placeholder.com/15/d33682/000000?text=+)![#2aa198](https://via.placeholder.com/15/2aa198/000000?text=+)![#93a1a1](https://via.placeholder.com/15/93a1a1/000000?text=+)
+![#073642](https://via.placeholder.com/15/073642/000000?text=+)![#cb4b16](https://via.placeholder.com/15/cb4b16/000000?text=+)![#859900](https://via.placeholder.com/15/859900/000000?text=+)![#b58900](https://via.placeholder.com/15/b58900/000000?text=+)![#268bd2](https://via.placeholder.com/15/268bd2/000000?text=+)![#6c71c4](https://via.placeholder.com/15/6c71c4/000000?text=+)![#2aa198](https://via.placeholder.com/15/2aa198/000000?text=+)![#eee8d5](https://via.placeholder.com/15/eee8d5/000000?text=+)
 #### `nord-dark`
-![#2e3440](https://placehold.it/15/2e3440/000000?text=+)![#d8dee9](https://placehold.it/15/d8dee9/000000?text=+)
-![#3b4252](https://placehold.it/15/3b4252/000000?text=+)![#bf616a](https://placehold.it/15/bf616a/000000?text=+)![#a3be8c](https://placehold.it/15/a3be8c/000000?text=+)![#ebcb8b](https://placehold.it/15/ebcb8b/000000?text=+)![#81a1c1](https://placehold.it/15/81a1c1/000000?text=+)![#b48ead](https://placehold.it/15/b48ead/000000?text=+)![#88c0d0](https://placehold.it/15/88c0d0/000000?text=+)![#e5e9f0](https://placehold.it/15/e5e9f0/000000?text=+)
-![#636f88](https://placehold.it/15/636f88/000000?text=+)![#d08770](https://placehold.it/15/d08770/000000?text=+)![#a3be8c](https://placehold.it/15/a3be8c/000000?text=+)![#ebcb8b](https://placehold.it/15/ebcb8b/000000?text=+)![#81a1c1](https://placehold.it/15/81a1c1/000000?text=+)![#b48ead](https://placehold.it/15/b48ead/000000?text=+)![#88c0d0](https://placehold.it/15/88c0d0/000000?text=+)![#eceff4](https://placehold.it/15/eceff4/000000?text=+)
+![#2e3440](https://via.placeholder.com/15/2e3440/000000?text=+)![#d8dee9](https://via.placeholder.com/15/d8dee9/000000?text=+)
+![#3b4252](https://via.placeholder.com/15/3b4252/000000?text=+)![#bf616a](https://via.placeholder.com/15/bf616a/000000?text=+)![#a3be8c](https://via.placeholder.com/15/a3be8c/000000?text=+)![#ebcb8b](https://via.placeholder.com/15/ebcb8b/000000?text=+)![#81a1c1](https://via.placeholder.com/15/81a1c1/000000?text=+)![#b48ead](https://via.placeholder.com/15/b48ead/000000?text=+)![#88c0d0](https://via.placeholder.com/15/88c0d0/000000?text=+)![#e5e9f0](https://via.placeholder.com/15/e5e9f0/000000?text=+)
+![#636f88](https://via.placeholder.com/15/636f88/000000?text=+)![#d08770](https://via.placeholder.com/15/d08770/000000?text=+)![#a3be8c](https://via.placeholder.com/15/a3be8c/000000?text=+)![#ebcb8b](https://via.placeholder.com/15/ebcb8b/000000?text=+)![#81a1c1](https://via.placeholder.com/15/81a1c1/000000?text=+)![#b48ead](https://via.placeholder.com/15/b48ead/000000?text=+)![#88c0d0](https://via.placeholder.com/15/88c0d0/000000?text=+)![#eceff4](https://via.placeholder.com/15/eceff4/000000?text=+)
 
 
 ---
@@ -64,11 +65,14 @@ These are adaptations of popular color schemes designed to be unified from the 1
 
 The file `.bash_settings` includes common aliases, settings, and functions and should be sourced from the user's `.bashrc` or `.bash_profile` on the system. The `.bashrc` file is not included in this repository since it may need to be vastly different depending on the system; hence, everything deemed common enough is moved into the `.bash_settings` file. The `.bash_functions` file defines helpful functions and is included by the `.bash_settings` script.
 
+Many of the generic functions that used to be defined in `.bash_functions` were moved to the independent [`bash-boost`](https://github.com/tomocafe/bash-boost) project. Check there for useful bash functions. These dotfiles now depend on that module.
+
+In your `.bashrc` (or `.bash_profile`), you should source `bash-boost.sh` before sourcing `.bash_settings`.
+
 ### Features
 
 * Full-line prompt with git/Perforce status, Python virtual environment status, background job count, last command status, and right-justified current working directory (with truncation)
     * Hostname colored differently if root process is a connection daemon, warning that closing the shell may close a connection
-* (Optional) fast, basic prompt
 * Sets `$LS_COLORS`
 * Handy commands:
     * `dc` (backwards `cd`) with tab completion to go up the directory tree to a desired directory
@@ -77,12 +81,7 @@ The file `.bash_settings` includes common aliases, settings, and functions and s
     * `compress` and `extract` to work generically with archive files
     * `ssh-tmp` to launch SSH without host key checking
     * `h` (or `history`) shows colorized history with timestamps, piped to the `less` pager (unless `stdout` is redirected)
-    * `f` (<kbd>Ctrl</kbd>+<kbd>F</kbd>) "forks" a new terminal from within the current shell environment to duplicate a shell session with all its settings
-* Helper functions:
-    * `_join` joins the arguments with a given delimiter
-    * Pretty status messages: `_putError`, `_putWarning`, `_putInfo`
-    * Path manipulation: `_{in,prepend,prependUnique,append,appendUnique,removeFrom,swapIn,print}{Path,LdLibraryPath,LdPreloadPath,CdPath}`
-    * Check lists of files/commands/variables: `_check{Set,Command,Readable,Writeable,Executable,Exists,Directory,Link}`
+    * <kbd>Ctrl</kbd>+<kbd>F</kbd> "forks" a new terminal from within the current shell environment to duplicate a shell session with all its settings
     * `_showColors` shows 16-color palette in detail and also show all supported terminal colors
 
 ## i3wm
