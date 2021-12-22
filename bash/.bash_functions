@@ -124,17 +124,13 @@ function _showColors () {
 # Prompts and titles
 ###############################################################################
 
-function _promptSpaceSep () { printf ' '; }
-
-function _promptHeader () {
+function _promptLeft () {
     local color
+    # Header
     [[ $BB_PROMPT_LASTRC -eq 0 ]] && color="green" || color="bright_red"
     bb_promptcolor "$color"  '┌─'
     echo -n " "
-}
-
-function _promptHost () {
-    local color
+    # Host and TTY
     case "$SHELL_ROOT_PROC" in
         # Color hostname differently if root process is a connection daemon (e.g. sshd)
         # This is a warning that closing the terminal will close a connection 
@@ -146,15 +142,36 @@ function _promptHost () {
             ;;
     esac
     bb_promptcolor "$color" "${HOSTNAME%%.*}" # strip domain if present
-    bb_checkset TTY_NUM || return
-    echo -n ":"
-    bb_promptcolor "blue" "$TTY_NUM"
+    if bb_checkset TTY_NUM; then
+        echo -n ":"
+        bb_promptcolor "blue" "$TTY_NUM"
+    fi
+    # Git, Perforce stats
+    # Only print Perforce stats if not in a git repository
+    _promptGit || _promptP4
+    # Python virtualenv
+    if bb_checkset VIRTUAL_ENV; then
+        echo -n " "
+        bb_promptcolor "cyan" "${VIRTUAL_ENV##*/}"
+    fi
+    # Background jobs
+    wait # on any jobs spawned by this function, e.g. by _promptGit
+    local jobct
+    local line
+    jobct=0
+    while read -r line; do
+        let jobct++
+    done < <(jobs)
+    if [[ $jobct -gt 0 ]]; then
+        echo -n " "
+        bb_promptcolor "$COLOR_BG_DIM" "{$jobct}"
+    fi
 }
 
 function _promptGit () {
     if ! git status -s &>/dev/null; then
         # We are not in a git repository
-        return
+        return $__bb_false
     fi
     # Count the number of changed/untracked/conflict/staged files
     local line
@@ -177,6 +194,7 @@ function _promptGit () {
     [[ $stagedCt -gt 0 ]] && uncleanFileStats+=("*:$stagedCt")
     # Use remote origin URL to determine repo name, otherwise use top level directory name
     local remoteOriginUrl=$(git config --get remote.origin.url 2>/dev/null)
+    local repoName
     case "$remoteOriginUrl" in
         *.com[/:]*) repoName=${remoteOriginUrl##*.com[/:]} ;;
         *.org[/:]*) repoName=${remoteOriginUrl##*.org[/:]} ;;
@@ -195,12 +213,13 @@ function _promptGit () {
     echo -n " "
     local statline="$repoName${branch:+ $branch}${uncleanFileStats:+ (${uncleanFileStats[@]})}"
     bb_promptcolor "magenta" "$statline"
+    return $__bb_true
 }
 
 function _promptP4 () {
-    [[ -n $P4CLIENT ]] || return
+    [[ -n $P4CLIENT ]] || return $__bb_false
     local statline="$P4CLIENT"
-    if ! _checkCommand p4 || _checkSet P4_NOT_CONNECTED; then
+    if ! bb_iscmd p4 || bb_checkset P4_NOT_CONNECTED; then
         echo -n " "
         bb_promptcolor "red" "$statline"
         return
@@ -228,47 +247,27 @@ function _promptP4 () {
     unset openFileCtPerChangelist
     echo -n " "
     bb_promptcolor "magenta" "$statline"
-}
-
-function _promptVenv () {
-    bb_checkset VIRTUAL_ENV || return
-    echo -n " "
-    bb_promptcolor "cyan" "${VIRTUAL_ENV##*/}"
-}
-
-function _promptJobs () {
-    local jobct
-    local line
-    jobct=0
-    while read -r line; do
-        let jobct++
-    done < <(jobs)
-    [[ $jobct -gt 0 ]] || return
-    echo -n " "
-    bb_promptcolor "$COLOR_BG_DIM" "{$jobct}"
+    return $__bb_true
 }
 
 function _promptHist () {
     bb_promptcolor "$COLOR_BG_DIM" "[$HISTCMD]"
+    echo -n " "
 }
 
-function _promptDirpath () {
-    local _pwd="${PWD/#$HOME/$'~'}"
-    local dirpath="${_pwd%/*}/"
-    local dirname="${_pwd##*/}"
-    [[ $dirname == '~' ]] && return
+function _promptRight () {
+    # Current directory
+    local pwd="${PWD/#$HOME/$'~'}"
+    local dirpath="${pwd%/*}/"
+    local dirname="${pwd##*/}"
     local width=$(( ${#dirpath} + ${#dirname} ))
-    [[ $width -ge $BB_PROMPT_REM ]] && return
-    echo -e "$dirpath"
-}
-
-function _promptDirname () {
-    local _pwd="${PWD/#$HOME/$'~'}"
-    local dirname="${_pwd##*/}"
+    if [[ $dirname != '~' && $width -lt $BB_PROMPT_REM ]]; then
+        echo -n "$dirpath"
+    fi
     bb_promptcolor "$COLOR_FG_BRIGHTER" "$dirname"
 }
 
-function _promptChar () {
+function _promptNextLine () {
     local color
     [[ $BB_PROMPT_LASTRC -eq 0 ]] && color="green" || color="bright_red"
     local prompt

@@ -76,27 +76,14 @@ if [[ $- == *i* ]]; then
     _analyzeColors
     TTY_NUM="$(command tty)"
     TTY_NUM="${TTY_NUM##*/}"
-    bb_setpromptleft \
-        _promptHeader \
-        _promptHost \
-        _promptGit \
-        _promptP4 \
-        _promptVenv \
-        _promptJobs
+    bb_setpromptleft _promptLeft
     if [[ ${BASH_VERSINFO:-0} -ge 5 ]]; then
         # history doesn't work in PROMPT_COMMAND prior to bash 5.1
-        bb_setpromptright \
-            _promptHist \
-            _promptSpaceSep \
-            _promptDirpath \
-            _promptDirname
+        bb_setpromptright _promptHist _promptRight
     else
-        bb_setpromptright \
-            _promptDirpath \
-            _promptDirname
+        bb_setpromptright _promptRight
     fi
-    bb_setpromptnextline \
-        _promptChar
+    bb_setpromptnextline _promptNextLine
     bb_setwintitle _promptWintitle
     bb_loadprompt
 fi
