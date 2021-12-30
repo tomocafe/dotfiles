@@ -126,6 +126,13 @@ function _showColors () {
 
 function _promptLeft () {
     local color
+    # Count background jobs at the start of the function
+    # in case this function spawns background jobs (e.g., git status)
+    local jobct=0
+    local line
+    while read -r line; do
+        let jobct++
+    done < <(jobs)
     # Header
     [[ $BB_PROMPT_LASTRC -eq 0 ]] && color="green" || color="bright_red"
     bb_promptcolor "$color"  '┌─'
@@ -155,13 +162,6 @@ function _promptLeft () {
         bb_promptcolor "cyan" "${VIRTUAL_ENV##*/}"
     fi
     # Background jobs
-    wait # on any jobs spawned by this function, e.g. by _promptGit
-    local jobct
-    local line
-    jobct=0
-    while read -r line; do
-        let jobct++
-    done < <(jobs)
     if [[ $jobct -gt 0 ]]; then
         echo -n " "
         bb_promptcolor "$COLOR_BG_DIM" "{$jobct}"
