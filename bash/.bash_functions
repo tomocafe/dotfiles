@@ -5,20 +5,20 @@
 ###############################################################################
 
 function _getRootProcessBase () {
-    local _output=$1; shift
-    local _pid=${1:-$$}
+    local _output="$1"; shift
+    local _pid="${1:-$$}"
     while true; do
-        local _statfile=$(</proc/$_pid/stat)
-        _statfile=${_statfile/(*)/x} # sanitize proc names with spaces, e.g. (tmux: server)
-        local _stats=($_statfile)
-        local _ppid=${_stats[3]}
+        local _statfile="$(</proc/$_pid/stat)"
+        _statfile="${_statfile/(*)/x}" # sanitize proc names with spaces, e.g. (tmux: server)
+        local _stats=( $_statfile )
+        local _ppid="${_stats[3]}"
         # Check if we found the root process
         if [[ $_ppid -eq 1 ]]; then
-            echo $(ps -p $_pid -o $_output=)
+            echo "$(ps -p $_pid -o $_output=)"
             break
         fi
         # Advance to parent
-        _pid=$_ppid
+        _pid="$_ppid"
     done
 }
 
@@ -31,20 +31,20 @@ function _getRootProcessArgs () {
 }
 
 function _matchProcessTree () {
-    local _pattern=$1; shift
-    local _pid=${1:-$$}
+    local _pattern="$1"; shift
+    local _pid="${1:-$$}"
     while true; do
         # Check if processes up the tree match pattern
-        [[ $(ps -p $_pid -o args=) =~ $_pattern ]] && return 0
-        local _statfile=$(</proc/$_pid/stat)
-        _statfile=${_statfile/(*)/x} # sanitize proc names with spaces, e.g. (tmux: server)
-        local _stats=($_statfile)
-        local _ppid=${_stats[3]}
+        [[ $(ps -p $_pid -o args=) =~ $_pattern ]] && return $__bb_true
+        local _statfile="$(</proc/$_pid/stat)"
+        _statfile="${_statfile/(*)/x}" # sanitize proc names with spaces, e.g. (tmux: server)
+        local _stats=( $_statfile )
+        local _ppid="${_stats[3]}"
         [[ $_ppid -eq 1 ]] && break
         # Advance to parent
-        _pid=$_ppid
+        _pid="$_ppid"
     done
-    return 1
+    return $__bb_false
 }
 
 ###############################################################################
@@ -66,7 +66,7 @@ function _analyzeColors () {
     local line
     while read -r line; do
         if [[ $line =~ \*background: ]]; then
-            local code=${line##*#}
+            local code="${line##*#}"
             local r="0x${code:0:2}"
             local g="0x${code:2:2}"
             local b="0x${code:4:2}"
@@ -101,9 +101,9 @@ function _showColors () {
     local fg=7
     while [[ $id -lt 8 ]]; do
         for offset in 0 8; do
-            local col=$((id + offset))
-            local hex=$(xrdb -query 2>/dev/null | grep "^*color$col:")
-            hex=${hex##*#}
+            local col="$((id + offset))"
+            local hex="$(xrdb -query 2>/dev/null | grep "^*color$col:")"
+            hex="${hex##*#}"
             printf "$(tput setaf $col)%3s$(tput sgr0) $(tput setab $col)$(tput setaf $fg)%3s$(tput sgr0) %s%6s\t" $col $col ${hex:+#} $hex
             fg=0
         done
@@ -113,7 +113,7 @@ function _showColors () {
     id=16
     local tmax=$(tput colors)
     while [[ $id -lt $max ]] && [[ $id -lt $tmax ]]; do
-        printf "$(tput setaf $id)%3s$(tput sgr0) " $id
+        printf "$(tput setaf $id)%3s$(tput sgr0) " "$id"
         let id++
         [[ $((id % 8)) -eq 0 ]] && echo
     done
@@ -222,7 +222,7 @@ function _promptP4 () {
     if ! bb_iscmd p4 || bb_checkset P4_NOT_CONNECTED; then
         echo -n " "
         bb_promptcolor "red" "$statline"
-        return
+        return $__bb_true
     fi
     declare -A openFileCtPerChangelist
     local line
@@ -296,16 +296,17 @@ function _history () {
         command history $@
         return $?
     fi
-    # Make sure colors are exported (caching saves time compared to many tput calls)
-    [[ ${#COLORS[@]} -gt 0 ]] || _exportColorCodes
-    local reset='\033[m' # COLOR_RESET/TRESET (tput sgr0/reset) are not handled well by less, just hardcode this sequence
     # Run the following in a subshell to avoid leaking HISTTIMEFORMAT
     (
         export HISTTIMEFORMAT="${HISTTIMEFORMAT:-[%D %T]  }"
         local line
         while IFS= read -r line; do
             if [[ $line =~ ^([[:space:]]*)([[:digit:]]+)\ \ (\[.*?\])\ \ (.*)$ ]]; then
-                echo -e "${BASH_REMATCH[1]}${COLORS[6]}${BASH_REMATCH[2]}${reset}  ${COLORS[4]}${BASH_REMATCH[3]}${reset}  ${BASH_REMATCH[4]}";
+                bb_rawcolor "cyan"  "${BASH_REMATCH[1]}"
+                bb_rawcolor "green" "${BASH_REMATCH[2]}"
+                echo -n "  "
+                bb_rawcolor "blue"  "${BASH_REMATCH[3]}"
+                echo "  ${BASH_REMATCH[4]}"
             else
                 echo "$line";
             fi
@@ -317,37 +318,37 @@ function _archiveHandlerBase () {
     # Compress: $0 true  archive.extension <files>
     # Extract:  $0 false archive.extension
     [[ $# -ge 2 ]] || return 2
-    local _compress=$1
+    local c="$1"
     shift
-    case ${1,,} in
-        *.tar.gz|*.tgz) $_compress && tar czvf $@ || tar xzvf $@ ;;
-        *.tar.bz2|*.tbz2) $_compress && tar cjvf $@ || tar xjvf $@ ;;
-        *.tar.xz|*.txz) $_compress && tar cJvf $@ || tar xJvf $@ ;;
-        *.tar) $_compress && tar cvf $@ || tar xvf $@ ;;
-        *.gz) $_compress && gzip <$2 >$1 || gunzip $@ ;;
-        *.bz2) $_compress && bzip2 <$2 >$1 || bunzip2 $@ ;;
-        *.xz) $_compress && xz <$2 >$1 || unxz $@ ;;
-        *.lzh|*.lha) $_compress && lha c $@ || lha x $@ ;;
-        *.zip) $_compress && zip $@ || unzip $@ ;;
-        *.Z) $_compress && command compress <$2 >$1 || command uncompress $@ ;;
-        *.7z) $_compress && 7z a $@ || 7z x $@ ;;
-        *) _putError "unknown archive format"; return 1 ;;
+    case "${1,,}" in
+        *.tar.gz|*.tgz)   $c && tar czvf "$@" || tar xzvf "$@" ;;
+        *.tar.bz2|*.tbz2) $c && tar cjvf "$@" || tar xjvf "$@" ;;
+        *.tar.xz|*.txz)   $c && tar cJvf "$@" || tar xJvf "$@" ;;
+        *.tar)            $c && tar cvf "$@" || tar xvf "$@" ;;
+        *.gz)             $c && gzip <"$2" >"$1" || gunzip "$@" ;;
+        *.bz2)            $c && bzip2 <"$2" >"$1" || bunzip2 "$@" ;;
+        *.xz)             $c && xz <"$2" >"$1" || unxz "$@" ;;
+        *.lzh|*.lha)      $c && lha c "$@" || lha x "$@" ;;
+        *.zip)            $c && zip "$@" || unzip "$@" ;;
+        *.Z)              $c && command compress <"$2" >"$1" || command uncompress "$@" ;;
+        *.7z)             $c && 7z a "$@" || 7z x "$@" ;;
+        *) bb_error "unknown archive format"; return 1 ;;
     esac
 }
 
 function _compress () {
-    _archiveHandlerBase true $@
+    _archiveHandlerBase true "$@"
 }
 
 function _extract () {
-    _archiveHandlerBase false $@
+    _archiveHandlerBase false "$@"
 }
 
 function _sms () {
-    _checkCommand sendmail || return
-    if ! _checkSet SMS_GATEWAY; then
-        _putError "\$SMS_GATEWAY undefined: <number>@<carrier gateway domain>"
-        return
+    bb_iscmd sendmail || return $__bb_false
+    if ! bb_checkset SMS_GATEWAY; then
+        bb_error "\$SMS_GATEWAY undefined: <number>@<carrier gateway domain>"
+        return $__bb_false
     fi
     sendmail "$SMS_GATEWAY" <<EOF
 subject: $HOSTNAME
