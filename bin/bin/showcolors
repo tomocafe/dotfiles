@@ -1,0 +1,52 @@
+#!/bin/bash
+
+: ${BB_ROOT?requires bash-boost to run this script}
+source "$BB_ROOT/bash-boost.sh" || exit 5
+bb_load util/env cli/arg cli/msg
+
+bb_setprog "${BASH_SOURCE[0]##*/}"
+bb_addflag "x:extended" "show more than 16 colors"
+bb_parseargs "$@"
+
+# Check dependencies
+for cmd in tput; do
+    bb_iscmd "$cmd" || bb_fatal "required command not found: $cmd"
+done
+bb_iscmd xrdb && showx=true || showx=false
+
+# Get hex values for first 16 colors from Xresources
+if $showx; then
+    declare -A hexmap
+    re='^\*color([0-9]+):\s*#([0-9a-fA-F]+)'
+    while read -r line; do
+        if [[ $line =~ $re ]]; then
+            hexmap["${BASH_REMATCH[1]}"]="${BASH_REMATCH[2]}"
+        fi
+    done < <(xrdb -query 2>/dev/null)
+fi
+
+# Show first 16 colors
+id=0
+fgcol=7 # initially white on black, then black on all other colors
+while [[ $id -lt 8 ]]; do
+    for offset in 0 8; do
+        col="$((id + offset))"
+        $showx && hex="${hexmap[$id]}" || hex=""
+        printf "$(tput setaf $col)%3s$(tput sgr0) $(tput setab $col)$(tput setaf $fgcol)%3s$(tput sgr0) %s%6s\t" "$col" "$col" "${hex:+#}" "$hex"
+        fgcol=0
+    done
+    echo
+    let id++
+done
+
+bb_checkopt extended || exit 0
+
+# Show extended colors
+id=16
+max=$(tput colors)
+while [[ $id -lt $max ]]; do
+    printf "$(tput setaf $id)%3s$(tput sgr0) " "$id"
+    let id++
+    [[ $((id % 8)) -eq 0 ]] && echo
+done
+
