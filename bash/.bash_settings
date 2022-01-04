@@ -5,6 +5,19 @@ if [[ ${BASH_VERSINFO:-0} -lt 4 ]]; then
     return 1
 fi
 
+###
+### This requires bash-boost (github.com/tomocafe/bash-boost)
+###
+if [[ -z ${BB_VERSION+x} ]]; then
+    echo "${BASH_SOURCE[0]}: bash-boost is required" 1>&2
+    return 1
+fi
+bb_load util
+bb_load interactive
+bb_load cli
+
+export BB_ROOT # for standalone scripts
+
 source ~/.bash_functions
 
 # Source site-specific bash settings under ~/.bash_settings.d
@@ -17,18 +30,16 @@ alias ls="command ls --color=auto -F"
 alias which="type"
 alias vi="vim"
 alias ssh-tmp="command ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
-alias f="_fork"
-alias hc="_hardCopy"
+alias hc="bb_hardcopy"
 alias compress="_compress"
 alias extract="_extract"
-alias mcd="_makeChangeDirectory"
+alias mcd="bb_mcd"
 alias history="_history"
 alias h="history"
-alias ext="_ext"
 alias sms="_sms"
 alias pidof="pgrep -x -u $USER"
-function dc () { cd ${1:-..}; }
-complete -o nospace -F _dcBackwardsPathCompletion dc
+alias dc=bb_up
+complete -o nospace -F _bb_interactive_cmd_up_completion dc
 function pushd() { command pushd ${1:-.}; }
 function dirs() { command dirs "${1:--p}" "${@:2}"; }
 
@@ -43,7 +54,7 @@ if [[ $- == *i* ]]; then
     export SHELL_ROOT_PROC="$(_getRootProcess)"
     # Save it to the active window properties (in the background, allows rest of script resume in parallel)
     # Keep this near the top for better parallelization
-    if _checkCommand xprop && _checkSet DISPLAY; then
+    if bb_iscmd xprop && bb_checkset DISPLAY; then
         {
             wid=$(xprop -root _NET_ACTIVE_WINDOW 2>/dev/null) && \
             xprop -id "${wid##* }" -f SHELL_ROOT_PROC 8s -set SHELL_ROOT_PROC "$SHELL_ROOT_PROC" &>/dev/null
@@ -53,7 +64,7 @@ fi
 
 # Key bindings
 if [[ $- == *i* ]]; then
-    bind -x '"\C-f":_fork'
+    bind -x '"\C-f":bb_forkterm'
     bind -x '"\ez":fg'
     bind '"\e[Z": menu-complete'
     if [[ ${BASH_VERSINFO:-0} -ge 5 ]]; then
@@ -64,50 +75,31 @@ fi
 
 # Set prompt
 if [[ $- == *i* ]]; then
-    source ~/.ps1blox
-    shopt -s checkwinsize
-    _exportColorCodes
+    _analyzeColors
     TTY_NUM="$(command tty)"
     TTY_NUM="${TTY_NUM##*/}"
-    PS1BLOX_LEFT=(
-        _promptHeader
-        _promptHost
-        _promptColonSep
-        _promptTty
-        _promptGit
-        _promptP4
-        _promptVenv
-        _promptJobs
-    )
-    PS1BLOX_RIGHT=()
+    bb_setpromptleft _promptLeft
     if [[ ${BASH_VERSINFO:-0} -ge 5 ]]; then
         # history doesn't work in PROMPT_COMMAND prior to bash 5.1
-        PS1BLOX_RIGHT+=(
-            _promptHist
-            _promptSpaceSep
-        )
+        bb_setpromptright _promptHist _promptRight
+    else
+        bb_setpromptright _promptRight
     fi
-    PS1BLOX_RIGHT+=(
-        _promptDirpath
-        _promptDirname
-    )
-    PS1BLOX_NEXTLINE=(
-        _promptChar
-    )
-    PS1BLOX_WINTITLE=_promptWintitle
-    _checkSet PS1BLOX_ENABLED \
-        && PROMPT_COMMAND=ps1blox_setprompt \
-        || _setFastPrompt
+    bb_setpromptnextline _promptNextLine
+    bb_setwintitle _promptWintitle
+    bb_loadprompt
 fi
 
 # Directory colors
-if [[ -r ~/.dircolors ]]; then
+if [[ $- == *i* ]] && [[ -r ~/.dircolors ]]; then
     # Static color rules in .dircolors file
     eval $(dircolors -b ~/.dircolors)
     # Dynamic color rules altered as follows:
-    _ow=({ow,tw}"=1;35;4${COLOR_BG_DIM}")
-    _tmp=({*~,*#,*#*,*.swp,*.swo,*\,v}"=1;3${COLOR_BG_DIM}")
-    export LS_COLORS="$LS_COLORS:$(_join : ${_ow[@]}):$(_join : ${_tmp[@]})"
+    _ow=({ow,tw}"=1;35;4${COLOR_BG_DIM_ID}")
+    _tmp=({*~,*#,*#*,*.swp,*.swo,*\,v}"=1;3${COLOR_BG_DIM_ID}")
+    export LS_COLORS="$LS_COLORS:$(bb_join : ${_ow[@]}):$(bb_join : ${_tmp[@]})"
+    unset _ow
+    unset _tmp
 fi
 
 # ack/ag settings
@@ -145,15 +137,14 @@ unset command_not_found_handle
 unset SSH_ASKPASS
 
 # Add local perl5 modules
-_checkDirectory ~/.local/lib/perl5 && \
-    _appendUniquePathBase PERL5LIB ~/.local/lib/perl5
+[[ -d ~/.local/lib/perl5 ]] && bb_appendpathuniq PERL5LIB ~/.local/lib/perl5
 
 # Set starting path
 if [[ $- == *i* ]]; then
-    if _checkSet FORK_DIR && _checkDirectory FORK_DIR; then
+    if bb_checkset BB_FORKDIR && [[ -d "$BB_FORKDIR" ]]; then
         # If this is a forked terminal, go the parent shell's directory
-        cd $FORK_DIR
-        unset FORK_DIR
+        cd "$BB_FORKDIR"
+        unset BB_FORKDIR
     elif [[ "$PWD" == "$(readlink -f $HOME)" ]]; then
         # Fix home directory mismatch between real and symbolic path
         cd "$HOME"
