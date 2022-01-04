@@ -94,32 +94,6 @@ function _analyzeColors () {
     done < <(xrdb -query 2>/dev/null)
 }
 
-function _showColors () {
-    local max=${1:-256}
-    local id=0
-    local offset
-    local fg=7
-    while [[ $id -lt 8 ]]; do
-        for offset in 0 8; do
-            local col="$((id + offset))"
-            local hex="$(xrdb -query 2>/dev/null | grep "^*color$col:")"
-            hex="${hex##*#}"
-            printf "$(tput setaf $col)%3s$(tput sgr0) $(tput setab $col)$(tput setaf $fg)%3s$(tput sgr0) %s%6s\t" $col $col ${hex:+#} $hex
-            fg=0
-        done
-        echo
-        let id++
-    done
-    id=16
-    local tmax=$(tput colors)
-    while [[ $id -lt $max ]] && [[ $id -lt $tmax ]]; do
-        printf "$(tput setaf $id)%3s$(tput sgr0) " "$id"
-        let id++
-        [[ $((id % 8)) -eq 0 ]] && echo
-    done
-    echo
-}
-
 ###############################################################################
 # Prompts and titles
 ###############################################################################

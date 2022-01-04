@@ -16,6 +16,8 @@ bb_load util
 bb_load interactive
 bb_load cli
 
+export BB_ROOT # for standalone scripts
+
 source ~/.bash_functions
 
 # Source site-specific bash settings under ~/.bash_settings.d
