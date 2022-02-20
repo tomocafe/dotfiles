@@ -14,7 +14,7 @@ if [[ -z ${BB_VERSION+x} ]]; then
 fi
 bb_load util
 bb_load interactive
-bb_load cli
+bb_load cli/msg.sh
 
 export BB_ROOT # for standalone scripts
 
