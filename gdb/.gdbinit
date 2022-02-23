@@ -45,6 +45,7 @@ try:
         # Non-standalone call
         gdb.execute('set confirm off')
         gdb.execute('set pagination off')
+        gdb.execute('set style enabled off')
         gdb.execute('set prompt ({name}) '.format(name=caller))
 except:
     print('Unable to detect if this is standalone gdb')
