@@ -1,58 +1,121 @@
 #!/bin/bash
 
-# Moves the active window to center stage, with a relative size as a percentage of the screen
-# or incrementally increase/decrease size with +/-
+: ${BB_ROOT?requires bash-boost to run this script}
+source "$BB_ROOT/bash-boost.sh" || exit 5
+bb_load util/env cli/arg cli/msg
 
-usage () {
-    local this="${BASH_SOURCE[0]##*/}"
-    echo "$this [+/-]" 1>&2
-    echo "$this <size>" 1>&2
-    echo "$this" 1>&2
+bb_setprog "${BASH_SOURCE[0]##*/}"
+bb_addopt "min-size" "min window size as percent of desktop (default: 20)" 20
+bb_addopt "max-size" "max window size as percent of desktop (default: 100)" 100
+bb_addopt "i:increment" "window size percent increment (default: 5)" 5
+bb_addflag "v:verbose"
+bb_setpositional "COMMAND"
+bb_parseargs "$@"; set -- "${BB_POSARGS[@]}"
+
+bb_getopt -v min_size min-size
+bb_getopt -v max_size max-size
+bb_getopt -v inc increment
+
+is_valid_percent () {
+    bb_isint "$1" || return $__bb_error
+    [[ $1 -gt 0 && $1 -le 100 ]]
 }
 
-MIN_SIZE=20
-MAX_SIZE=100
-INC=5
+for v in min_size max_size inc; do
+    is_valid_percent ${!v} || bb_errusage "$v flag must be integer from 1 to 100"
+done
 
-get_curr_size () {
-    # Sets SIZE to maximum of window to screen ratio using height or width
-    # maxdepth=0 restricts search to the root window, which yields screen geometry
-    eval $(xdotool search --maxdepth 0 --class "" getwindowgeometry --shell)
-    local screen_width=$WIDTH
-    local screen_height=$HEIGHT
-    eval $(xdotool getactivewindow getwindowgeometry --shell)
-    WSIZE=$(( 100 * WIDTH / screen_width ))
-    HSIZE=$(( 100 * HEIGHT / screen_height ))
-    SIZE=$(( WSIZE > HSIZE ? WSIZE : HSIZE ))
-}
+for cmd in xdotool xprop; do
+    bb_iscmd $cmd || bb_fatal "missing required tool: $cmd"
+done
 
-# Center window only -- do not resize
-if [[ $# -eq 0 ]]; then
-    get_curr_size
-    w_gutter=$(( (100 - WSIZE) / 2 ))
-    h_gutter=$(( (100 - HSIZE) / 2 ))
-    exec xdotool getactivewindow windowmove ${w_gutter}% ${h_gutter}%
+# Get screen geometry
+eval "$(xdotool search --maxdepth 0 --class "" getwindowgeometry --shell)"
+screen_height="$HEIGHT"
+screen_width="$WIDTH"
+
+# Get desktop geometry, if available
+# Desktop is the screen minus panels
+if bb_iscmd panel-aware-screen-geom; then
+    eval "$(panel-aware-screen-geom)"
+fi
+desktop_height="$HEIGHT"
+desktop_width="$WIDTH"
+desktop_x="$X"
+desktop_y="$Y"
+
+# Get active window geometry
+# This includes window decorations
+wid="$(xdotool getactivewindow)"
+eval "$(xdotool getwindowgeometry --shell "$wid")"
+window_height="$HEIGHT"
+window_width="$WIDTH"
+window_x="$X"
+window_y="$Y"
+# xdotool does not check window decorations, get them from xprop
+props="$(xprop -notype _NET_FRAME_EXTENTS -id "$wid")" # L, R, T, B
+props="${props#* = }"
+extents=( ${props//,/} ) # ( L R T B )
+#window_x_decor_offset=$(( ${extents[2]} + ${extents[3]} ))
+#window_y_decor_offset=$(( ${extents[0]} + ${extents[1]} ))
+#(( window_height += window_x_decor_offset ))
+#(( window_width  += window_y_decor_offset ))
+(( window_x -= ${extents[0]} ))
+(( window_y -= ${extents[2]} ))
+window_percent_height=$(( 100 * window_height / desktop_height ))
+window_percent_width=$(( 100 * window_width / desktop_width ))
+
+if bb_checkopt verbose; then
+    printf "SCREEN  H=%-5d W=%-5d\n" "$screen_height" "$screen_width"
+    printf "DESKTOP H=%-5d W=%-5d X=%-5d Y=%-5d\n" "$desktop_height" "$desktop_width" "$desktop_x" "$desktop_y"
+    printf "WINDOW  H=%-5d W=%-5d X=%-5d Y=%-5d [%3d%%, %3d%%]\n" "$window_height" "$window_width" "$window_x" "$window_y" "$window_percent_height" "$window_percent_width"
 fi
 
-# Resize and center
-case "$1" in
-    +)
-        get_curr_size
-        SIZE=$(( SIZE > MAX_SIZE - INC ? MAX_SIZE : SIZE + INC ))
+set_size () {
+    (( window_percent_height = window_percent_height < min_size ? min_size : window_percent_height ))
+    (( window_percent_height = window_percent_height > max_size ? max_size : window_percent_height ))
+    (( window_percent_width = window_percent_width < min_size ? min_size : window_percent_width ))
+    (( window_percent_width = window_percent_width > max_size ? max_size : window_percent_width ))
+    (( window_height = window_percent_height * desktop_height / 100 ))
+    (( window_width = window_percent_width * desktop_width / 100  ))
+    windowsize=( "windowsize" "$wid" "$window_width" "$window_height" )
+}
+
+# Commands
+case "${1:-center}" in
+    grow)
+        (( window_percent_height += inc ))
+        (( window_percent_width += inc ))
+        set_size
         ;;
-    -)
-        get_curr_size
-        SIZE=$(( SIZE > MIN_SIZE + INC ? SIZE - INC : MIN_SIZE ))
+    shrink)
+        (( window_percent_height -= inc ))
+        (( window_percent_width -= inc ))
+        set_size
         ;;
-    [0-9]*)
-        SIZE=$1
+    size)
+        shift
+        hsize="$1"
+        wsize="${2:-$1}"
+        bb_checkset hsize || bb_errusage "size height% [width%]"
+        hsize="${hsize%\%}"
+        wsize="${wsize%\%}"
+        is_valid_percent "$hsize" || bb_errusage "height% must be between 1 and 100"
+        is_valid_percent "$wsize" || bb_errusage "weight% must be between 1 and 100"
+        (( window_percent_height = hsize ))
+        (( window_percent_width = wsize ))
+        set_size
+        ;;
+    center)
         ;;
     *)
-        usage
-        exit 1
+        bb_errusage "invalid command: $1"
         ;;
 esac
 
-gutter=$(( (100 - SIZE) / 2 ))
-xdotool getactivewindow windowsize ${SIZE}% ${SIZE}% windowmove ${gutter}% ${gutter}%
-
+window_x="$(( (desktop_width - window_width) / 2 + desktop_x ))"
+window_y="$(( (desktop_height - window_height) / 2 + desktop_y ))"
+if bb_checkopt verbose; then
+    printf "NEW     H=%-5d W=%-5d X=%-5d Y=%-5d [%3d%%, %3d%%]\n" "$window_height" "$window_width" "$window_x" "$window_y" "$window_percent_height" "$window_percent_width"
+fi
+exec xdotool "${windowsize[@]}" windowmove "$wid" "$window_x" "$window_y"
