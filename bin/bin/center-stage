@@ -5,15 +5,11 @@ source "$BB_ROOT/bash-boost.sh" || exit 5
 bb_load util/env cli/arg cli/msg
 
 bb_setprog "${BASH_SOURCE[0]##*/}"
-bb_addopt "min-size" "min window size as percent of desktop (default: 20)" 20
-bb_addopt "max-size" "max window size as percent of desktop (default: 100)" 100
-bb_addopt "i:increment" "window size percent increment (default: 5)" 5
+bb_addopt "i:increment" "window size scaling percent increment (default: 10)" 10
 bb_addflag "v:verbose"
 bb_setpositional "COMMAND"
 bb_parseargs "$@"; set -- "${BB_POSARGS[@]}"
 
-bb_getopt -v min_size min-size
-bb_getopt -v max_size max-size
 bb_getopt -v inc increment
 
 is_valid_percent () {
@@ -21,7 +17,7 @@ is_valid_percent () {
     [[ $1 -gt 0 && $1 -le 100 ]]
 }
 
-for v in min_size max_size inc; do
+for v in inc; do
     is_valid_percent ${!v} || bb_errusage "$v flag must be integer from 1 to 100"
 done
 
@@ -53,45 +49,42 @@ window_width="$WIDTH"
 window_x="$X"
 window_y="$Y"
 # xdotool does not check window decorations, get them from xprop
+# Only use window offsets for positioning, not sizing!
 props="$(xprop -notype _NET_FRAME_EXTENTS -id "$wid")" # L, R, T, B
 props="${props#* = }"
 extents=( ${props//,/} ) # ( L R T B )
-#window_x_decor_offset=$(( ${extents[2]} + ${extents[3]} ))
-#window_y_decor_offset=$(( ${extents[0]} + ${extents[1]} ))
-#(( window_height += window_x_decor_offset ))
-#(( window_width  += window_y_decor_offset ))
-(( window_x -= ${extents[0]} ))
-(( window_y -= ${extents[2]} ))
-window_percent_height=$(( 100 * window_height / desktop_height ))
-window_percent_width=$(( 100 * window_width / desktop_width ))
+window_height_offset=$(( ${extents[2]} + ${extents[3]} ))
+window_width_offset=$(( ${extents[0]} + ${extents[1]} ))
 
 if bb_checkopt verbose; then
+    (( h_perc = window_height * 100 / desktop_height ))
+    (( w_perc = window_width * 100 / desktop_width ))
     printf "SCREEN  H=%-5d W=%-5d\n" "$screen_height" "$screen_width"
     printf "DESKTOP H=%-5d W=%-5d X=%-5d Y=%-5d\n" "$desktop_height" "$desktop_width" "$desktop_x" "$desktop_y"
-    printf "WINDOW  H=%-5d W=%-5d X=%-5d Y=%-5d [%3d%%, %3d%%]\n" "$window_height" "$window_width" "$window_x" "$window_y" "$window_percent_height" "$window_percent_width"
+    printf "WINDOW  H=%-5d W=%-5d X=%-5d Y=%-5d [%3d%%, %3d%%]\n" "$window_height" "$window_width" "$window_x" "$window_y" "$h_perc" "$w_perc"
 fi
 
 set_size () {
-    (( window_percent_height = window_percent_height < min_size ? min_size : window_percent_height ))
-    (( window_percent_height = window_percent_height > max_size ? max_size : window_percent_height ))
-    (( window_percent_width = window_percent_width < min_size ? min_size : window_percent_width ))
-    (( window_percent_width = window_percent_width > max_size ? max_size : window_percent_width ))
-    (( window_height = window_percent_height * desktop_height / 100 ))
-    (( window_width = window_percent_width * desktop_width / 100  ))
+    (( window_height = $1 * desktop_height / 100 ))
+    (( window_width = $2 * desktop_width / 100  ))
+    windowsize=( "windowsize" "$wid" "$window_width" "$window_height" )
+}
+
+scale_size () {
+    (( window_height = window_height * (100 + $1) / 100 ))
+    (( window_width = window_width * (100 + $1) / 100 ))
+    (( window_height = window_height > desktop_height ? desktop_height : window_height ))
+    (( window_width = window_width > desktop_width ? desktop_width : window_width ))
     windowsize=( "windowsize" "$wid" "$window_width" "$window_height" )
 }
 
 # Commands
 case "${1:-center}" in
     grow)
-        (( window_percent_height += inc ))
-        (( window_percent_width += inc ))
-        set_size
+        scale_size "$inc"
         ;;
     shrink)
-        (( window_percent_height -= inc ))
-        (( window_percent_width -= inc ))
-        set_size
+        scale_size "-$inc"
         ;;
     size)
         shift
@@ -102,9 +95,7 @@ case "${1:-center}" in
         wsize="${wsize%\%}"
         is_valid_percent "$hsize" || bb_errusage "height% must be between 1 and 100"
         is_valid_percent "$wsize" || bb_errusage "weight% must be between 1 and 100"
-        (( window_percent_height = hsize ))
-        (( window_percent_width = wsize ))
-        set_size
+        set_size "$hsize" "$wsize"
         ;;
     center)
         ;;
@@ -113,9 +104,11 @@ case "${1:-center}" in
         ;;
 esac
 
-window_x="$(( (desktop_width - window_width) / 2 + desktop_x ))"
-window_y="$(( (desktop_height - window_height) / 2 + desktop_y ))"
+window_x="$(( (desktop_width - window_width - window_width_offset) / 2 + desktop_x ))"
+window_y="$(( (desktop_height - window_height - window_height_offset) / 2 + desktop_y ))"
 if bb_checkopt verbose; then
-    printf "NEW     H=%-5d W=%-5d X=%-5d Y=%-5d [%3d%%, %3d%%]\n" "$window_height" "$window_width" "$window_x" "$window_y" "$window_percent_height" "$window_percent_width"
+    (( h_perc = window_height * 100 / desktop_height ))
+    (( w_perc = window_width * 100 / desktop_width ))
+    printf "NEW     H=%-5d W=%-5d X=%-5d Y=%-5d [%3d%%, %3d%%]\n" "$window_height" "$window_width" "$window_x" "$window_y" "$h_perc" "$w_perc"
 fi
 exec xdotool "${windowsize[@]}" windowmove "$wid" "$window_x" "$window_y"
