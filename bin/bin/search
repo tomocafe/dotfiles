@@ -78,6 +78,16 @@ sub colorstrip {
     return $clean;
 }
 
+# Trim leading/trailing whitespace from matching line
+# This makes it easier to view all the results together, since each
+# matching line might have different indentation levels
+sub trimws {
+    my $line = shift @_;
+    $line =~ s/:\s*/: /;
+    $line =~ s/\s*$//;
+    return $line;
+}
+
 # Captures search engine output and pipes to pager, appending indices in front of matches
 sub search {
     # Open a pipe to invoke the search engine
@@ -92,9 +102,10 @@ sub search {
     # For each line of the search engine output (stdout)
     while (my $line = <$I>) {
         # Append a base-36 index in front of matches
-        if (colorstrip($line) =~ m/^[0-9]+:/) {
+        # and clean up leading whitespace
+        if (colorstrip($line) =~ m/^[0-9]+:/) { # is a match
             b36inc $id; # start with 1 since it is easier to reach than 0 on the keyboard
-            $line = sprintf "%s%-3s%s %s", color('cyan'), $id, color('reset'), "$line";
+            $line = sprintf "%s%-3s%s %s\n", color('cyan'), $id, color('reset'), trimws($line);
         }
         # Pipe to the output pager
         unless ($O) {
