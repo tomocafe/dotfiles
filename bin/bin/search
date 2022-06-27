@@ -12,12 +12,14 @@ use Cwd;
 ###
 
 my $ENGINE = "ack";
-my $ENGINEOPTS = $ENV{'SEARCH_ENGINEOPTS'}; # default is <ENGINE>_OPTIONS environment variable, e.g. ACK_OPTIONS
+my $ENGINEOPTS = $ENV{'SEARCH_ENGINEOPTS'}; # default is SEARCH_<ENGINE>_OPTIONS environment variable, e.g. SEARCH_ACK_OPTIONS
 my $PAGER = "less -SFXRM";
 my $EDITOR = $ENV{'EDITOR'} ? $ENV{'EDITOR'} : 'vim';
 my $ACTION = "$EDITOR {} +{}";
 my $CACHEDIR = $ENV{'SEARCH_CACHEDIR'} ? $ENV{'SEARCH_CACHEDIR'} : "$ENV{'HOME'}/.cache/search";
 my $CACHESIZE = $ENV{'SEARCH_CACHESIZE'} ? $ENV{'SEARCH_CACHESIZE'} : 10;
+my $WSL = exists $ENV{'WSLENV'};
+my $NTEXE = 0;
 
 ###
 ### |subroutines|
@@ -25,7 +27,7 @@ my $CACHESIZE = $ENV{'SEARCH_CACHESIZE'} ? $ENV{'SEARCH_CACHESIZE'} : 10;
 
 # Retrieve all cache files sorted descending by modification time
 sub getcaches {
-    mkdir $CACHEDIR unless -d $CACHEDIR;
+    mkdir $CACHEDIR unless -d $CACHEDIR or die $!;
     opendir (my $D, $CACHEDIR) or die $!;
     my @files = grep { $_ !~ m/^\.+$/ } readdir($D);
     @files = sort { (stat "$CACHEDIR/$b")->[10] <=> (stat "$CACHEDIR/$a")->[10] } @files;
@@ -80,7 +82,9 @@ sub colorstrip {
 sub search {
     # Open a pipe to invoke the search engine
     my @args = map { "\"$_\"" } @_; # re-quote all arguments to pass to the engine
-    my $opts = $ENGINEOPTS ? $ENGINEOPTS : $ENV{uc($ENGINE) . "_OPTIONS"};
+    my $envoptvar = "SEARCH_" . uc($ENGINE) . "_OPTIONS";
+    my $envopts = exists $ENV{$envoptvar} ? $ENV{$envoptvar} : "";
+    my $opts = $ENGINEOPTS ? $ENGINEOPTS : $envopts;
     open (my $I, '-|', "$ENGINE --group --color $opts @args") or die $!;
     my $O = undef;
     my $F = undef;
@@ -146,13 +150,21 @@ sub listmatches {
     }
 }
 
+sub wslpath {
+    my $lpath = shift @_;
+    my $wpath = `wslpath -w "$lpath"`;
+    chomp $wpath;
+    return $wpath;
+}
+
 # Invoke the action (e.g. editor) on the selected match
 sub openselection {
     my ($filepath, $lineno) = @_;
     my $cmd = $ACTION;
-    $cmd =~ s/{file}/$filepath/g;
+    $filepath = wslpath "$filepath" if $WSL and $NTEXE;
+    $cmd =~ s/{file}/"$filepath"/g;
     $cmd =~ s/{line}/$lineno/g;
-    $cmd =~ s/{}/$filepath/; # replace first occurrence of {} with filepath
+    $cmd =~ s/{}/"$filepath"/; # replace first occurrence of {} with filepath
     $cmd =~ s/{}/$lineno/; # replace second occurrence of {} with lineno
     exec $ENV{'SHELL'}, "-c", $cmd;  # using this instead of system honors user's shell instead of using /bin/sh
 }
@@ -212,6 +224,17 @@ elsif ($0 =~ m/select/) {
             }
         }
         shift @ARGV;
+    }
+    # Check for other flags
+    while (scalar @ARGV and $ARGV[0] =~ /^-/) {
+        if ($ARGV[0] eq '--') {
+            shift @ARGV;
+            last;
+        }
+        if ($ARGV[0] eq '--wsl-exe') {
+            $NTEXE = 1;
+            shift @ARGV;
+        }
     }
     # Set action if specified
     if ($ARGV[1]) {
