@@ -18,6 +18,10 @@ bb_load cli/msg.sh
 
 export BB_ROOT # for standalone scripts
 
+# Add bash-boost to paths
+bb_appendpathuniq PATH "$BB_ROOT/bin"
+bb_appendpathuniq MANPATH "$BB_ROOT/man"
+
 source ~/.bash_functions
 
 # Source site-specific bash settings under ~/.bash_settings.d
