@@ -139,6 +139,10 @@ unset SSH_ASKPASS
 # Add local perl5 modules
 [[ -d ~/.local/lib/perl5 ]] && bb_appendpathuniq PERL5LIB ~/.local/lib/perl5
 
+# Add .local paths
+[[ -d ~/.local/bin ]] && bb_appendpathuniq PATH ~/.local/bin
+[[ -d ~/.local/share/man ]] && bb_appendpathuniq MANPATH ~/.local/share/man
+
 # Set starting path
 if [[ $- == *i* ]]; then
     if bb_checkset BB_FORKDIR && [[ -d "$BB_FORKDIR" ]]; then
