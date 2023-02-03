@@ -142,10 +142,22 @@ function _promptLeft () {
     fi
 }
 
+function _fastGitDetect () {
+    local here="${1:-$PWD}"
+    while : ; do
+        [[ -d "$here/.git" ]] && return $__bb_true
+        here="${here%/*}"
+        [[ $here == "/" || $here == "" ]] && break
+    done
+    return $__bb_false
+}
+
 function _promptGit () {
-    if ! git status -s &>/dev/null; then
-        # We are not in a git repository
-        return $__bb_false
+    if ! timeout ${GIT_PROMPT_STATUS_FAST_TIMEOUT:-0.4s} git status -s &>/dev/null; then
+        if ! _fastGitDetect; then
+            # We are not in a git repository
+            return $__bb_false
+        fi
     fi
     # Count the number of changed/untracked/conflict/staged files
     local line
@@ -153,6 +165,7 @@ function _promptGit () {
     local untrackedCt=0
     local conflictCt=0
     local stagedCt=0
+    uncleanFileStats=()
     while read -r line; do
         case "${line:0:2}" in
             *M*)   let changedCt++ ;;
@@ -160,8 +173,7 @@ function _promptGit () {
             \?\?)  let untrackedCt++ ;;
             *)     let stagedCt++ ;;
         esac
-    done < <(LC_ALL=C git status --untracked-files=all --porcelain)
-    uncleanFileStats=()
+    done < <(LC_ALL=C timeout ${GIT_PROMPT_STATUS_TIMEOUT:-1s} git status --untracked-files=all --porcelain)
     [[ $changedCt -gt 0 ]] && uncleanFileStats+=("M:$changedCt")
     [[ $conflictCt -gt 0 ]] && uncleanFileStats+=("U:$conflictCt")
     [[ $untrackedCt -gt 0 ]] && uncleanFileStats+=("?:$untrackedCt")
@@ -187,6 +199,7 @@ function _promptGit () {
     echo -n " "
     local statline="$repoName${branch:+ $branch}${uncleanFileStats:+ (${uncleanFileStats[@]})}"
     bb_promptcolor "magenta" "$statline"
+    unset uncleanFileStats
     return $__bb_true
 }
 

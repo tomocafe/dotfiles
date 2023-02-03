@@ -88,6 +88,32 @@ sub trimws {
     return $line;
 }
 
+# Returns regex pattern string to mathc the line comment starting strings
+# based on the inferred programming language of the file
+# Supported: C, C++, Java, Javascript, Perl, Python, shell scripts
+sub getlinecommentregex {
+    my $file = shift @_;
+    my $type = `file -L --brief --mime-type $file`;
+    if ($type =~ /text\/(x-)?(c\+?\+?|java(script)?)/) {
+        return qr/\/[\/\*]/;
+    }
+    elsif ($type =~ /text\/(x-)?(perl|python|shellscript)/) {
+        return qr/#/;
+    }
+    return '';
+}
+
+sub dimcomment {
+    my ($re, $line) = @_;
+    return $line unless $re;
+    # Lazy syntax highlighting: if any quotes are involved, give up
+    return $line if $line =~ m/["']+/;
+    return $line unless $line =~ $re;
+    my $dim = color('dark white');
+    my ($pre, $sep, $comment) = ($line =~ m/^(.*?)($re)(.*)$/);
+    return $pre . color('dark white') . $sep . colorstrip($comment) . color('reset');
+}
+
 # Captures search engine output and pipes to pager, appending indices in front of matches
 sub search {
     # Open a pipe to invoke the search engine
@@ -98,14 +124,20 @@ sub search {
     open (my $I, '-|', "$ENGINE --group --color $opts @args") or die $!;
     my $O = undef;
     my $F = undef;
+    my $cmt = '';
     my $id = 0;
     # For each line of the search engine output (stdout)
     while (my $line = <$I>) {
         # Append a base-36 index in front of matches
         # and clean up leading whitespace
-        if (colorstrip($line) =~ m/^[0-9]+:/) { # is a match
+        my $stripped = colorstrip($line);
+        if ($stripped =~ m/^[0-9]+:/) { # is a match
             b36inc $id; # start with 1 since it is easier to reach than 0 on the keyboard
-            $line = sprintf "%s%-3s%s %s\n", color('cyan'), $id, color('reset'), trimws($line);
+            my $disp = dimcomment($cmt, trimws($line));
+            $line = sprintf "%s%-3s%s %s\n", color('cyan'), $id, color('reset'), $disp;
+        }
+        elsif (not $line =~ /^$/) { # is a filename
+            $cmt = getlinecommentregex $stripped;
         }
         # Pipe to the output pager
         unless ($O) {
@@ -242,7 +274,7 @@ elsif ($0 =~ m/select/) {
             shift @ARGV;
             last;
         }
-        if ($ARGV[0] eq '--wsl-exe') {
+        elsif ($ARGV[0] eq '--wsl-exe') {
             $NTEXE = 1;
             shift @ARGV;
         }

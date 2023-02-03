@@ -1,0 +1,29 @@
+#!/bin/bash
+
+: ${BB_ROOT?requires bash-boost to run this script}
+source "$BB_ROOT/bash-boost.sh" || exit 5
+bb_load cli util/env util/list
+
+bb_setprog "git uclone"
+bb_addopt u:user "username" ""
+bb_addflag w:work "use work organization"
+bb_setpositional "REPO [-- ARGS]" ""
+bb_parseargs "$@"
+set -- "${BB_POSARGS[@]}" # $@ now only contains the positional arguments
+repo="$1"
+git_args=( "${@:2}" )
+
+bb_checkset repo || bb_fatal "required positional argument: REPO"
+
+bb_getopt -v user user
+bb_checkset user || bb_fatal "required argument: user"
+grep -qE "Host\s+$user.github.com" ~/.ssh/config || bb_fatal "$user.github.com not found in ~/.ssh/config"
+
+org="$user"
+if bb_checkopt work; then
+    bb_checkset GIT_WORK_ORG || bb_fatal "--work requires GIT_WORK_ORG to be set"
+    org="$GIT_WORK_ORG"
+fi
+
+exec git clone "${git_args[@]}" "git@$user.github.com:$org/$repo"
+
