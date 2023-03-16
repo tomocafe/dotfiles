@@ -144,6 +144,7 @@ function _promptLeft () {
 
 function _fastGitDetect () {
     local here="${1:-$PWD}"
+    here="$(readlink -f "$here")" # in case of symlink crossing filesystem boundary
     while : ; do
         [[ -d "$here/.git" ]] && return $__bb_true
         here="${here%/*}"
@@ -153,11 +154,15 @@ function _fastGitDetect () {
 }
 
 function _promptGit () {
-    if ! timeout ${GIT_PROMPT_STATUS_FAST_TIMEOUT:-0.4s} git status -s &>/dev/null; then
+    local status
+    timeout ${GIT_PROMPT_STATUS_FAST_TIMEOUT:-0.4s} git status -s &>/dev/null; status=$?
+    if [[ $status -eq 124 ]]; then # timed out, use fallback method; see timeout --help for magic number 124
         if ! _fastGitDetect; then
             # We are not in a git repository
             return $__bb_false
         fi
+    elif [[ $status -ne 0 ]]; then
+        return $__bb_false # got non-zero from git status and it didn't timeout
     fi
     # Count the number of changed/untracked/conflict/staged files
     local line
