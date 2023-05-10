@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# Usage: eval "$(panel-aware-screen-geom)"
+
+command -v xdotool dconf gdbus &>/dev/null || exit 2
+
+# Get full screen geometry
+eval "$(xdotool search --maxdepth 0 --class "" getwindowgeometry --shell)"
+
+# Figure out DPI scaling
+scaling=1
+disp_cfg="$(gdbus call --session --dest=org.gnome.Mutter.DisplayConfig --object-path /org/gnome/Mutter/DisplayConfig --method org.gnome.Mutter.DisplayConfig.GetCurrentState)"
+re="'legacy-ui-scaling-factor': <([0-9]+)>"
+[[ $disp_cfg =~ $re ]] && scaling="${BASH_REMATCH[1]}"
+
+# Get Budgie panel sizes
+panel_ids_str="$(dconf read /com/solus-project/budgie-panel/panels)"
+# "['id1', 'id2']" -> ( id1 id2 )
+panel_ids=( ${panel_ids_str//[^a-z0-9- ]/} )
+
+for panel in "${panel_ids[@]}"; do
+    panel_path="/com/solus-project/budgie-panel/panels/{$panel}"
+    location="$(dconf read "$panel_path/location")"
+    location="${location//\'/}"
+    size="$(dconf read "$panel_path/size")"
+    (( size *= scaling ))
+    case "${location,,}" in
+        top)
+            (( v_offset += size ))
+            (( y_offset += size ))
+            ;;
+        bottom)
+            (( v_offset += size ))
+            ;;
+        left)
+            (( x_offset += size ))
+            (( h_offset += size ))
+            ;;
+        right)
+            (( h_offset += size ))
+            ;;
+    esac
+done
+
+(( WIDTH -= h_offset ))
+(( HEIGHT -= v_offset ))
+(( X += x_offset ))
+(( Y += y_offset ))
+
+echo "WIDTH=$WIDTH"
+echo "HEIGHT=$HEIGHT"
+echo "X=$X"
+echo "Y=$Y"

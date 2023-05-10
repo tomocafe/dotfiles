@@ -18,6 +18,10 @@ bb_load cli/msg.sh
 
 export BB_ROOT # for standalone scripts
 
+# Add bash-boost to paths
+bb_appendpathuniq PATH "$BB_ROOT/bin"
+bb_appendpathuniq MANPATH "$BB_ROOT/man"
+
 source ~/.bash_functions
 
 # Source site-specific bash settings under ~/.bash_settings.d
@@ -105,22 +109,22 @@ if [[ $- == *i* ]] && [[ -r ~/.dircolors ]]; then
 fi
 
 # ack/ag settings
-ACK_OPTIONS="--color-filename='green'"
-ACK_OPTIONS+=" --color-match='bold red'"
-ACK_OPTIONS+=" --color-lineno='blue'"
-ACK_OPTIONS+=" --type-set=cc:ext:c,cc,cpp,cxx"
-ACK_OPTIONS+=" --type-set=hh:ext:h,hh,hpp,hxx"
-export ACK_OPTIONS
-AG_OPTION+="--color-path='32'"
-AG_OPTIONS+=" --color-match='1;31'"
-AG_OPTIONS+=" --color-line-number='34'"
-export AG_OPTIONS
-alias ag="command ag $AG_OPTIONS"
+SEARCH_ACK_OPTIONS="--color-filename='green'"
+SEARCH_ACK_OPTIONS+=" --color-match='bold red'"
+SEARCH_ACK_OPTIONS+=" --color-lineno='blue'"
+SEARCH_ACK_OPTIONS+=" --type-set=cc:ext:c,cc,cpp,cxx"
+SEARCH_ACK_OPTIONS+=" --type-set=hh:ext:h,hh,hpp,hxx"
+export SEARCH_ACK_OPTIONS
+SEARCH_AG_OPTION+="--color-path='32'"
+SEARCH_AG_OPTIONS+=" --color-match='1;31'"
+SEARCH_AG_OPTIONS+=" --color-line-number='34'"
+export SEARCH_AG_OPTIONS
 
 alias s="search"
 alias sag="search-ag"
 alias a="search-select"
 alias sls="search-list-cache"
+ac () { EDITOR="code" search-select ${WSLENV+--wsl-exe} "$@"; }
 
 # Set default editor
 EDITOR="vim"
@@ -140,6 +144,10 @@ unset SSH_ASKPASS
 
 # Add local perl5 modules
 [[ -d ~/.local/lib/perl5 ]] && bb_appendpathuniq PERL5LIB ~/.local/lib/perl5
+
+# Add .local paths
+[[ -d ~/.local/bin ]] && bb_appendpathuniq PATH ~/.local/bin
+[[ -d ~/.local/share/man ]] && bb_appendpathuniq MANPATH ~/.local/share/man
 
 # Set starting path
 if [[ $- == *i* ]]; then
