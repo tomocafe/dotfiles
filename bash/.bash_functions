@@ -229,6 +229,14 @@ function _promptHist () {
     echo -n " "
 }
 
+function _promptBookmark () {
+    local mark
+    bb_getbookmark -v mark
+    bb_checkset mark || return
+    bb_promptcolor "cyan" "$mark:"
+    echo -n " "
+}
+
 function _promptRight () {
     # Current directory
     local pwd="${PWD/#$HOME/$'~'}"
