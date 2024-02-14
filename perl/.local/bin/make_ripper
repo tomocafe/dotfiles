@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+INDENT="${MAKE_RIPPER_INDENT:-    }"
+OUTPUT="${MAKE_RIPPER_DEFAULT_OUTPUT:-parse.pl}"
+
+printf  '%s\n' \
+        "#!/usr/bin/env perl" \
+        "" \
+        "use warnings;" \
+        "use strict;" \
+        "" \
+        "use Log::Rip;" \
+        "# perldoc Log::Rip for usage" \
+        "" \
+        "my \$ripper = Log::Rip->new(file => shift @ARGV);" \
+        "" \
+        "\$ripper->match(" \
+        "${INDENT}qr//," \
+        "${INDENT}sub {" \
+        "${INDENT}${INDENT}" \
+        "${INDENT}}" \
+        ");" \
+        "" \
+        "\$ripper->run();" \
+        > "${1:-$OUTPUT}"
+
