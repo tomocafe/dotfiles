@@ -74,7 +74,7 @@ sub _error {
 
 sub match {
     my ($self, $regex, $callback, $modifiers) = @_;
-    if ($modifiers and $modifiers !~ m/^[gc]+$/) { 
+    if ($modifiers and $modifiers !~ m/^[gcN]+$/) { 
         _error "unsupported modifiers: $modifiers";
         return 0;
     }
@@ -99,7 +99,12 @@ sub run {
                 @captures = @captures[grep $_ % 2, 0..$#captures] if @captures and $mod =~ /c/;
             }
             else {
-                @captures = ($line =~ m/($re)/);
+                if ($mod and $mod =~ /N/) {
+                    @captures = ($line) if $line !~ m/$re/;
+                }
+                else {
+                    @captures = ($line =~ m/($re)/);
+                }
                 # If user specified a capture group, remove the full match
                 shift @captures if @captures and @captures > 1;
             }
