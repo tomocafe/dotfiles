@@ -12,7 +12,6 @@ use Cwd;
 ###
 
 my $ENGINE = "ack";
-my $ENGINEOPTS = $ENV{'SEARCH_ENGINEOPTS'}; # default is SEARCH_<ENGINE>_OPTIONS environment variable, e.g. SEARCH_ACK_OPTIONS
 my $PAGER = "less -SFXRM";
 my $EDITOR = $ENV{'EDITOR'} ? $ENV{'EDITOR'} : 'vim';
 my $ACTION = "$EDITOR {} +{}";
@@ -20,10 +19,36 @@ my $CACHEDIR = $ENV{'SEARCH_CACHEDIR'} ? $ENV{'SEARCH_CACHEDIR'} : "$ENV{'HOME'}
 my $CACHESIZE = $ENV{'SEARCH_CACHESIZE'} ? $ENV{'SEARCH_CACHESIZE'} : 10;
 my $WSL = exists $ENV{'WSLENV'};
 my $NTEXE = 0;
+my $CONTEXT = 0;
+
+my $ENGINEOPTSKEY;
+my $ENGINEOPTS;
 
 ###
 ### |subroutines|
 ###
+
+sub help {
+    if ($0 =~ m/list-cache/) {
+        printf STDERR "search-list-cache  # no arguments\n"
+    }
+    elsif ($0 =~ m/select/) {
+        printf STDERR "search-select [{+%%}N] [MATCH [ACTION]]\n";
+        printf STDERR "  +N: select match from cache id N (default: 0)\n";
+        printf STDERR "  %%N: as above, but also brings N to the front of the cache, so N becomes 0\n";
+        printf STDERR "  MATCH: match id in the cache\n";
+        printf STDERR "  ACTION: what to launch with the match filename and line number (default: \"$ACTION\")\n";
+        printf STDERR "\nIf no MATCH id is given, it simply displays the search results from the cache\n";
+    }
+    else { # search
+        printf STDERR "search [OPTS] PATTERN\n";
+        printf STDERR "\nAll OPTS are passed directly to the engine ($ENGINE)\n";
+        if ($ENGINEOPTS) {
+            printf STDERR "\nThese options are additionally passed to $ENGINE based on the $ENGINEOPTSKEY environment variable:\n  $ENGINEOPTS\n";
+        }
+        printf STDERR "\nFor $ENGINE help, use --${ENGINE}-help\n";
+    }
+}
 
 # Retrieve all cache files sorted descending by modification time
 sub getcaches {
@@ -83,8 +108,9 @@ sub colorstrip {
 # matching line might have different indentation levels
 sub trimws {
     my $line = shift @_;
-    $line =~ s/:\s*/: /;
-    $line =~ s/\s*$//;
+    $line =~ s/\s*$//; # trailing space: always
+    return $line if $CONTEXT; # don't trim if showing context lines, as it messes up indentation
+    $line =~ s/:\s*/: /; # leading space
     return $line;
 }
 
@@ -118,10 +144,7 @@ sub dimcomment {
 sub search {
     # Open a pipe to invoke the search engine
     my @args = map { "\"$_\"" } @_; # re-quote all arguments to pass to the engine
-    my $envoptvar = "SEARCH_" . uc($ENGINE) . "_OPTIONS";
-    my $envopts = exists $ENV{$envoptvar} ? $ENV{$envoptvar} : "";
-    my $opts = $ENGINEOPTS ? $ENGINEOPTS : $envopts;
-    open (my $I, '-|', "$ENGINE --group --color $opts @args") or die $!;
+    open (my $I, '-|', "$ENGINE --group --color $ENGINEOPTS @args") or die $!;
     my $O = undef;
     my $F = undef;
     my $cmt = '';
@@ -135,6 +158,13 @@ sub search {
             b36inc $id; # start with 1 since it is easier to reach than 0 on the keyboard
             my $disp = dimcomment($cmt, trimws($line));
             $line = sprintf "%s%-3s%s %s\n", color('cyan'), $id, color('reset'), $disp;
+        }
+        elsif ($stripped =~ m/^[0-9]+-/) { # context line (-A, -B)
+            my $disp = dimcomment($cmt, trimws($line));
+            $line = sprintf "%-3s %s\n", '', $disp;
+        }
+        elsif ($line =~ /^--$/) { # separator for context block (-A, -B)
+            next;
         }
         elsif (not $line =~ /^$/) { # is a filename
             $cmt = getlinecommentregex $stripped;
@@ -233,7 +263,7 @@ sub selectmatch {
                 last;
             }
         }
-        elsif ($line !~ m/^$/) {
+        elsif ($line !~ m/^$/ and $line !~ m/^\s+/){
             $curfile = $line;
         } 
     }
@@ -247,9 +277,24 @@ sub selectmatch {
 if ($0 =~ m/ack/)   { $ENGINE = "ack"; }
 elsif ($0 =~ m/ag/) { $ENGINE = "ag";  }
 
+$ENGINEOPTSKEY = 'SEARCH_' . uc($ENGINE) . '_OPTIONS';
+$ENGINEOPTS = $ENV{$ENGINEOPTSKEY};
+
 # Adjust default action for editors that do not follow +lineno syntax
 if ($EDITOR =~ m/code/) {
     $ACTION = "$EDITOR -g {}:{}";
+}
+
+# Help pages
+foreach (@ARGV) {
+    if ($_ eq '--help' or $_ eq '-h') {
+        help;
+        exit 0;
+    }
+    elsif ($_ eq "--${ENGINE}-help") {
+        system "$ENGINE", '--help';
+        exit 0;
+    }
 }
 
 if ($0 =~ m/list-cache/) {
@@ -293,6 +338,12 @@ elsif ($0 =~ m/select/) {
     }
 }
 else {
+    foreach (@ARGV) {
+        if ($_ =~ m/^-[AB]/) {
+            $CONTEXT = 1;
+            last;
+        }
+    }
     search (@ARGV);
 }
 
