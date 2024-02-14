@@ -277,7 +277,7 @@ function _promptNextLine () {
 }
 
 function _promptWintitle () {
-    echo -e "${HOSTNAME}:${TTY_NUM}${SHELL_ROOT_PROC:+ ($SHELL_ROOT_PROC)}"
+    echo -e "${HOSTNAME}:${TTY_NUM}${SHELL_ROOT_PROC_DESC:+ ($SHELL_ROOT_PROC_DESC)}"
 }
 
 ###############################################################################

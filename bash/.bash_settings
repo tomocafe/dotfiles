@@ -57,13 +57,20 @@ export HISTIGNORE="&:?:??:clear:pwd:exit:pushd:popd"
 if [[ $- == *i* ]]; then
     export SHELL_ROOT_PROC="$(_getRootProcess)"
     # Save it to the active window properties (in the background, allows rest of script resume in parallel)
+    # Only needed for .i3/bin/close-mode (mod+shift+q), so if not using i3, skip over this
     # Keep this near the top for better parallelization
-    if bb_iscmd xprop && bb_checkset DISPLAY; then
+    if bb_iscmd xprop && bb_iscmd i3-msg && bb_checkset DISPLAY; then
         {
             wid=$(xprop -root _NET_ACTIVE_WINDOW 2>/dev/null) && \
             xprop -id "${wid##* }" -f SHELL_ROOT_PROC 8s -set SHELL_ROOT_PROC "$SHELL_ROOT_PROC" &>/dev/null
         } &
     fi
+    case "$SHELL_ROOT_PROC" in
+        SessionLeader)
+            SHELL_ROOT_PROC_DESC="WSL" ;;
+        *)
+            SHELL_ROOT_PROC_DESC="$SHELL_ROOT_PROC" ;;
+    esac
 fi
 
 # Key bindings
