@@ -1,0 +1,48 @@
+[colors]
+draw_bold_text_with_bright_colors = true
+
+[colors.bright]
+black = "#3b4261"
+blue = "#7aa2f7"
+cyan = "#7dcfff"
+green = "#73daca"
+magenta = "#bb9af7"
+red = "#f7768e"
+white = "#acb0d0"
+yellow = "#e0af68"
+
+[colors.normal]
+black = "#1f2335"
+blue = "#7aa2f7"
+cyan = "#7dcfff"
+green = "#41a6b5"
+magenta = "#bb9af7"
+red = "#f7768e"
+white = "#787c99"
+yellow = "#e0af68"
+
+[colors.primary]
+background = "#16161e"
+foreground = "#787c99"
+
+[env]
+WINIT_HIDPI_FACTOR = "1.0"
+
+[font]
+size = 11.0
+
+[font.bold]
+style = "Regular"
+
+[font.italic]
+style = "Italic"
+
+[font.normal]
+family = "Roboto Mono"
+
+[selection]
+save_to_clipboard = true
+
+[window.dimensions]
+columns = 80
+lines = 24
