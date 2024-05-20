@@ -19,11 +19,11 @@ bb_getopt -v user user
 bb_checkset user || bb_fatal "required argument: user"
 grep -qE "Host\s+$user.github.com" ~/.ssh/config || bb_fatal "$user.github.com not found in ~/.ssh/config"
 
-org="$user"
+[[ $repo == */* ]] && org="" || org="$user"
 if bb_checkopt work; then
     bb_checkset GIT_WORK_ORG || bb_fatal "--work requires GIT_WORK_ORG to be set"
     org="$GIT_WORK_ORG"
 fi
 
-exec git clone "${git_args[@]}" "git@$user.github.com:$org/$repo"
+exec git clone "${git_args[@]}" "git@$user.github.com:$org${org:+/}$repo"
 
