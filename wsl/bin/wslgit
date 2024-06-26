@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# git wrapper for use in WSL
+# If run from the WSL/Linux filesystem, invokes Linux git
+# If run from the Windows filesystem, invokes Windows git.exe under cmd shell
+#
+# All arguments are passed to git.
+
+if [[ $(wslpath -m .) == //wsl* ]]; then
+    # We're in the Linux filesystem, so just use Linux/WSL git
+    exec git "$@"
+fi
+
+# We're in the Windows filesystem, use Windows git
+
+command -v cmd.exe &>/dev/null || { echo "cannot find cmd.exe" 1>&2; exit 1; }
+
+WSLGIT="${WSLGIT:-git.exe}"
+WSLPWD="${WSLPWD:-$(wslpath -m .)}"
+
+escaped_args=()
+for arg in "$@"; do
+    escaped_args+=("$(printf "%q" "$arg")")
+done
+
+exec cmd.exe /c "cd /d "$WSLPWD" && "$WSLGIT" "${escaped_args[@]}""
+
