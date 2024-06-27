@@ -25,5 +25,9 @@ if bb_checkopt work; then
     org="$GIT_WORK_ORG"
 fi
 
-exec git clone "${git_args[@]}" "git@$user.github.com:$org${org:+/}$repo"
+if [[ $(type -t git) == file ]]; then
+    exec git clone "${git_args[@]}" "git@$user.github.com:$org${org:+/}$repo"
+else
+    git clone "${git_args[@]}" "git@$user.github.com:$org${org:+/}$repo"
+fi
 

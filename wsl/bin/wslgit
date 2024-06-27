@@ -5,13 +5,30 @@
 # If run from the Windows filesystem, invokes Windows git.exe under cmd shell
 #
 # All arguments are passed to git.
+#
+# Suggested usage: add these lines to your bashrc / bash_profile:
+# ```
+# git () { wslgit "$@"; }
+# export -f git
+# ```
 
 if [[ $(wslpath -m .) == //wsl* ]]; then
     # We're in the Linux filesystem, so just use Linux/WSL git
     exec git "$@"
 fi
 
+# Check for custom subcommand
+if [[ $# -gt 0 ]]; then
+    subcmd="git-$1"
+    if command -v "$subcmd" &>/dev/null; then
+        shift 1
+        exec "$subcmd" "$@"
+    fi
+fi
+
 # We're in the Windows filesystem, use Windows git
+
+[[ -t 1 && ! -n $WSLGIT_QUIET ]] && { echo "wslgit: switching to Windows git"; }
 
 command -v cmd.exe &>/dev/null || { echo "cannot find cmd.exe" 1>&2; exit 1; }
 
