@@ -26,6 +26,31 @@ if [[ $# -gt 0 ]]; then
     fi
 fi
 
+# Check for required subcommand
+if [[ -n $WSLGIT_ONLY ]]; then
+    pass=true
+    if [[ $# -gt 0 ]]; then
+        for subcmd in $WSLGIT_ONLY; do
+            if [[ $1 == $subcmd ]]; then
+                pass=false
+                break
+            fi
+        done
+    fi
+    if $pass; then
+        exec git "$@"
+    fi
+fi
+
+# Check for ignored subcommand
+if [[ -n $WSLGIT_IGNORE && $# -gt 0 ]]; then
+    for subcmd in $WSLGIT_IGNORE; do
+        if [[ $1 == $subcmd ]]; then
+            exec git "$@"
+        fi
+    done
+fi
+
 # We're in the Windows filesystem, use Windows git
 
 [[ -t 1 && ! -n $WSLGIT_QUIET ]] && { echo "wslgit: switching to Windows git"; }

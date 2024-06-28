@@ -155,6 +155,7 @@ function _fastGitDetect () {
 
 function _promptGit () {
     local status
+    unset git
     timeout ${GIT_PROMPT_STATUS_FAST_TIMEOUT:-0.4s} git status -s &>/dev/null; status=$?
     if [[ $status -eq 124 ]]; then # timed out, use fallback method; see timeout --help for magic number 124
         if ! _fastGitDetect; then
