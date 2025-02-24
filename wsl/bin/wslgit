@@ -60,8 +60,20 @@ command -v cmd.exe &>/dev/null || { echo "cannot find cmd.exe" 1>&2; exit 1; }
 WSLGIT="${WSLGIT:-git.exe}"
 WSLPWD="${WSLPWD:-$(wslpath -m .)}"
 
-escaped_args=()
+adjusted_args=()
 for arg in "$@"; do
+    case "$arg" in
+        --git-dir=*)
+            adjusted_args+=("--git-dir=$(wslpath -m "${arg#--git-dir=}")")
+            ;;
+        *)
+            adjusted_args+=("$arg")
+            ;;
+    esac
+done
+
+escaped_args=()
+for arg in "${adjusted_args[@]}"; do
     escaped_args+=("$(printf "%q" "$arg")")
 done
 
