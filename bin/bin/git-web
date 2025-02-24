@@ -12,6 +12,7 @@ set -- "${BB_POSARGS[@]}" # $@ now only contains the positional arguments
 repo="${1:-.}"
 
 [[ -d "$repo" ]] || bb_fatal "not a directory: $repo"
+cd "$repo"
 
 bb_iscmd "git" || bb_fatal "git: command not found"
 
