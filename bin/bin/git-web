@@ -1,0 +1,44 @@
+#!/bin/bash
+
+: ${BB_ROOT?requires bash-boost to run this script}
+source "$BB_ROOT/bash-boost.sh" || exit 5
+bb_load cli util/env util/list
+
+bb_setprog "git web"
+bb_addflag p:print "print URL only"
+bb_setpositional "REPO_PATH" ""
+bb_parseargs "$@"
+set -- "${BB_POSARGS[@]}" # $@ now only contains the positional arguments
+repo="${1:-.}"
+
+[[ -d "$repo" ]] || bb_fatal "not a directory: $repo"
+
+bb_iscmd "git" || bb_fatal "git: command not found"
+
+if ! git rev-parse --is-inside-work-tree &>/dev/null; then
+    bb_fatal "$repo: not in a git repository"
+fi
+
+remote="$(git remote get-url origin)"
+bb_checkset remote || bb_fatal "no origin found"
+
+# convert to URL
+url="$remote"
+re='git@(.*):(.*)(\.git)?'
+if [[ $remote =~ $re ]]; then
+    url="https://github.com/${BASH_REMATCH[2]}"
+fi
+
+url="${url%.git}"
+
+if bb_checkopt print; then
+    echo "$url"
+    exit 0
+fi
+
+for opener in open xdg-open explorer.exe start; do
+    bb_iscmd "$opener" && exec "$opener" "$url"
+done
+
+echo "$url"
+
