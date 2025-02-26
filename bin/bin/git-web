@@ -6,6 +6,7 @@ bb_load cli util/env util/list
 
 bb_setprog "git web"
 bb_addflag p:print "print URL only"
+bb_addflag b:branch "open branch"
 bb_setpositional "REPO_PATH" ""
 bb_parseargs "$@"
 set -- "${BB_POSARGS[@]}" # $@ now only contains the positional arguments
@@ -31,6 +32,11 @@ if [[ $remote =~ $re ]]; then
 fi
 
 url="${url%.git}"
+
+if bb_checkopt branch; then
+    branch="$(git rev-parse --abbrev-ref HEAD)"
+    url="${url}/tree/$branch"
+fi
 
 if bb_checkopt print; then
     echo "$url"
