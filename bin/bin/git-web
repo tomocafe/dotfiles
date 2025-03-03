@@ -7,6 +7,7 @@ bb_load cli util/env util/list
 bb_setprog "git web"
 bb_addflag p:print "print URL only"
 bb_addflag b:branch "open branch"
+bb_addopt c:commit "commit"
 bb_setpositional "REPO_PATH" ""
 bb_parseargs "$@"
 set -- "${BB_POSARGS[@]}" # $@ now only contains the positional arguments
@@ -33,7 +34,10 @@ fi
 
 url="${url%.git}"
 
-if bb_checkopt branch; then
+bb_getopt -v sha commit
+if bb_checkset sha; then
+    url="${url}/commit/$sha"
+elif bb_checkopt branch; then
     branch="$(git rev-parse --abbrev-ref HEAD)"
     url="${url}/tree/$branch"
 fi
