@@ -94,9 +94,9 @@ if [[ $- == *i* ]]; then
     bb_setpromptleft _promptLeft
     if [[ ${BASH_VERSINFO:-0} -ge 5 ]]; then
         # history doesn't work in PROMPT_COMMAND prior to bash 5.1
-        bb_setpromptright _promptHist _promptBookmark _promptRight
+        bb_setpromptright _promptHist _promptFilesystem _promptBookmark _promptRight
     else
-        bb_setpromptright _promptBookmark _promptRight
+        bb_setpromptright _promptFilesystem _promptBookmark _promptRight
     fi
     bb_setpromptnextline _promptNextLine
     bb_setwintitle _promptWintitle

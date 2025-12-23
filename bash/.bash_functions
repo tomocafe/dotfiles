@@ -256,6 +256,19 @@ function _promptBookmark () {
     echo -n " "
 }
 
+function _promptFilesystem () {
+    local fstype
+    fstype="$(stat -f -c %T "$PWD" 2>/dev/null)"
+    case "$fstype" in
+        v9fs)
+            bb_promptcolor "red" "[$fstype]"
+            ;;
+        *)
+            ;;
+    esac
+    echo -n " "
+}
+
 function _promptRight () {
     # Current directory
     local pwd="${PWD/#$HOME/$'~'}"
