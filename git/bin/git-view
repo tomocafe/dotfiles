@@ -1,0 +1,168 @@
+#!/bin/bash
+
+: ${BB_ROOT?requires bash-boost to run this script}
+source "$BB_ROOT/bash-boost.sh" || exit 5
+bb_load cli util/env
+
+# global vars
+ANCHOR=".anchor"
+HOOKS_DIR=".git-view-hooks"
+
+# Main routine
+
+main () {
+    # hack: remove -h if command given, then add back after parseargs so that commands can show help
+    # this should probably be fixed in bash-boost
+    hidden=()
+    shown=()
+    if [[ $# -gt 1 ]]; then
+        for arg in "$@"; do
+            case "$arg" in
+                -h|--help)
+                    hidden+=("$arg")
+                    ;;
+                *)
+                    shown+=("$arg")
+                    ;;
+            esac
+        done
+        set -- "${shown[@]}"
+    fi
+    # end
+    bb_setprog "git view"
+    bb_setpositional "{init,add,remove,list} ARGS ..."
+    bb_parseargs "$@"
+    set -- "${BB_POSARGS[@]}" # $@ now only contains the positional arguments
+    cmd="$1"
+    shift
+    set -- "$@" "${hidden[@]}"
+
+    prehook="$HOOKS_DIR/pre"
+    [[ -r $prehook ]] && source "$prehook"
+
+    case "$cmd" in
+        init)
+            init "$@"
+            ;;
+        a|add)
+            add "$@"
+            ;;
+        rm|d|remove)
+            remove "$@"
+            ;;
+        ls|list)
+            list "$@"
+            ;;
+    esac
+    
+    posthook="$HOOKS_DIR/post"
+    [[ -r $posthook ]] && source "$posthook"
+}
+
+# Helpers
+
+anchor_git () { command "${GIT:-git}" --git-dir="$ANCHOR" "$@"; }
+worktree_git () { command "${GIT:-git}" -C "$WTDIR" "$@"; }
+# export so that hooks can use them
+export -f anchor_git
+export -f worktree_git
+
+# Commands
+
+init () {
+    bb_setprog "git view init"
+    bb_setpositional "REMOTE"
+    bb_parseargs "$@"
+    set -- "${BB_POSARGS[@]}" # $@ now only contains the positional arguments
+    remote="$1"
+    bb_checkset remote || bb_fatal "missing required argument: REMOTE"
+    [[ -d $ANCHOR ]] && bb_fatal "git anchor already exists: $ANCHOR"
+
+    prehook="$HOOKS_DIR/pre-init"
+    [[ -r $prehook ]] && source "$prehook" "$ANCHOR"
+
+    command ${GIT:-git} clone --bare "$remote" "$ANCHOR"
+    
+    posthook="$HOOKS_DIR/post-init"
+    [[ -r $posthook ]] && source "$posthook" "$WTDIR"
+}
+
+add () {
+    bb_setprog "git view add"
+    bb_addopt base "base branch (optional)" ""
+    bb_addopt sha "commit (optional)" ""
+    bb_setpositional "BRANCH"
+    bb_parseargs "$@"
+    set -- "${BB_POSARGS[@]}" # $@ now only contains the positional arguments
+    branch="$1"
+    bb_getopt -v base base
+    bb_getopt -v sha sha
+
+    bb_checkset branch || bb_fatal "BRANCH not provided"
+
+    branch="${branch%/}"
+    WTDIR="${branch##*/}"
+    base="${base:-HEAD}"
+
+    [[ -d $WTDIR ]] && bb_fatal "worktree $WTDIR already exists"
+    [[ -d $ANCHOR ]] || bb_fatal "git anchor directory not found: $ANCHOR"
+
+    prehook="$HOOKS_DIR/pre-add"
+    [[ -r $prehook ]] && source "$prehook" "$WTDIR"
+
+    # Fetch to get latest branches in origin
+    anchor_git fetch --all --prune
+
+    # Check for unique branches in worktrees
+    if anchor_git worktree list --porcelain | grep -qE "^branch refs/heads/$branch\$"; then
+        bb_fatal "branch $branch is already checked out in another worktree"
+    fi
+
+    # Check if the branch needs to be created or if it already exists
+    if anchor_git show-ref --verify --quiet "refs/heads/$branch"; then
+        # Branch exists, check it out into a new worktree
+        anchor_git worktree add "$WTDIR" "$branch"
+    else
+        # Branch doesn't exist, create it from base
+        anchor_git rev-parse --verify --quiet "${base}^{commit}" &>/dev/null || bb_fatal "cannot resolve base $base"
+        anchor_git worktree add -b "$branch" "$WTDIR" "$base"
+    fi
+
+    if bb_checkset sha; then
+        worktree_git cat-file -e "${sha}^{commit}" &>/dev/null || bb_fatal "cannot resolve commit $sha"
+        worktree_git checkout --detach "$sha"
+    fi
+
+    posthook="$HOOKS_DIR/post-add"
+    [[ -r $posthook ]] && source "$posthook" "$WTDIR"
+}
+
+remove () {
+    bb_setprog "git view remove"
+    bb_setpositional "BRANCH_OR_DIR"
+    bb_parseargs "$@"
+    set -- "${BB_POSARGS[@]}" # $@ now only contains the positional arguments
+    branch="$1"
+
+    bb_checkset branch || bb_fatal "BRANCH not provided"
+
+    branch="${branch%/}"
+    WTDIR="${branch##*/}"
+
+    prehook="$HOOKS_DIR/pre-remove"
+    [[ -r $prehook ]] && source "$prehook" "$WTDIR"
+
+    anchor_git worktree remove "$WTDIR"
+    
+    posthook="$HOOKS_DIR/post-remove"
+    [[ -r $posthook ]] && source "$posthook" "$WTDIR"
+}
+
+list () {
+    [[ -d $ANCHOR ]] || bb_fatal "git anchor directory not found: $ANCHOR"
+    anchor_git worktree list
+}
+
+# Run the main function
+main "$@"
+
