@@ -1,0 +1,53 @@
+#!/bin/bash
+
+: ${BB_ROOT?requires bash-boost to run this script}
+source "$BB_ROOT/bash-boost.sh" || exit 5
+bb_load cli util/env util/list
+
+bb_setprog "git pclone"
+bb_addflag l:list "list profiles"
+bb_setpositional "<PROFILE> <REPO> [-- ARGS]" ""
+bb_parseargs "$@"
+set -- "${BB_POSARGS[@]}" # $@ now only contains the positional arguments
+profile="$1"
+repo="$2"
+git_args=( "${@:3}" )
+
+repo="${repo##*/}"
+repo="${repo%.git}"
+
+gitprofiles="${GITPROFILES:-$HOME/.gitprofiles}"
+
+_list () {
+    shopt -s nullglob
+    for p in $gitprofiles/*; do
+        echo "${p##*/}"
+    done    
+}
+if bb_checkopt list; then
+    _list
+    exit 0
+fi
+
+for v in profile repo; do
+    bb_checkset $v || bb_fatal "required positional argument: ${v^^}"
+done
+
+gitprofiles="${GITPROFILES:-$HOME/.gitprofiles}"
+profiledef="$gitprofiles/$profile"
+
+if [[ ! -r $gitprofiles/$profile ]]; then
+    bb_fatal "profile $profile not found at $profiledef"    
+fi
+
+source "$profiledef"
+
+for v in GITPROFILE_{USER,URL,EMAIL}; do
+    bb_checkset $v || bb_fatal "profile $profile missing $v"
+done
+
+GITPROFILE_NAME="${GITPROFILE_NAME:-$GITPROFILE_USER}"
+GITPROFILE_ORG="${GITPROFILE_ORG:-$GITPROFILE_USER}"
+
+git clone -c "user.name=$GITPROFILE_NAME" -c "user.email=$GITPROFILE_EMAIL" "git@${GITPROFILE_URL}:${GITPROFILE_ORG}/${repo}.git" "${git_args[@]}"
+
