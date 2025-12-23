@@ -166,3 +166,5 @@ list () {
 # Run the main function
 main "$@"
 
+exit 0
+
