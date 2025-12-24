@@ -66,6 +66,15 @@ init () {
     [[ -r $prehook ]] && source "$prehook" "$ANCHOR"
 
     command ${GIT:-git} clone --bare "$remote" "$ANCHOR"
+
+    # Need to explicitly add fetch refspec when cloning with --bare
+    anchor_git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'
+
+    # Also fetch tags
+    anchor_git config remote.origin.tagOpt --tags
+
+    # Fetch from origin
+    anchor_git fetch --prune origin
     
     posthook="$HOOKS_DIR/post-init"
     [[ -r $posthook ]] && source "$posthook" "$WTDIR"
