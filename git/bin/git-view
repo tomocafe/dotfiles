@@ -152,7 +152,7 @@ remove () {
     prehook="$HOOKS_DIR/pre-remove"
     [[ -r $prehook ]] && source "$prehook" "$WTDIR"
 
-    anchor_git worktree remove "$WTDIR"
+    anchor_git worktree remove --force "$WTDIR"
     
     posthook="$HOOKS_DIR/post-remove"
     [[ -r $posthook ]] && source "$posthook" "$WTDIR"
