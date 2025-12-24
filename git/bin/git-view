@@ -11,31 +11,13 @@ HOOKS_DIR=".git-view-hooks"
 # Main routine
 
 main () {
-    # hack: remove -h if command given, then add back after parseargs so that commands can show help
-    # this should probably be fixed in bash-boost
-    hidden=()
-    shown=()
-    if [[ $# -gt 1 ]]; then
-        for arg in "$@"; do
-            case "$arg" in
-                -h|--help)
-                    hidden+=("$arg")
-                    ;;
-                *)
-                    shown+=("$arg")
-                    ;;
-            esac
-        done
-        set -- "${shown[@]}"
-    fi
-    # end
+    # hack: hide all but the first arg for this argparse, letting the command parsers process the rest of the args
     bb_setprog "git view"
     bb_setpositional "{init,add,remove,list} ARGS ..."
-    bb_parseargs "$@"
-    set -- "${BB_POSARGS[@]}" # $@ now only contains the positional arguments
+    bb_parseargs "$1"
     cmd="$1"
     shift
-    set -- "$@" "${hidden[@]}"
+    set -- "$@"
 
     prehook="$HOOKS_DIR/pre"
     [[ -r $prehook ]] && source "$prehook"
@@ -53,6 +35,8 @@ main () {
         ls|list)
             list "$@"
             ;;
+        *)
+            bb_fatal "invalid command"
     esac
     
     posthook="$HOOKS_DIR/post"
