@@ -112,9 +112,16 @@ add () {
         anchor_git worktree add -b "$branch" "$WTDIR" "$base"
     fi
 
+    # Checkout specified commit in detached HEAD state, if given
     if bb_checkset sha; then
         worktree_git cat-file -e "${sha}^{commit}" &>/dev/null || bb_fatal "cannot resolve commit $sha"
         worktree_git checkout --detach "$sha"
+    fi
+
+    # Fetch submodules if present
+    if [[ -e "$WTDIR/.gitmodules" ]]; then
+        worktree_git submodule sync --recursive
+        worktree_git submodule update --init --recursive
     fi
 
     posthook="$HOOKS_DIR/post-add"
