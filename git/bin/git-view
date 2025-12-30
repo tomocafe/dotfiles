@@ -2,7 +2,7 @@
 
 : ${BB_ROOT?requires bash-boost to run this script}
 source "$BB_ROOT/bash-boost.sh" || exit 5
-bb_load cli util/env
+bb_load cli util/env util/string
 
 # global vars
 ANCHOR=".anchor"
@@ -50,6 +50,12 @@ worktree_git () { command "${GIT:-git}" -C "$WTDIR" "$@"; }
 # export so that hooks can use them
 export -f anchor_git
 export -f worktree_git
+
+git_ver_check () {
+    local ver
+    ver=( $(command "${GIT:-git}" -v) )
+    bb_cmpversion "${ver[-1]}" "$1"
+}
 
 # Commands
 
@@ -112,13 +118,15 @@ add () {
     fi
 
     # Check if the branch needs to be created or if it already exists
+    add_opts=()
+    git_ver_check "2.48" && add_opts+=('--relative-paths')
     if anchor_git show-ref --verify --quiet "refs/heads/$branch"; then
         # Branch exists, check it out into a new worktree
-        anchor_git worktree add "$WTDIR" "$branch"
+        anchor_git worktree add "${add_opts[@]}" "$WTDIR" "$branch"
     else
         # Branch doesn't exist, create it from base
         anchor_git rev-parse --verify --quiet "${base}^{commit}" &>/dev/null || bb_fatal "cannot resolve base $base"
-        anchor_git worktree add -b "$branch" "$WTDIR" "$base"
+        anchor_git worktree add "${add_opts[@]}" -b "$branch" "$WTDIR" "$base"
     fi
 
     # Checkout specified commit in detached HEAD state, if given
