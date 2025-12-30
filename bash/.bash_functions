@@ -146,24 +146,33 @@ function _fastGitDetect () {
     local here="${1:-$PWD}"
     here="$(readlink -f "$here")" # in case of symlink crossing filesystem boundary
     while : ; do
-        [[ -d "$here/.git" ]] && return $__bb_true
+        [[ -e "$here/.git" ]] && return $__bb_true
         here="${here%/*}"
         [[ $here == "/" || $here == "" ]] && break
     done
     return $__bb_false
 }
 
-function _promptGit () {
+function _unsetGitPromptVars () {
+    unset GIT_PROMPT_REPO
+    unset GIT_PROMPT_BRANCH
+    unset GIT_PROMPT_UNCLEAN_FILE_STATS
+}
+
+function _preGitDetect () {
     local status
-    unset git
-    timeout ${GIT_PROMPT_STATUS_FAST_TIMEOUT:-0.4s} git status -s &>/dev/null; status=$?
+    local gitcmd
+    gitcmd="${GIT_PROMPT_GIT:-git}"
+    timeout ${GIT_PROMPT_STATUS_FAST_TIMEOUT:-0.4s} $gitcmd status -s &>/dev/null; status=$?
     if [[ $status -eq 124 ]]; then # timed out, use fallback method; see timeout --help for magic number 124
         if ! _fastGitDetect; then
             # We are not in a git repository
-            return $__bb_false
+            _unsetGitPromptVars
+            return
         fi
     elif [[ $status -ne 0 ]]; then
-        return $__bb_false # got non-zero from git status and it didn't timeout
+        _unsetGitPromptVars
+        return # got non-zero from git status and it didn't timeout
     fi
     # Count the number of changed/untracked/conflict/staged files
     local line
@@ -171,7 +180,7 @@ function _promptGit () {
     local untrackedCt=0
     local conflictCt=0
     local stagedCt=0
-    uncleanFileStats=()
+    local uncleanFileStats=()
     while read -r line; do
         case "${line:0:2}" in
             *M*)   let changedCt++ ;;
@@ -179,13 +188,13 @@ function _promptGit () {
             \?\?)  let untrackedCt++ ;;
             *)     let stagedCt++ ;;
         esac
-    done < <(LC_ALL=C timeout ${GIT_PROMPT_STATUS_TIMEOUT:-1s} git status --untracked-files=all --porcelain)
+    done < <(LC_ALL=C timeout ${GIT_PROMPT_STATUS_TIMEOUT:-1s} $gitcmd status --untracked-files=all --porcelain)
     [[ $changedCt -gt 0 ]] && uncleanFileStats+=("M:$changedCt")
     [[ $conflictCt -gt 0 ]] && uncleanFileStats+=("U:$conflictCt")
     [[ $untrackedCt -gt 0 ]] && uncleanFileStats+=("?:$untrackedCt")
     [[ $stagedCt -gt 0 ]] && uncleanFileStats+=("*:$stagedCt")
     # Use remote origin URL to determine repo name, otherwise use top level directory name
-    local remoteOriginUrl=$(git config --get remote.origin.url 2>/dev/null)
+    local remoteOriginUrl=$(command $gitcmd config --get remote.origin.url 2>/dev/null)
     local repoName
     case "$remoteOriginUrl" in
         *.com[/:]*) repoName=${remoteOriginUrl##*.com[/:]} ;;
@@ -194,18 +203,25 @@ function _promptGit () {
         *.net[/:]*) repoName=${remoteOriginUrl##*.net[/:]} ;;
         *.io[/:]*)  repoName=${remoteOriginUrl##*.io[/:]}  ;;
         *)
-            repoName=$(git rev-parse --show-toplevel)
+            repoName=$(command $gitcmd rev-parse --show-toplevel)
             repoName=${repoName##*/}
             ;;
     esac
     repoName=${repoName%.git}
     # Determine the current branch
-    local branch=$(git symbolic-ref -q HEAD)
+    local branch=$(command $gitcmd symbolic-ref -q HEAD)
     branch=${branch#refs/heads/}
+    # Export variables for use by prompt functions
+    export GIT_PROMPT_REPO="$repoName"
+    export GIT_PROMPT_BRANCH="$branch"
+    export GIT_PROMPT_UNCLEAN_FILE_STATS="${uncleanFileStats[*]}"
+}
+
+function _promptGit () {
+    bb_checkset GIT_PROMPT_REPO || return $__bb_false
     echo -n " "
-    local statline="$repoName${branch:+ $branch}${uncleanFileStats:+ (${uncleanFileStats[@]})}"
+    local statline="$GIT_PROMPT_REPO${GIT_PROMPT_BRANCH:+ $GIT_PROMPT_BRANCH}${GIT_PROMPT_UNCLEAN_FILE_STATS:+ (${GIT_PROMPT_UNCLEAN_FILE_STATS})}"
     bb_promptcolor "magenta" "$statline"
-    unset uncleanFileStats
     return $__bb_true
 }
 
@@ -271,12 +287,15 @@ function _promptFilesystem () {
 
 function _promptRight () {
     # Current directory
-    local pwd="${PWD/#$HOME/$'~'}"
-    local dirpath="${pwd%/*}/"
-    local dirname="${pwd##*/}"
-    local width=$(( ${#dirpath} + ${#dirname} ))
-    if [[ $dirname != '~' && $width -lt $BB_PROMPT_REM ]]; then
-        echo -n "$dirpath"
+    # Print the parent directories in dim color and the current directory in bright color
+    local pwd
+    local dirname
+    bb_abbrevpath -v pwd "$PWD" $(( BB_PROMPT_REM - 1 )) "${ELLIPSIS:-...}"
+    if [[ $pwd == */* ]]; then
+        dirname="${pwd##*/}"
+        echo -n "${pwd%/*}/"
+    else
+        dirname="$pwd"
     fi
     bb_promptcolor "$COLOR_FG_BRIGHTER" "$dirname"
 }
@@ -291,7 +310,19 @@ function _promptNextLine () {
 }
 
 function _promptWintitle () {
-    echo -e "${HOSTNAME}:${TTY_NUM}${SHELL_ROOT_PROC_DESC:+ ($SHELL_ROOT_PROC_DESC)}"
+    local line=""
+    if bb_checkset PROMPT_LOCAL_ONLY; then
+        if bb_checkset GIT_PROMPT_REPO; then
+            line="${GIT_PROMPT_REPO#*/}${GIT_PROMPT_BRANCH:+:$GIT_PROMPT_BRANCH}"
+        else
+            local pwd
+            bb_abbrevpath -v pwd "$PWD" 30 "${ELLIPSIS:-...}"
+            line="$pwd"
+        fi
+    else
+        line="${HOSTNAME}:${TTY_NUM}${SHELL_ROOT_PROC_DESC:+ ($SHELL_ROOT_PROC_DESC)}"
+    fi
+    echo -e "$line"
 }
 
 ###############################################################################
