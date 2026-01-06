@@ -275,11 +275,13 @@ function _promptBookmark () {
 function _promptFilesystem () {
     local fstype
     fstype="$(stat -f -c %T "$PWD" 2>/dev/null)"
+    local null="\0"
     case "$fstype" in
-        v9fs)
+        ${PROMPT_FSTYPE_RED_PATTERN:-$null})
             bb_promptcolor "red" "[$fstype]"
             ;;
         *)
+            return
             ;;
     esac
     echo -n " "
