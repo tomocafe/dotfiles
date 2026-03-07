@@ -147,6 +147,7 @@ add () {
 
 remove () {
     bb_setprog "git view remove"
+    bb_addflag "d:delete-branch" "delete git branch"
     bb_setpositional "BRANCH_OR_DIR"
     bb_parseargs "$@"
     set -- "${BB_POSARGS[@]}" # $@ now only contains the positional arguments
@@ -160,8 +161,24 @@ remove () {
     prehook="$HOOKS_DIR/pre-remove"
     [[ -r $prehook ]] && source "$prehook" "$WTDIR"
 
+    git_branch="$(worktree_git branch --show-current)" || unset git_branch
+
     anchor_git worktree remove --force "$WTDIR"
     
+    if bb_checkopt "delete-branch"; then
+        if bb_checkset git_branch; then
+            if [[ ${git_branch##*/} == $WTDIR ]]; then
+                anchor_git branch --delete "$git_branch"
+            else
+                echo "worktree $WTDIR is on branch $git_branch -- skipping branch delete as requested" 1>&2
+                echo "delete manually with:" 1>&2
+                echo 1>&2
+                echo "  git --git-dir=$ANCHOR branch --delete $git_branch" 1>&2
+                echo 1>&2
+            fi
+        fi
+    fi
+
     posthook="$HOOKS_DIR/post-remove"
     [[ -r $posthook ]] && source "$posthook" "$WTDIR"
 }
